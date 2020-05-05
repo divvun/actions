@@ -30,8 +30,9 @@ const TOOLS: Record<string, Tool> = {
 const TOOLS_PATH = "_tools"
 
 function getSetupScript() {
+  console.log(`${__dirname}/setup-macos.sh`)
   if (process.platform == "darwin")
-    return "setup-macos.sh"
+    return `${__dirname}/setup-macos.sh`
   // if (process.platform == "linux")
   //   return "setup-linux.sh"
 

@@ -4,6 +4,7 @@ inputs:
   key:
     description: 'Divvun CI Config Encryption Key'
     required: true
+  
 # outputs:
 #   time: # id of output
 #     description: 'The time we greeted you'
