@@ -1,0 +1,12 @@
+name: 'Bundle a thing'
+description: ''
+inputs:
+  manifest:
+    description: 'Manifest file to bundle'
+    required: true
+outputs:
+  installer:
+    description: 'The created installer'
+runs:
+  using: 'node12'
+  main: 'index.js'

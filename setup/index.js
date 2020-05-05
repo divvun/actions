@@ -12,6 +12,7 @@ const core = __importStar(require("@actions/core"));
 const tc = __importStar(require("@actions/tool-cache"));
 const exec = __importStar(require("@actions/exec"));
 const io = __importStar(require("@actions/io"));
+const os = __importStar(require("os"));
 const TOOLS = {
     divvun_bundler: {
         darwin: "https://github.com/divvun/divvun-bundler/releases/download/0.1.0/divvun-bundler-macos",
@@ -28,12 +29,16 @@ const TOOLS = {
         darwin: "https://github.com/divvun/kbdgen/releases/download/v2.0.0-alpha.5/kbdgen_2.0.0-alpha.5_macos_amd64.tar.xz",
         linux: "https://github.com/divvun/kbdgen/releases/download/v2.0.0-alpha.5/kbdgen_2.0.0-alpha.5_linux_amd64.tar.xz",
         win32: "https://github.com/divvun/kbdgen/releases/download/v2.0.0-alpha.5/kbdgen_2.0.0-alpha.5_windows_amd64.exe",
+    },
+    xcnotary: {
+        darwin: "https://github.com/fry/xcnotary/releases/download/v0.4.1/xcnotary"
     }
 };
 const TOOLS_PATH = "_tools";
 function getSetupScript() {
+    console.log(`${__dirname}/setup-macos.sh`);
     if (process.platform == "darwin")
-        return "setup-macos.sh";
+        return `${__dirname}/setup-macos.sh`;
     // if (process.platform == "linux")
     //   return "setup-linux.sh"
     throw new Error(`Unsupported platform ${process.platform}`);
@@ -48,23 +53,32 @@ async function run() {
     try {
         const divvunKey = core.getInput('key');
         console.log("Setting up environment");
-        await exec.exec(getSetupScript(), undefined, {
+        await exec.exec("bash", [getSetupScript()], {
             env: {
-                "DIVVUN_KEY": divvunKey
+                "DIVVUN_KEY": divvunKey,
+                "HOME": os.homedir()
             }
         });
         console.log("Installing tools");
         //const toolName = "divvun-bundler"
         for (const toolName in TOOLS) {
             console.log(`installing tool ${toolName}`);
-            const toolDir = `${TOOLS_PATH}/${toolName}`;
+            const url = getToolUrl(toolName);
+            if (!url) {
+                console.log("tool not available");
+                continue;
+            }
+            const toolDir = `${TOOLS_PATH}/${toolName}/`;
             io.mkdirP(toolDir);
-            const downloadPath = await tc.downloadTool(getToolUrl(toolName), toolDir);
+            const downloadPath = await tc.downloadTool(url);
             if (downloadPath.endsWith("tar.xz")) {
                 if (process.platform != "win32")
-                    tc.extractTar(downloadPath);
+                    tc.extractTar(downloadPath, toolDir);
                 else
                     throw new Error("Can't extract tool on windows");
+            }
+            else {
+                io.cp(downloadPath, `${toolDir}/${toolName}`);
             }
             core.addPath(toolDir);
         }

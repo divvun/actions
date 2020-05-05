@@ -3,6 +3,7 @@ import * as core from '@actions/core'
 import * as tc from '@actions/tool-cache'
 import * as exec from '@actions/exec'
 import * as io from '@actions/io'
+import * as os from 'os'
 
 type Tool = {
   [platform: string]: string
@@ -24,6 +25,9 @@ const TOOLS: Record<string, Tool> = {
     darwin: "https://github.com/divvun/kbdgen/releases/download/v2.0.0-alpha.5/kbdgen_2.0.0-alpha.5_macos_amd64.tar.xz",
     linux: "https://github.com/divvun/kbdgen/releases/download/v2.0.0-alpha.5/kbdgen_2.0.0-alpha.5_linux_amd64.tar.xz",
     win32: "https://github.com/divvun/kbdgen/releases/download/v2.0.0-alpha.5/kbdgen_2.0.0-alpha.5_windows_amd64.exe",
+  },
+  xcnotary: {
+    darwin: "https://github.com/fry/xcnotary/releases/download/v0.4.1/xcnotary"
   }
 }
 
@@ -31,6 +35,7 @@ const TOOLS_PATH = "_tools"
 
 function getSetupScript() {
   console.log(`${__dirname}/setup-macos.sh`)
+
   if (process.platform == "darwin")
     return `${__dirname}/setup-macos.sh`
   // if (process.platform == "linux")
@@ -51,9 +56,10 @@ async function run() {
     const divvunKey = core.getInput('key');
 
     console.log("Setting up environment")
-    await exec.exec(getSetupScript(), undefined, {
+    await exec.exec("bash", [getSetupScript()], {
       env: {
-        "DIVVUN_KEY": divvunKey
+        "DIVVUN_KEY": divvunKey,
+        "HOME": os.homedir()
       }
     });
 
@@ -63,14 +69,21 @@ async function run() {
     //const toolName = "divvun-bundler"
     for (const toolName in TOOLS) {
       console.log(`installing tool ${toolName}`)
-      const toolDir = `${TOOLS_PATH}/${toolName}`
+      const url = getToolUrl(toolName)
+      if (!url) {
+        console.log("tool not available")
+        continue;
+      }
+      const toolDir = `${TOOLS_PATH}/${toolName}/`
       io.mkdirP(toolDir)
-      const downloadPath = await tc.downloadTool(getToolUrl(toolName), toolDir)
+      const downloadPath = await tc.downloadTool(url)
       if (downloadPath.endsWith("tar.xz")) {
         if (process.platform != "win32")
-          tc.extractTar(downloadPath)
+          tc.extractTar(downloadPath, toolDir)
         else
           throw new Error("Can't extract tool on windows")
+      } else {
+        io.cp(downloadPath, `${toolDir}/${toolName}`)
       }
       core.addPath(toolDir)
     }
