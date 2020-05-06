@@ -6,6 +6,9 @@ var __importStar = (this && this.__importStar) || function (mod) {
     result["default"] = mod;
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(require("@actions/core"));
 // import * as github from '@actions/github'
@@ -13,12 +16,13 @@ const tc = __importStar(require("@actions/tool-cache"));
 const exec = __importStar(require("@actions/exec"));
 const io = __importStar(require("@actions/io"));
 const os = __importStar(require("os"));
+const path_1 = __importDefault(require("path"));
 const TOOLS = {
-    divvun_bundler: {
+    "divvun-bundler": {
         darwin: "https://github.com/divvun/divvun-bundler/releases/download/0.1.0/divvun-bundler-macos",
         win32: "https://github.com/divvun/divvun-bundler/releases/download/0.1.0/divvun-bundler.exe",
     },
-    reg_tool: {
+    "win-reg-tool": {
         win32: "https://github.com/fry/win-reg-tool/releases/download/0.1.3/win-reg-tool.exe",
     },
     pahkat: {
@@ -36,9 +40,10 @@ const TOOLS = {
 };
 const TOOLS_PATH = "_tools";
 function getSetupScript() {
-    console.log(`${__dirname}/setup-macos.sh`);
     if (process.platform == "darwin")
         return `${__dirname}/setup-macos.sh`;
+    if (process.platform == "win32")
+        return `${__dirname}/setup-win.sh`;
     // if (process.platform == "linux")
     //   return "setup-linux.sh"
     throw new Error(`Unsupported platform ${process.platform}`);
@@ -54,13 +59,16 @@ async function run() {
         const divvunKey = core.getInput('key');
         console.log("Setting up environment");
         await exec.exec("bash", [getSetupScript()], {
+            cwd: process.env['RUNNER_WORKSPACE'],
             env: {
                 "DIVVUN_KEY": divvunKey,
                 "HOME": os.homedir()
             }
         });
+        if (process.platform == "win32") {
+            core.addPath("C:\\Program Files (x86)\\Microsoft SDKs\\ClickOnce\\SignTool");
+        }
         console.log("Installing tools");
-        //const toolName = "divvun-bundler"
         for (const toolName in TOOLS) {
             console.log(`installing tool ${toolName}`);
             const url = getToolUrl(toolName);
@@ -68,7 +76,8 @@ async function run() {
                 console.log("tool not available");
                 continue;
             }
-            const toolDir = `${TOOLS_PATH}/${toolName}/`;
+            const toolDir = path_1.default.resolve(TOOLS_PATH, toolName);
+            console.log(`tool dir ${toolDir}`);
             io.mkdirP(toolDir);
             const downloadPath = await tc.downloadTool(url);
             if (downloadPath.endsWith("tar.xz")) {
@@ -78,7 +87,14 @@ async function run() {
                     throw new Error("Can't extract tool on windows");
             }
             else {
-                io.cp(downloadPath, `${toolDir}/${toolName}`);
+                const toolDest = `${toolDir}/${toolName}`;
+                if (process.platform == "win32") {
+                    io.cp(downloadPath, `${toolDest}.exe`);
+                }
+                else {
+                    io.cp(downloadPath, toolDest);
+                    exec.exec("chmod", ['+x', toolDest]);
+                }
             }
             core.addPath(toolDir);
         }
