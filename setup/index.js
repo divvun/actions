@@ -16,6 +16,7 @@ const exec = __importStar(require("@actions/exec"));
 const io = __importStar(require("@actions/io"));
 const os = __importStar(require("os"));
 const path_1 = __importDefault(require("path"));
+const shared_1 = require("../shared");
 const TOOLS = {
     "divvun-bundler": {
         darwin: "https://github.com/divvun/divvun-bundler/releases/download/0.1.0/divvun-bundler-macos",
@@ -76,6 +77,7 @@ async function run() {
         if (process.platform == "win32") {
             core.addPath("C:\\Program Files (x86)\\Microsoft SDKs\\ClickOnce\\SignTool");
         }
+        core.exportVariable("DIVVUN_CI_CONFIG", shared_1.divvunConfigDir());
         console.log("Installing tools");
         for (const toolName in TOOLS) {
             console.log(`installing tool ${toolName}`);

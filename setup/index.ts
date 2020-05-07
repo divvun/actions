@@ -5,6 +5,7 @@ import * as exec from '@actions/exec'
 import * as io from '@actions/io'
 import * as os from 'os'
 import path from 'path'
+import { divvunConfigDir } from '../shared'
 
 type Tool = {
   [platform: string]: string
@@ -77,6 +78,8 @@ async function run() {
     if (process.platform == "win32") {
       core.addPath("C:\\Program Files (x86)\\Microsoft SDKs\\ClickOnce\\SignTool")
     }
+
+    core.exportVariable("DIVVUN_CI_CONFIG", divvunConfigDir())
 
     console.log("Installing tools")
 
