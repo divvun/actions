@@ -11,11 +11,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(require("@actions/core"));
-// import * as github from '@actions/github'
-// import * as tc from '@actions/tool-cache'
 const exec = __importStar(require("@actions/exec"));
 const io = __importStar(require("@actions/io"));
-// import os from 'os'
 const toml_1 = __importDefault(require("toml"));
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));

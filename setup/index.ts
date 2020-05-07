@@ -22,6 +22,10 @@ const TOOLS: Record<string, Tool> = {
     darwin: "https://github.com/divvun/pahkat/releases/download/0.6.0/pahkat-macos",
     win32: "https://github.com/divvun/pahkat/releases/download/0.6.0/pahkat.exe",
   },
+  "pahkat-repomgr": {
+    darwin: "https://github.com/divvun/pahkat/releases/download/0.6.0/pahkat-repomgr-macos",
+    win32: "https://github.com/divvun/pahkat/releases/download/0.6.0/pahkat-repomgr.exe",
+  },
   kbdgen: {
     darwin: "https://github.com/divvun/kbdgen/releases/download/v2.0.0-alpha.5/kbdgen_2.0.0-alpha.5_macos_amd64.tar.xz",
     linux: "https://github.com/divvun/kbdgen/releases/download/v2.0.0-alpha.5/kbdgen_2.0.0-alpha.5_linux_amd64.tar.xz",
