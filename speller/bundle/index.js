@@ -16,7 +16,7 @@ const io = __importStar(require("@actions/io"));
 const path_1 = __importDefault(require("path"));
 const toml_1 = __importDefault(require("toml"));
 const fs_1 = __importDefault(require("fs"));
-const shared_1 = require("../shared");
+const shared_1 = require("../../shared");
 async function run() {
     try {
         const manifestPath = core.getInput('manifest');

@@ -6,7 +6,8 @@ import * as io from '@actions/io'
 import path from 'path'
 import toml from 'toml'
 import fs from 'fs'
-import { divvunConfigDir, getDivvunEnv, Manifest, BundleType } from '../shared'
+import { divvunConfigDir, getDivvunEnv } from '../../shared'
+import { Manifest, BundleType } from '../manifest'
 
 async function run() {
     try {

@@ -4,7 +4,7 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-        "build": "npx ncc build setup/index.ts --minify -o setup/dist && tsc"
+        "build": "tsc"
     },
     "keywords": [],
     "author": "",
