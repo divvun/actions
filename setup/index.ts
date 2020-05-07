@@ -33,6 +33,11 @@ const TOOLS: Record<string, Tool> = {
   },
   xcnotary: {
     darwin: "https://github.com/fry/xcnotary/releases/download/v0.4.1/xcnotary"
+  },
+  "thfst-tools": {
+    win32: "https://github.com/divvun/divvunspell/releases/download/v1.0.0-alpha.2/thfst-tools_win.exe",
+    darwin: "https://github.com/divvun/divvunspell/releases/download/v1.0.0-alpha.2/thfst-tools_macos",
+    linux: "https://github.com/divvun/divvunspell/releases/download/v1.0.0-alpha.2/thfst-tools_linux"
   }
 }
 
@@ -43,8 +48,8 @@ function getSetupScript() {
     return `${__dirname}/setup-macos.sh`
   if (process.platform == "win32")
     return `${__dirname}/setup-win.sh`
-  // if (process.platform == "linux")
-  //   return "setup-linux.sh"
+  if (process.platform == "linux")
+    return "setup-linux.sh"
 
   throw new Error(`Unsupported platform ${process.platform}`)
 }

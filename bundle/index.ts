@@ -3,58 +3,21 @@ import * as core from '@actions/core'
 // import * as tc from '@actions/tool-cache'
 import * as exec from '@actions/exec'
 import * as io from '@actions/io'
-// import os from 'os'
+import path from 'path'
 import toml from 'toml'
 import fs from 'fs'
-import path from 'path'
-
-interface Speller {
-    filename: string
-    name_win?: string
-}
-
-interface Manifest {
-    package: {
-        name: string,
-        human_name: string,
-        version: string,
-        uuid_win: string,
-        uuid_LO: string,
-        uuid_win_mso: string,
-    },
-    spellers: Record<string, Speller>
-}
-
-function divvunConfigDir() {
-    const runner = process.env['RUNNER_WORKSPACE']
-    if (!runner)
-        throw new Error('no RUNNER_WORKSPACE set');
-    return path.resolve(runner, "divvun-ci-config")
-}
-
-async function getDivvunEnv(name: string) {
-    let output = ""
-    const options = {
-        cwd: divvunConfigDir(),
-        listeners: {
-            stdout: (data: Buffer) => {
-                output += data.toString();
-            },
-            stderr: (data: Buffer) => {
-                console.log(data.toString())
-            }
-        }
-    }
-
-    await exec.exec("bash", ["-c", `source ./enc/env.sh && echo $${name}`], options)
-    return output.trim()
-}
+import { divvunConfigDir, getDivvunEnv, Manifest, BundleType } from '../shared'
 
 async function run() {
     try {
         const manifestPath = core.getInput('manifest');
         const manifest = toml.parse(fs.readFileSync(manifestPath).toString()) as Manifest
         console.log(manifest)
+        const bundleType = core.getInput('bundleType') as BundleType;
+
+        const bundle = manifest.bundles[bundleType]
+        if (!bundle)
+            throw new Error(`No such bundle ${bundleType}`)
 
         const isWindows = process.platform === 'win32'
         const spellerArgs = []
@@ -72,7 +35,7 @@ async function run() {
 
         console.log(divvunConfigDir())
 
-        if (process.platform == "darwin") {
+        if (bundleType == "speller_macos") {
             console.log(process.env)
             const args = [
                 "-R", "-o", "output", "-t", "osx",
@@ -99,10 +62,11 @@ async function run() {
             if (exit != 0 || !fs.existsSync(outputFile)) {
                 throw new Error("divvun-bundler failed");
             }
-            core.setOutput("installer", outputFile)
-        } else if (process.platform === "win32") {
+
+            core.setOutput("bundle", path.resolve(outputFile))
+        } else if (bundleType == "speller_win") {
             const args = ["-R", "-t", "win", "-o", "output",
-                "--uuid", manifest.package.uuid_win,
+                "--uuid", bundle.uuid!,
                 "-H", manifest.package.human_name,
                 "-V", manifest.package.version,
                 "-c", `${divvunConfigDir()}\\enc\\creds\\windows\\divvun.pfx`,
@@ -124,8 +88,10 @@ async function run() {
                 throw new Error("divvun-bundler failed");
             }
 
+            core.setOutput("bundle", path.resolve(outputFile))
+        } else if (bundleType == "speller_win_mso") {
             const args_mso = ["-R", "-t", "win", "-o", "output",
-                "--uuid", manifest.package.uuid_win_mso,
+                "--uuid", bundle.uuid!,
                 "-H", `${manifest.package.human_name} MSOffice`,
                 "-V", manifest.package.version,
                 "-c", `${divvunConfigDir()}\\enc\\creds\\windows\\divvun.pfx`,
@@ -148,10 +114,37 @@ async function run() {
                 throw new Error("divvun-bundler failed");
             }
 
-            core.setOutput("installer", outputFile)
-            core.setOutput("installer_mso", outputFileMso)
+            core.setOutput("bundle", path.resolve(outputFileMso))
+        } else if (bundleType == "speller_mobile") {
+            const files = []
+            const tarDir = path.resolve("_tar")
+            await io.mkdirP(tarDir)
+            // Convert zhfsts
+            for (const spellerName in manifest.spellers) {
+                const speller = manifest.spellers[spellerName]
+                const spellerTargetFileName = `${spellerName}.zhfst`
+                const spellerNewFileName = `${spellerName}.bhfst`
+                await io.cp(speller.filename, path.join(tarDir, spellerTargetFileName))
+                const exit = await exec.exec("thfst-tools", ["zhfst-to-bhfst", spellerTargetFileName], {
+                    cwd: tarDir
+                })
+                if (exit != 0) {
+                    throw new Error(`Failed to convert ${spellerName}`)
+                }
+                files.push(spellerNewFileName)
+            }
+
+            const outputFile = path.resolve(tarDir, `${manifest.package.name}-${manifest.package.version}.txz`)
+            console.log(outputFile)
+            // Archive
+            const exit = await exec.exec("tar", ["cJf", outputFile].concat(files), { cwd: tarDir })
+            if (exit != 0) {
+                throw new Error("tar failed")
+            }
+
+            core.setOutput("bundle", path.resolve(outputFile))
         } else {
-            throw new Error(`Unsupported platform ${process.platform}`)
+            throw new Error(`Unsupported bundleType ${bundleType}`)
         }
 
 

@@ -1,0 +1,18 @@
+name: 'Deploy a thing'
+description: ''
+inputs:
+  manifest:
+    description: 'Manifest file of the thing to deploy'
+    required: true
+  payload:
+    description: 'Path to payload artifact to deploy'
+    required: true
+  bundleType:
+    description: 'Bundle type in manifest to deploy'
+    required: true
+  testDeploy:
+    description: "Go as far as possible but don't actually deploy to Pahkat"
+    required: false
+runs:
+  using: 'node12'
+  main: 'index.js'

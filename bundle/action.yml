@@ -4,9 +4,12 @@ inputs:
   manifest:
     description: 'Manifest file to bundle'
     required: true
+  bundleType:
+    description: 'What bundle to create'
+    required: true
 outputs:
-  installer:
-    description: 'The created installer'
+  bundle:
+    description: 'The bundled thing. An installer or an archive'
 runs:
   using: 'node12'
   main: 'index.js'
