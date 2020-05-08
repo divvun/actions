@@ -48,8 +48,8 @@ async function run() {
                 "-V", manifest.package.version,
                 "-a", "Developer ID Application: The University of Tromso (2K5J2584NX)",
                 "-i", "Developer ID Installer: The University of Tromso (2K5J2584NX)",
-                "-n", await shared_1.getDivvunEnv("DEVELOPER_ACCOUNT"),
-                "-k", await shared_1.getDivvunEnv("DEVELOPER_PASSWORD_CHAIN_ITEM"),
+                "-n", await shared_1.getDivvunEnv("MACOS_DEVELOPER_ACCOUNT"),
+                "-k", await shared_1.getDivvunEnv("MACOS_DEVELOPER_PASSWORD_CHAIN_ITEM"),
                 "speller",
                 "-f", manifest.package.name,
             ].concat(spellerArgs);
