@@ -37,6 +37,7 @@ async function run() {
                 "DEPLOY_SVN_PKG_PLATFORM": bundle.platform,
                 "DEPLOY_SVN_PKG_PAYLOAD": payload,
                 "DEPLOY_SVN_PKG_VERSION": manifest.package.version,
+                "DEPLOY_SVN_REPO_ARTIFACTS": "https://pahkat.uit.no/artifacts/",
                 "DEPLOY_SVN_COMMIT": !testDeploy ? "1" : ""
             }
         });
