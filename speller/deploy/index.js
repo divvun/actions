@@ -25,7 +25,7 @@ async function run() {
         const bundle = manifest.bundles[bundleType];
         if (!bundle)
             throw new Error(`No such bundle ${bundleType}`);
-        const testDeploy = !!core.getInput('testDeploy');
+        const testDeploy = !!core.getInput('testDeploy') || !shared_1.shouldDeploy();
         const deployScript = path_1.default.join(shared_1.divvunConfigDir(), "repo", "scripts", "pahkat_deploy_new.sh");
         const exit = await exec.exec("bash", [deployScript], {
             env: {

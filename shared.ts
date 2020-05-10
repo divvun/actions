@@ -1,5 +1,6 @@
 import * as exec from '@actions/exec'
 import path from 'path'
+import * as github from '@actions/github'
 
 export function divvunConfigDir() {
     const runner = process.env['RUNNER_WORKSPACE']
@@ -24,4 +25,11 @@ export async function getDivvunEnv(name: string) {
 
     await exec.exec("bash", ["-c", `source ./enc/env.sh && echo $${name}`], options)
     return output.trim()
+}
+
+
+export function shouldDeploy() {
+    const isMaster = github.context.ref == 'refs/heads/master'
+
+    return isMaster
 }

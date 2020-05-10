@@ -12,6 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const exec = __importStar(require("@actions/exec"));
 const path_1 = __importDefault(require("path"));
+const github = __importStar(require("@actions/github"));
 function divvunConfigDir() {
     const runner = process.env['RUNNER_WORKSPACE'];
     if (!runner)
@@ -36,3 +37,8 @@ async function getDivvunEnv(name) {
     return output.trim();
 }
 exports.getDivvunEnv = getDivvunEnv;
+function shouldDeploy() {
+    const isMaster = github.context.ref == 'refs/heads/master';
+    return isMaster;
+}
+exports.shouldDeploy = shouldDeploy;

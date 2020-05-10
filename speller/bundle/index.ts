@@ -119,12 +119,16 @@ async function run() {
         } else if (bundleType == "speller_mobile") {
             const files = []
             const tarDir = path.resolve("_tar")
+            console.log(tarDir)
             await io.mkdirP(tarDir)
             // Convert zhfsts
             for (const spellerName in manifest.spellers) {
                 const speller = manifest.spellers[spellerName]
                 const spellerTargetFileName = `${spellerName}.zhfst`
                 const spellerNewFileName = `${spellerName}.bhfst`
+                console.log(speller.filename)
+                console.log(spellerTargetFileName)
+                console.log(path.join(tarDir, spellerTargetFileName))
                 await io.cp(speller.filename, path.join(tarDir, spellerTargetFileName))
                 const exit = await exec.exec("thfst-tools", ["zhfst-to-bhfst", spellerTargetFileName], {
                     cwd: tarDir

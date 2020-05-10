@@ -16,7 +16,7 @@ const path_1 = __importDefault(require("path"));
 const shared_1 = require("../shared");
 async function run() {
     try {
-        const testDeploy = !!core.getInput('testDeploy');
+        const testDeploy = !!core.getInput('testDeploy') || !shared_1.shouldDeploy();
         const deployScript = path_1.default.join(shared_1.divvunConfigDir(), "repo", "scripts", "pahkat_deploy_new.sh");
         const exit = await exec.exec("bash", [deployScript], {
             env: {
