@@ -34,9 +34,9 @@ const TOOLS = {
         win32: "https://github.com/divvun/pahkat/releases/download/0.6.0/pahkat-repomgr.exe",
     },
     kbdgen: {
-        darwin: "https://github.com/divvun/kbdgen/releases/download/v2.0.0-alpha.5/kbdgen_2.0.0-alpha.5_macos_amd64.tar.xz",
-        linux: "https://github.com/divvun/kbdgen/releases/download/v2.0.0-alpha.5/kbdgen_2.0.0-alpha.5_linux_amd64.tar.xz",
-        win32: "https://github.com/divvun/kbdgen/releases/download/v2.0.0-alpha.5/kbdgen_2.0.0-alpha.5_windows_amd64.exe",
+        darwin: "https://github.com/divvun/kbdgen/releases/download/v2.0.0-alpha.7/kbdgen_2.0.0-alpha.7_macos_amd64.tar.xz",
+        linux: "https://github.com/divvun/kbdgen/releases/download/v2.0.0-alpha.7/kbdgen_2.0.0-alpha.7_linux_amd64.tar.xz",
+        win32: "https://github.com/divvun/kbdgen/releases/download/v2.0.0-alpha.7/kbdgen_2.0.0-alpha.7_windows_amd64.exe",
     },
     xcnotary: {
         darwin: "https://github.com/fry/xcnotary/releases/download/v0.4.1/xcnotary"
