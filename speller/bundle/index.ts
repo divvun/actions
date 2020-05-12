@@ -126,10 +126,9 @@ async function run() {
                 const speller = manifest.spellers[spellerName]
                 const spellerTargetFileName = `${spellerName}.zhfst`
                 const spellerNewFileName = `${spellerName}.bhfst`
-                console.log(speller.filename)
-                console.log(spellerTargetFileName)
-                console.log(path.join(tarDir, spellerTargetFileName))
                 await io.cp(speller.filename, path.join(tarDir, spellerTargetFileName))
+                // To debug failures of thfst-tools, list contents of the zhfst
+                await exec.exec("unzip", ["-vl", spellerTargetFileName], { cwd: tarDir })
                 const exit = await exec.exec("thfst-tools", ["zhfst-to-bhfst", spellerTargetFileName], {
                     cwd: tarDir
                 })
