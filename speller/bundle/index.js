@@ -120,10 +120,8 @@ async function run() {
                 const speller = manifest.spellers[spellerName];
                 const spellerTargetFileName = `${spellerName}.zhfst`;
                 const spellerNewFileName = `${spellerName}.bhfst`;
-                console.log(speller.filename);
-                console.log(spellerTargetFileName);
-                console.log(path_1.default.join(tarDir, spellerTargetFileName));
                 await io.cp(speller.filename, path_1.default.join(tarDir, spellerTargetFileName));
+                await exec.exec("unzip", ["-vl", spellerTargetFileName], { cwd: tarDir });
                 const exit = await exec.exec("thfst-tools", ["zhfst-to-bhfst", spellerTargetFileName], {
                     cwd: tarDir
                 });

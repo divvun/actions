@@ -17,6 +17,7 @@ async function run() {
                 "DEPLOY_SVN_PKG_ID": core.getInput('package'),
                 "DEPLOY_SVN_PKG_PLATFORM": core.getInput('platform'),
                 "DEPLOY_SVN_PKG_PAYLOAD": path.resolve(core.getInput('payload')),
+                "DEPLOY_SVN_PKG_PAYLOAD_METADATA": path.resolve(core.getInput('payloadMetadata')),
                 "DEPLOY_SVN_PKG_VERSION": core.getInput('version'),
                 // TODO: Meh
                 "DEPLOY_SVN_REPO_ARTIFACTS": "https://pahkat.uit.no/artifacts/",

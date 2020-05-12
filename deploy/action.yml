@@ -16,6 +16,9 @@ inputs:
   payload:
     description: 'Path to payload artifact to deploy'
     required: true
+  payloadMetadata:
+    description: 'Path to payload metadata (created by a call like `pahkat payload windows-executable ...`)'
+    required: false
   testDeploy:
     description: "Go as far as possible but don't actually deploy to Pahkat"
     required: false
