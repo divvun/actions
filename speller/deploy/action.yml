@@ -13,6 +13,9 @@ inputs:
   testDeploy:
     description: "Go as far as possible but don't actually deploy to Pahkat"
     required: false
+  forceDeploy:
+    description: "Forces a deployment"
+    required: false
 runs:
   using: 'node12'
   main: 'index.js'

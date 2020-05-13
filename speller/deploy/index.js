@@ -76,6 +76,7 @@ async function run() {
         const payloadMetadataPath = "./payload.toml";
         fs_1.default.writeFileSync(payloadMetadataPath, payloadMetadataString, "utf8");
         const testDeploy = !!core.getInput('testDeploy') || !shared_1.shouldDeploy();
+        const isDeploying = !testDeploy || core.getInput('forceDeploy');
         const deployScript = path_1.default.join(shared_1.divvunConfigDir(), "repo", "scripts", "pahkat_deploy_new.sh");
         const exit = await exec.exec("bash", [deployScript], {
             env: {
@@ -89,7 +90,7 @@ async function run() {
                 "DEPLOY_SVN_PKG_PAYLOAD_METADATA": payloadMetadataPath,
                 "DEPLOY_SVN_PKG_VERSION": manifest.package.version,
                 "DEPLOY_SVN_REPO_ARTIFACTS": "https://pahkat.uit.no/artifacts/",
-                "DEPLOY_SVN_COMMIT": !testDeploy ? "1" : ""
+                "DEPLOY_SVN_COMMIT": isDeploying ? "1" : ""
             }
         });
         if (exit != 0) {

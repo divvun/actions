@@ -80,6 +80,8 @@ async function run() {
         fs.writeFileSync(payloadMetadataPath, payloadMetadataString, "utf8")
 
         const testDeploy = !!core.getInput('testDeploy') || !shouldDeploy()
+        const isDeploying = !testDeploy ||  core.getInput('forceDeploy');
+
         const deployScript = path.join(divvunConfigDir(), "repo", "scripts", "pahkat_deploy_new.sh")
         const exit = await exec.exec("bash", [deployScript], {
             env: {
@@ -94,7 +96,7 @@ async function run() {
                 "DEPLOY_SVN_PKG_VERSION": manifest.package.version,
                 // TODO: Meh
                 "DEPLOY_SVN_REPO_ARTIFACTS": "https://pahkat.uit.no/artifacts/",
-                "DEPLOY_SVN_COMMIT": !testDeploy ? "1" : ""
+                "DEPLOY_SVN_COMMIT": isDeploying ? "1" : ""
             }
         });
 
