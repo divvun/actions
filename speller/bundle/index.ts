@@ -34,8 +34,6 @@ async function run() {
             spellerMsoArgs.push(realSpellerName)
         }
 
-        console.log(divvunConfigDir())
-
         if (bundleType == "speller_macos") {
             console.log(process.env)
             const args = [
@@ -50,12 +48,11 @@ async function run() {
                 "-f", manifest.package.name,
             ].concat(spellerArgs)
 
-            console.log(args)
-
             const exit = await exec.exec("divvun-bundler", args, {
                 env: {
                     ...process.env,
-                    "RUST_LOG": "info"
+                    "RUST_LOG": "info",
+                    "SIGN_PFX_PASSWORD": await getDivvunEnv("SIGN_PFX_PASSWORD"),
                 }
             })
             const outputFile = `output/${manifest.package.name}-${manifest.package.version}.pkg`
@@ -79,6 +76,7 @@ async function run() {
                 env: {
                     ...process.env,
                     "RUST_LOG": "info",
+                    "SIGN_PFX_PASSWORD": await getDivvunEnv("SIGN_PFX_PASSWORD"),
                 }
             })
 
