@@ -9,6 +9,7 @@ export interface Bundle {
     package: string,
     platform: "windows" | "macos" | "mobile",
     uuid?: string,
+    pkg_id?: string,
     repo: string,
 }
 

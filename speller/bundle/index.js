@@ -79,7 +79,6 @@ async function run() {
                 env: {
                     ...process.env,
                     "RUST_LOG": "info",
-                    "SIGN_PFX_PASSWORD": await shared_1.getDivvunEnv("SIGN_PFX_PASSWORD")
                 }
             });
             const outputFile = `output/${manifest.package.name}-${manifest.package.version}.exe`;
@@ -101,8 +100,7 @@ async function run() {
             const exitMso = await exec.exec("divvun-bundler.exe", args_mso, {
                 env: {
                     ...process.env,
-                    "RUST_LOG": "info",
-                    "SIGN_PFX_PASSWORD": await shared_1.getDivvunEnv("SIGN_PFX_PASSWORD")
+                    "RUST_LOG": "info"
                 }
             });
             const outputFileMso = `output/${manifest.package.name}-mso-${manifest.package.version}.exe`;

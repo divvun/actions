@@ -79,7 +79,6 @@ async function run() {
                 env: {
                     ...process.env,
                     "RUST_LOG": "info",
-                    "SIGN_PFX_PASSWORD": await getDivvunEnv("SIGN_PFX_PASSWORD")
                 }
             })
 
@@ -104,8 +103,7 @@ async function run() {
             const exitMso = await exec.exec("divvun-bundler.exe", args_mso, {
                 env: {
                     ...process.env,
-                    "RUST_LOG": "info",
-                    "SIGN_PFX_PASSWORD": await getDivvunEnv("SIGN_PFX_PASSWORD")
+                    "RUST_LOG": "info"
                 }
             })
 
