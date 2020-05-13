@@ -17,6 +17,13 @@ const path_1 = __importDefault(require("path"));
 const toml_1 = __importDefault(require("toml"));
 const fs_1 = __importDefault(require("fs"));
 const shared_1 = require("../../shared");
+async function bundleEnv() {
+    return {
+        ...process.env,
+        "RUST_LOG": "info",
+        "SIGN_PFX_PASSWORD": await shared_1.getDivvunEnv("SIGN_PFX_PASSWORD"),
+    };
+}
 async function run() {
     try {
         const manifestPath = core.getInput('manifest');
@@ -53,11 +60,7 @@ async function run() {
                 "-f", manifest.package.name,
             ].concat(spellerArgs);
             const exit = await exec.exec("divvun-bundler", args, {
-                env: {
-                    ...process.env,
-                    "RUST_LOG": "info",
-                    "SIGN_PFX_PASSWORD": await shared_1.getDivvunEnv("SIGN_PFX_PASSWORD"),
-                }
+                env: await bundleEnv()
             });
             const outputFile = `output/${manifest.package.name}-${manifest.package.version}.pkg`;
             if (exit != 0 || !fs_1.default.existsSync(outputFile)) {
@@ -75,11 +78,7 @@ async function run() {
                 "-f", manifest.package.name
             ].concat(spellerArgs);
             const exit = await exec.exec("divvun-bundler.exe", args, {
-                env: {
-                    ...process.env,
-                    "RUST_LOG": "info",
-                    "SIGN_PFX_PASSWORD": await shared_1.getDivvunEnv("SIGN_PFX_PASSWORD"),
-                }
+                env: await bundleEnv()
             });
             const outputFile = `output/${manifest.package.name}-${manifest.package.version}.exe`;
             if (exit != 0 || !fs_1.default.existsSync(outputFile)) {
@@ -98,10 +97,7 @@ async function run() {
                 "--reg", await io.which("win-reg-tool.exe")
             ].concat(spellerMsoArgs);
             const exitMso = await exec.exec("divvun-bundler.exe", args_mso, {
-                env: {
-                    ...process.env,
-                    "RUST_LOG": "info"
-                }
+                env: await bundleEnv()
             });
             const outputFileMso = `output/${manifest.package.name}-mso-${manifest.package.version}.exe`;
             if (exitMso != 0 || !fs_1.default.existsSync(outputFileMso)) {

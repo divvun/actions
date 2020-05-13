@@ -9,6 +9,14 @@ import fs from 'fs'
 import { divvunConfigDir, getDivvunEnv } from '../../shared'
 import { Manifest, BundleType } from '../manifest'
 
+async function bundleEnv() {
+    return {
+        ...process.env,
+        "RUST_LOG": "info",
+        "SIGN_PFX_PASSWORD": await getDivvunEnv("SIGN_PFX_PASSWORD"),
+    }
+}
+
 async function run() {
     try {
         const manifestPath = core.getInput('manifest');
@@ -49,11 +57,7 @@ async function run() {
             ].concat(spellerArgs)
 
             const exit = await exec.exec("divvun-bundler", args, {
-                env: {
-                    ...process.env,
-                    "RUST_LOG": "info",
-                    "SIGN_PFX_PASSWORD": await getDivvunEnv("SIGN_PFX_PASSWORD"),
-                }
+                env: await bundleEnv()
             })
             const outputFile = `output/${manifest.package.name}-${manifest.package.version}.pkg`
 
@@ -73,11 +77,7 @@ async function run() {
             ].concat(spellerArgs)
 
             const exit = await exec.exec("divvun-bundler.exe", args, {
-                env: {
-                    ...process.env,
-                    "RUST_LOG": "info",
-                    "SIGN_PFX_PASSWORD": await getDivvunEnv("SIGN_PFX_PASSWORD"),
-                }
+                env: await bundleEnv()
             })
 
             const outputFile = `output/${manifest.package.name}-${manifest.package.version}.exe`
@@ -99,10 +99,7 @@ async function run() {
             ].concat(spellerMsoArgs)
 
             const exitMso = await exec.exec("divvun-bundler.exe", args_mso, {
-                env: {
-                    ...process.env,
-                    "RUST_LOG": "info"
-                }
+                env: await bundleEnv()
             })
 
             const outputFileMso = `output/${manifest.package.name}-mso-${manifest.package.version}.exe`
