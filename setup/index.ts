@@ -24,8 +24,8 @@ const TOOLS: Record<string, Tool> = {
     win32: "https://github.com/divvun/pahkat/releases/download/0.6.0/pahkat.exe",
   },
   "pahkat-repomgr": {
-    darwin: "https://github.com/divvun/pahkat/releases/download/0.6.0/pahkat-repomgr-macos",
-    win32: "https://github.com/divvun/pahkat/releases/download/repomgr-v1.0.0-alpha.1/pahkat-repomgr1.0.0-alpha.1_windows_amd64.exe",
+    darwin: "https://github.com/divvun/pahkat/releases/download/test.1/pahkat-repomgr_1.0.0-test.1_macos_amd64",
+    win32: "https://github.com/divvun/pahkat/releases/download/test.1/pahkat-repomgr_1.0.0-test.1_windows_amd64.exe",
   },
   kbdgen: {
     darwin: "https://github.com/divvun/kbdgen/releases/download/v2.0.0-alpha.8/kbdgen_2.0.0-alpha.8_macos_amd64.tar.xz",
