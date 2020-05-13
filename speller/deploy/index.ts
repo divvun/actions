@@ -91,8 +91,8 @@ async function run() {
                 "DEPLOY_SVN_REPO": bundle.repo,
                 "DEPLOY_SVN_PKG_ID": bundle.package,
                 "DEPLOY_SVN_PKG_PLATFORM": bundle.platform,
-                "DEPLOY_SVN_PKG_PAYLOAD": payload,
-                "DEPLOY_SVN_PKG_PAYLOAD_METADATA": payloadMetadataPath,
+                "DEPLOY_SVN_PKG_PAYLOAD": path.resolve(payload),
+                "DEPLOY_SVN_PKG_PAYLOAD_METADATA": path.resolve(payloadMetadataPath),
                 "DEPLOY_SVN_PKG_VERSION": manifest.package.version,
                 // TODO: Meh
                 "DEPLOY_SVN_REPO_ARTIFACTS": "https://pahkat.uit.no/artifacts/",
