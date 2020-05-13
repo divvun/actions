@@ -30,13 +30,13 @@ async function run() {
 
         // Generate the payload metadata
         if (bundleType === "speller_win" || bundleType === "speller_win_mso") {
-            const productCode = `{${manifest.bundles[bundleType].uuid}}_is1`
+            const productCode = `{${manifest.bundles[bundleType].uuid}}`
 
             const exit = await exec.exec("pahkat-repomgr", [
                 "payload", "windows-executable",
                 "-i", "1", // TODO: get real size
                 "-s", "1",
-                "-k", "inno",
+                "-k", "nsis",
                 "-p", productCode,
                 "-u", "pahkat:payload",
                 "-r", "install,uninstall"
