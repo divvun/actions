@@ -30,8 +30,8 @@ const TOOLS = {
         win32: "https://github.com/divvun/pahkat/releases/download/0.6.0/pahkat.exe",
     },
     "pahkat-repomgr": {
-        darwin: "https://github.com/divvun/pahkat/releases/download/test.1/pahkat-repomgr_1.0.0-test.1_macos_amd64",
-        win32: "https://github.com/divvun/pahkat/releases/download/test.1/pahkat-repomgr_1.0.0-test.1_windows_amd64.exe",
+        darwin: "https://github.com/divvun/pahkat/releases/download/test.2/pahkat_repomgr_1.0.0-alpha.1_macos",
+        win32: "https://github.com/divvun/pahkat/releases/download/test.2/pahkat-repomgr_1.0.0-alpha.1_windows_amd64.exe",
     },
     kbdgen: {
         darwin: "https://github.com/divvun/kbdgen/releases/download/v2.0.0-alpha.8/kbdgen_2.0.0-alpha.8_macos_amd64.tar.xz",
@@ -54,7 +54,7 @@ function getSetupScript() {
     if (process.platform == "win32")
         return `${__dirname}/setup-win.sh`;
     if (process.platform == "linux")
-        return "setup-linux.sh";
+        return `${__dirname}/setup-linux.sh`;
     throw new Error(`Unsupported platform ${process.platform}`);
 }
 function getToolUrl(name) {

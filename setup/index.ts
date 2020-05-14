@@ -50,7 +50,7 @@ function getSetupScript() {
   if (process.platform == "win32")
     return `${__dirname}/setup-win.sh`
   if (process.platform == "linux")
-    return "setup-linux.sh"
+    return `${__dirname}/setup-linux.sh`
 
   throw new Error(`Unsupported platform ${process.platform}`)
 }
