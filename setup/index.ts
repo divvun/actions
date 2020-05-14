@@ -94,13 +94,18 @@ async function run() {
       console.log(`tool dir ${toolDir}`)
       io.mkdirP(toolDir)
       const downloadPath = await tc.downloadTool(url)
-      if (downloadPath.endsWith("tar.xz")) {
-        if (process.platform != "win32")
-          tc.extractTar(downloadPath, toolDir)
-        else
+
+      console.log(downloadPath, url)
+      const toolDest = `${toolDir}/${toolName}`
+      if (url.endsWith("tar.xz")) {
+        console.log("extracting tool")
+        if (process.platform != "win32") {
+          console.log(downloadPath, toolDir)
+          await tc.extractTar(downloadPath, toolDir, "xJ")
+          await exec.exec("chmod", ['+x', toolDest])
+        } else
           throw new Error("Can't extract tool on windows")
       } else {
-        const toolDest = `${toolDir}/${toolName}`
         if (process.platform == "win32") {
           io.cp(downloadPath, `${toolDest}.exe`)
         } else {
