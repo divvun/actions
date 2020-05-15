@@ -177,8 +177,10 @@ async function bundleKeyboard(manifest: Manifest, bundleType: BundleType) {
             throw new Error("ANDROID_NDK_HOME not set")
 
         await consolidateLayouts(manifest)
-        const androidTarget = YAML.parse(path.resolve(kbdgenPackagePath, "targets", "android.yaml"))
+        const androidTarget = YAML.parse(fs.readFileSync(path.resolve(kbdgenPackagePath, "targets", "android.yaml"), 'utf8'))
         const version = androidTarget["version"]
+        if (!version)
+            throw new Error("no version in android target")
         // const keyAlias = androidTarget["keyAlias"]
         const exit = await exec.exec("kbdgen", [
             "--logging", "debug",
@@ -203,18 +205,15 @@ async function bundleKeyboard(manifest: Manifest, bundleType: BundleType) {
         }
 
         const file = path.resolve("output", `${manifest.package.name}-${version}_release.apk`)
-        console.log("file", file)
         if (!fs.existsSync(file))
             throw new Error("no output generated")
         return file
     } else if (bundleType == "keyboard_ios") {
-        // export TARGET_BUNDLE_NAME=$(cat ${{ parameters.kbdgenFolder }}/targets/ios.yaml | grep 'bundleName:' | cut -c 13-)
-        // export TARGET_VERSION=$(cat ${{ parameters.kbdgenFolder }}/targets/ios.yaml | grep 'version:' | cut -c 10-)
-        // $(System.DefaultWorkingDirectory)/kbdgen --logging debug build --github-username $GITHUB_USERNAME --github-token $GITHUB_TOKEN ios --kbd-branch master -R --ci -o output .
         // # fastlane pilot upload --skip_submission --skip_waiting_for_build_processing --ipa output/ios-build/ipa/HostingApp.ipa
 
         await consolidateLayouts(manifest)
-        const iosTarget = YAML.parse(path.resolve(kbdgenPackagePath, "targets", "ios.yaml"))
+        const iosTarget = YAML.parse(fs.readFileSync(path.resolve(kbdgenPackagePath, "targets", "ios.yaml"), 'utf8'))
+        console.log(iosTarget)
         // const version = iosTarget["version"]
         // const keyAlias = androidTarget["keyAlias"]
         const exit = await exec.exec("kbdgen", [
@@ -244,6 +243,33 @@ async function bundleKeyboard(manifest: Manifest, bundleType: BundleType) {
         if (!fs.existsSync(file))
             throw new Error("no output generated")
         return file
+    } else if (bundleType == "keyboard_macos") {
+        //     $(System.DefaultWorkingDirectory)/kbdgen --logging debug build mac -R --ci -o output .
+        //   cp "$(System.DefaultWorkingDirectory)/${{ parameters.kbdgenFolder }}/output/$TARGET_BUNDLE_NAME $TARGET_VERSION.pkg" "$(System.DefaultWorkingDirectory)/${{ parameters.kbdgenFolder }}/output/${{ parameters.name }}.pkg"
+        //   sh $(System.DefaultWorkingDirectory)/divvun-ci-config/repo/scripts/pahkat_deploy_svn.sh ${{ parameters.repositoryMac }} "$(System.DefaultWorkingDirectory)/${{ parameters.kbdgenFolder }}/output/${{ parameters.name }}.pkg" ${{ parameters.packageName }} $TARGET_VERSION
+        // xnotary
+        const macTarget = YAML.parse(fs.readFileSync(path.resolve(kbdgenPackagePath, "targets", "mac.yaml"), 'utf8'))
+        const bundleName = macTarget["bundleName"]
+        const version = macTarget["version"]
+        if (!version)
+            throw new Error("no version in mac target")
+
+        const exit = await exec.exec("kbdgen", [
+            "--logging", "debug",
+            "build",
+            "mac", "-R", "--ci", "-o", "output",
+            kbdgenPackagePath
+        ])
+
+        if (exit != 0) {
+            throw new Error("kbdgen failed")
+        }
+
+        const file = path.resolve("output", `${bundleName} ${version}.pkg`)
+        console.log("file", file)
+        if (!fs.existsSync(file))
+            throw new Error("no output generated")
+        return file
     }
 }
 
@@ -254,8 +280,10 @@ async function run() {
         const bundleType = core.getInput('bundleType') as BundleType;
 
         const bundle = manifest.bundles[bundleType]
-        if (!bundle)
-            throw new Error(`No such bundle ${bundleType}`)
+        if (!bundle) {
+            core.warning(`No bundle config specified for ${bundleType}`)
+            return
+        }
 
         const spellerOutput = await bundleSpeller(manifest, bundleType) || await bundleKeyboard(manifest, bundleType);
         console.log("output", spellerOutput)
@@ -264,8 +292,6 @@ async function run() {
         } else {
             throw new Error(`Unsupported bundleType ${bundleType}`)
         }
-
-
     }
     catch (error) {
         core.setFailed(error.message);

@@ -243,8 +243,10 @@ async function bundleKeyboard(manifest, bundleType) {
         if (!process.env.ANDROID_NDK_HOME)
             throw new Error("ANDROID_NDK_HOME not set");
         await consolidateLayouts(manifest);
-        const androidTarget = yaml_1.default.parse(path_1.default.resolve(kbdgenPackagePath, "targets", "android.yaml"));
+        const androidTarget = yaml_1.default.parse(fs_1.default.readFileSync(path_1.default.resolve(kbdgenPackagePath, "targets", "android.yaml"), 'utf8'));
         const version = androidTarget["version"];
+        if (!version)
+            throw new Error("no version in android target");
         const exit = await exec.exec("kbdgen", [
             "--logging", "debug",
             "build",
@@ -266,14 +268,14 @@ async function bundleKeyboard(manifest, bundleType) {
             throw new Error("kbdgen failed");
         }
         const file = path_1.default.resolve("output", `${manifest.package.name}-${version}_release.apk`);
-        console.log("file", file);
         if (!fs_1.default.existsSync(file))
             throw new Error("no output generated");
         return file;
     }
     else if (bundleType == "keyboard_ios") {
         await consolidateLayouts(manifest);
-        const iosTarget = yaml_1.default.parse(path_1.default.resolve(kbdgenPackagePath, "targets", "ios.yaml"));
+        const iosTarget = yaml_1.default.parse(fs_1.default.readFileSync(path_1.default.resolve(kbdgenPackagePath, "targets", "ios.yaml"), 'utf8'));
+        console.log(iosTarget);
         const exit = await exec.exec("kbdgen", [
             "--logging", "debug",
             "build",
@@ -300,6 +302,27 @@ async function bundleKeyboard(manifest, bundleType) {
             throw new Error("no output generated");
         return file;
     }
+    else if (bundleType == "keyboard_macos") {
+        const macTarget = yaml_1.default.parse(fs_1.default.readFileSync(path_1.default.resolve(kbdgenPackagePath, "targets", "mac.yaml"), 'utf8'));
+        const bundleName = macTarget["bundleName"];
+        const version = macTarget["version"];
+        if (!version)
+            throw new Error("no version in mac target");
+        const exit = await exec.exec("kbdgen", [
+            "--logging", "debug",
+            "build",
+            "mac", "-R", "--ci", "-o", "output",
+            kbdgenPackagePath
+        ]);
+        if (exit != 0) {
+            throw new Error("kbdgen failed");
+        }
+        const file = path_1.default.resolve("output", `${bundleName} ${version}.pkg`);
+        console.log("file", file);
+        if (!fs_1.default.existsSync(file))
+            throw new Error("no output generated");
+        return file;
+    }
 }
 async function run() {
     try {
@@ -307,8 +330,10 @@ async function run() {
         const manifest = toml_1.default.parse(fs_1.default.readFileSync(manifestPath).toString());
         const bundleType = core.getInput('bundleType');
         const bundle = manifest.bundles[bundleType];
-        if (!bundle)
-            throw new Error(`No such bundle ${bundleType}`);
+        if (!bundle) {
+            core.warning(`No bundle config specified for ${bundleType}`);
+            return;
+        }
         const spellerOutput = await bundleSpeller(manifest, bundleType) || await bundleKeyboard(manifest, bundleType);
         console.log("output", spellerOutput);
         if (spellerOutput) {
