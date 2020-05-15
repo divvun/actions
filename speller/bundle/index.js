@@ -21,7 +21,7 @@ async function bundleEnv() {
     return {
         ...process.env,
         "RUST_LOG": "info",
-        "SIGN_PFX_PASSWORD": await shared_1.getDivvunEnv("SIGN_PFX_PASSWORD"),
+        "SIGN_PFX_PASSWORD": shared_1.env.windows.pfxPassword,
     };
 }
 async function run() {
@@ -54,8 +54,8 @@ async function run() {
                 "-V", manifest.package.version,
                 "-a", "Developer ID Application: The University of Tromso (2K5J2584NX)",
                 "-i", "Developer ID Installer: The University of Tromso (2K5J2584NX)",
-                "-n", await shared_1.getDivvunEnv("MACOS_DEVELOPER_ACCOUNT"),
-                "-k", await shared_1.getDivvunEnv("MACOS_DEVELOPER_PASSWORD_CHAIN_ITEM"),
+                "-n", shared_1.env.macos.developerAccount,
+                "-k", shared_1.env.macos.passwordChainItem,
                 "speller",
                 "-f", manifest.package.name,
             ].concat(spellerArgs);

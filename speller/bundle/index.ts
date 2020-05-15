@@ -6,14 +6,14 @@ import * as io from '@actions/io'
 import path from 'path'
 import toml from 'toml'
 import fs from 'fs'
-import { divvunConfigDir, getDivvunEnv } from '../../shared'
+import { divvunConfigDir, env } from '../../shared'
 import { Manifest, BundleType } from '../manifest'
 
 async function bundleEnv() {
     return {
         ...process.env,
         "RUST_LOG": "info",
-        "SIGN_PFX_PASSWORD": await getDivvunEnv("SIGN_PFX_PASSWORD"),
+        "SIGN_PFX_PASSWORD": env.windows.pfxPassword,
     }
 }
 
@@ -50,8 +50,8 @@ async function run() {
                 "-V", manifest.package.version,
                 "-a", "Developer ID Application: The University of Tromso (2K5J2584NX)",
                 "-i", "Developer ID Installer: The University of Tromso (2K5J2584NX)",
-                "-n", await getDivvunEnv("MACOS_DEVELOPER_ACCOUNT"),
-                "-k", await getDivvunEnv("MACOS_DEVELOPER_PASSWORD_CHAIN_ITEM"),
+                "-n", env.macos.developerAccount,
+                "-k", env.macos.passwordChainItem,
                 "speller",
                 "-f", manifest.package.name,
             ].concat(spellerArgs)

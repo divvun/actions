@@ -2,7 +2,7 @@ import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import path from 'path'
 
-import { divvunConfigDir, getDivvunEnv, shouldDeploy } from '../shared'
+import { divvunConfigDir, shouldDeploy, env } from '../shared'
 
 async function run() {
     try {
@@ -12,8 +12,8 @@ async function run() {
         const exit = await exec.exec("bash", [deployScript], {
             env: {
                 ...process.env,
-                "DEPLOY_SVN_USER": await getDivvunEnv("DEPLOY_SVN_USER"),
-                "DEPLOY_SVN_PASSWORD": await getDivvunEnv("DEPLOY_SVN_PASSWORD"),
+                "DEPLOY_SVN_USER": env.svn.username,
+                "DEPLOY_SVN_PASSWORD": env.svn.password,
                 "DEPLOY_SVN_REPO": core.getInput('repository'),
                 "DEPLOY_SVN_PKG_ID": core.getInput('package'),
                 "DEPLOY_SVN_PKG_PLATFORM": core.getInput('platform'),

@@ -1,6 +1,8 @@
 import * as exec from '@actions/exec'
-import path from 'path'
 import * as github from '@actions/github'
+import path from 'path'
+import fs from 'fs'
+
 
 export function divvunConfigDir() {
     const runner = process.env['RUNNER_WORKSPACE']
@@ -9,27 +11,16 @@ export function divvunConfigDir() {
     return path.resolve(runner, "divvun-ci-config")
 }
 
-export async function getDivvunEnv(name: string) {
-    let output = ""
-    const options = {
-        cwd: divvunConfigDir(),
-        listeners: {
-            stdout: (data: Buffer) => {
-                output += data.toString();
-            },
-            stderr: (data: Buffer) => {
-                console.log(data.toString())
-            }
-        }
-    }
-
-    await exec.exec("bash", ["-c", `source ./enc/env.sh`], options)
-    return output.trim()
-}
-
-
 export function shouldDeploy() {
     const isMaster = github.context.ref == 'refs/heads/master'
 
     return isMaster
 }
+
+function loadEnv() {
+    const p = path.resolve(divvunConfigDir(), "enc", "env.json")
+    const s = fs.readFileSync(p, "utf8")
+    return JSON.parse(s)
+}
+
+export const env = Object.freeze(loadEnv())

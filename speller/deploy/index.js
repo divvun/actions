@@ -81,8 +81,8 @@ async function run() {
         const exit = await exec.exec("bash", [deployScript], {
             env: {
                 ...process.env,
-                "DEPLOY_SVN_USER": await shared_1.getDivvunEnv("DEPLOY_SVN_USER"),
-                "DEPLOY_SVN_PASSWORD": await shared_1.getDivvunEnv("DEPLOY_SVN_PASSWORD"),
+                "DEPLOY_SVN_USER": shared_1.env.svn.username,
+                "DEPLOY_SVN_PASSWORD": shared_1.env.svn.password,
                 "DEPLOY_SVN_REPO": bundle.repo,
                 "DEPLOY_SVN_PKG_ID": bundle.package,
                 "DEPLOY_SVN_PKG_PLATFORM": bundle.platform,
