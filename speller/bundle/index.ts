@@ -211,27 +211,47 @@ async function bundleKeyboard(manifest: Manifest, bundleType: BundleType) {
     } else if (bundleType == "keyboard_ios") {
         // # fastlane pilot upload --skip_submission --skip_waiting_for_build_processing --ipa output/ios-build/ipa/HostingApp.ipa
 
+        const kbdgenEnv = {
+            ...process.env,
+            "GITHUB_USERNAME": env.github.username,
+            "GITHUB_TOKEN": env.github.token,
+            "MATCH_GIT_URL": env.ios.match_git_url,
+            "MATCH_PASSWORD": env.ios.match_password,
+            "FASTLANE_USER": env.ios.fastlane_user,
+            "FASTLANE_PASSWORD": env.ios.fastlane_password,
+        }
+
         await consolidateLayouts(manifest)
         const iosTarget = YAML.parse(fs.readFileSync(path.resolve(kbdgenPackagePath, "targets", "ios.yaml"), 'utf8'))
-        console.log(iosTarget)
+
+        console.log("kbdgen init")
+        let exit = await exec.exec("kbdgen", [
+            "--logging", "debug",
+            "build",
+            "ios",
+            kbdgenPackagePath, "init",
+        ], {
+            env: {
+                ...kbdgenEnv,
+                "PRODUCE_USERNAME": kbdgenEnv.FASTLANE_USER
+            }
+        })
+
+        if (exit != 0) {
+            throw new Error("kbdgen init failed")
+        }
+
+        console.log("kbdgen build")
         // const version = iosTarget["version"]
         // const keyAlias = androidTarget["keyAlias"]
-        const exit = await exec.exec("kbdgen", [
+        exit = await exec.exec("kbdgen", [
             "--logging", "debug",
             "build",
             "ios", "-R", "--ci", "-o", "output",
             "--kbd-branch", "master",
             kbdgenPackagePath
         ], {
-            env: {
-                ...process.env,
-                "GITHUB_USERNAME": env.github.username,
-                "GITHUB_TOKEN": env.github.token,
-                "MATCH_GIT_URL": env.ios.match_git_url,
-                "MATCH_PASSWORD": env.ios.match_password,
-                "FASTLANE_USER": env.ios.fastlane_user,
-                "FASTLANE_PASSWORD": env.ios.fastlane_password,
-            }
+            env: kbdgenEnv
         })
 
         if (exit != 0) {
@@ -259,7 +279,13 @@ async function bundleKeyboard(manifest: Manifest, bundleType: BundleType) {
             "build",
             "mac", "-R", "--ci", "-o", "output",
             kbdgenPackagePath
-        ])
+        ], {
+            env: {
+                ...process.env,
+                "DEVELOPER_PASSWORD_CHAIN_ITEM": env.macos.passwordChainItem,
+                "DEVELOPER_ACCOUNT": env.macos.developerAccount
+            }
+        })
 
         if (exit != 0) {
             throw new Error("kbdgen failed")

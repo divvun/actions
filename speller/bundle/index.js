@@ -273,25 +273,41 @@ async function bundleKeyboard(manifest, bundleType) {
         return file;
     }
     else if (bundleType == "keyboard_ios") {
+        const kbdgenEnv = {
+            ...process.env,
+            "GITHUB_USERNAME": shared_1.env.github.username,
+            "GITHUB_TOKEN": shared_1.env.github.token,
+            "MATCH_GIT_URL": shared_1.env.ios.match_git_url,
+            "MATCH_PASSWORD": shared_1.env.ios.match_password,
+            "FASTLANE_USER": shared_1.env.ios.fastlane_user,
+            "FASTLANE_PASSWORD": shared_1.env.ios.fastlane_password,
+        };
         await consolidateLayouts(manifest);
         const iosTarget = yaml_1.default.parse(fs_1.default.readFileSync(path_1.default.resolve(kbdgenPackagePath, "targets", "ios.yaml"), 'utf8'));
-        console.log(iosTarget);
-        const exit = await exec.exec("kbdgen", [
+        console.log("kbdgen init");
+        let exit = await exec.exec("kbdgen", [
+            "--logging", "debug",
+            "build",
+            "ios",
+            kbdgenPackagePath, "init",
+        ], {
+            env: {
+                ...kbdgenEnv,
+                "PRODUCE_USERNAME": kbdgenEnv.FASTLANE_USER
+            }
+        });
+        if (exit != 0) {
+            throw new Error("kbdgen init failed");
+        }
+        console.log("kbdgen build");
+        exit = await exec.exec("kbdgen", [
             "--logging", "debug",
             "build",
             "ios", "-R", "--ci", "-o", "output",
             "--kbd-branch", "master",
             kbdgenPackagePath
         ], {
-            env: {
-                ...process.env,
-                "GITHUB_USERNAME": shared_1.env.github.username,
-                "GITHUB_TOKEN": shared_1.env.github.token,
-                "MATCH_GIT_URL": shared_1.env.ios.match_git_url,
-                "MATCH_PASSWORD": shared_1.env.ios.match_password,
-                "FASTLANE_USER": shared_1.env.ios.fastlane_user,
-                "FASTLANE_PASSWORD": shared_1.env.ios.fastlane_password,
-            }
+            env: kbdgenEnv
         });
         if (exit != 0) {
             throw new Error("kbdgen failed");
@@ -313,7 +329,13 @@ async function bundleKeyboard(manifest, bundleType) {
             "build",
             "mac", "-R", "--ci", "-o", "output",
             kbdgenPackagePath
-        ]);
+        ], {
+            env: {
+                ...process.env,
+                "DEVELOPER_PASSWORD_CHAIN_ITEM": shared_1.env.macos.passwordChainItem,
+                "DEVELOPER_ACCOUNT": shared_1.env.macos.developerAccount
+            }
+        });
         if (exit != 0) {
             throw new Error("kbdgen failed");
         }
