@@ -16,14 +16,25 @@ const toml_1 = __importDefault(require("toml"));
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
 const shared_1 = require("../../shared");
+function pahkatPlatformFromBundleType(type) {
+    if (type == "speller_win" || type == "speller_win_mso") {
+        return "windows";
+    }
+    else if (type == "speller_macos") {
+        return "macos";
+    }
+    else if (type == "speller_mobile") {
+        return "mobile";
+    }
+    throw new Error(`Invalid bundle type for Pahkat: ${type}`);
+}
 async function run() {
     try {
         const manifestPath = core.getInput('manifest');
         const bundleType = core.getInput('bundleType');
         const payload = core.getInput('payload');
         const manifest = toml_1.default.parse(fs_1.default.readFileSync(manifestPath).toString());
-        const bundle = manifest.bundles[bundleType];
-        if (!bundle)
+        if (!(bundleType in manifest.bundles))
             throw new Error(`No such bundle ${bundleType}`);
         let payloadMetadataString = "";
         const options = {
@@ -48,7 +59,7 @@ async function run() {
                 throw new Error("bundling failed");
             }
         }
-        if (bundleType === "speller_macos") {
+        else if (bundleType === "speller_macos") {
             const exit = await exec.exec("pahkat-repomgr", [
                 "payload", "macos-package",
                 "-p", manifest.bundles.speller_macos.pkg_id,
@@ -62,7 +73,7 @@ async function run() {
                 throw new Error("bundling failed");
             }
         }
-        if (bundleType === "speller_mobile") {
+        else if (bundleType === "speller_mobile") {
             const exit = await exec.exec("pahkat-repomgr", [
                 "payload", "tarball-package",
                 "-i", "1",
@@ -73,6 +84,10 @@ async function run() {
                 throw new Error("bundling failed");
             }
         }
+        else {
+            throw new Error(`Unsupported bundle type ${bundleType}`);
+        }
+        const bundle = manifest.bundles[bundleType];
         const payloadMetadataPath = "./payload.toml";
         fs_1.default.writeFileSync(payloadMetadataPath, payloadMetadataString, "utf8");
         const testDeploy = !!core.getInput('testDeploy') || !shared_1.shouldDeploy();
@@ -86,7 +101,7 @@ async function run() {
                 "DEPLOY_SVN_PASSWORD": env.svn.password,
                 "DEPLOY_SVN_REPO": bundle.repo,
                 "DEPLOY_SVN_PKG_ID": bundle.package,
-                "DEPLOY_SVN_PKG_PLATFORM": bundle.platform,
+                "DEPLOY_SVN_PKG_PLATFORM": bundle.platform || pahkatPlatformFromBundleType(bundleType),
                 "DEPLOY_SVN_PKG_PAYLOAD": path_1.default.resolve(payload),
                 "DEPLOY_SVN_PKG_PAYLOAD_METADATA": path_1.default.resolve(payloadMetadataPath),
                 "DEPLOY_SVN_PKG_VERSION": manifest.package.version,

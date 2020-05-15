@@ -7,6 +7,18 @@ import path from 'path'
 import { divvunConfigDir, loadEnv, shouldDeploy } from '../../shared'
 import { BundleType, Manifest } from '../manifest'
 
+function pahkatPlatformFromBundleType(type: BundleType) {
+    if (type == "speller_win" || type == "speller_win_mso") {
+        return "windows"
+    } else if (type == "speller_macos") {
+        return "macos"
+    } else if (type == "speller_mobile") {
+        return "mobile"
+    }
+
+    throw new Error(`Invalid bundle type for Pahkat: ${type}`)
+}
+
 async function run() {
     try {
         const manifestPath = core.getInput('manifest');
@@ -14,12 +26,11 @@ async function run() {
         const payload = core.getInput('payload');
         const manifest = toml.parse(fs.readFileSync(manifestPath).toString()) as Manifest
 
-        const bundle = manifest.bundles[bundleType]
-        if (!bundle)
+        if (!(bundleType in manifest.bundles))
             throw new Error(`No such bundle ${bundleType}`)
 
         let payloadMetadataString: string = ""
-        
+
         const options = {
             listeners: {
                 stdout: (data: Buffer) => {
@@ -45,9 +56,7 @@ async function run() {
             if (exit != 0) {
                 throw new Error("bundling failed")
             }
-        }
-
-        if (bundleType === "speller_macos") {
+        } else if (bundleType === "speller_macos") {
             const exit = await exec.exec("pahkat-repomgr", [
                 "payload", "macos-package",
                 "-p", manifest.bundles.speller_macos.pkg_id!,
@@ -57,30 +66,32 @@ async function run() {
                 "-r", "install,uninstall",
                 "-t", "system,user"
             ], options)
-            
+
             if (exit != 0) {
                 throw new Error("bundling failed")
             }
-        }
-
-        if (bundleType === "speller_mobile") {
+        } else if (bundleType === "speller_mobile") {
             const exit = await exec.exec("pahkat-repomgr", [
                 "payload", "tarball-package",
                 "-i", "1", // TODO: get real size
                 "-s", "1",
                 "-u", "pahkat:payload",
             ], options)
-            
+
             if (exit != 0) {
                 throw new Error("bundling failed")
             }
+        } else {
+            throw new Error(`Unsupported bundle type ${bundleType}`)
         }
+
+        const bundle = manifest.bundles[bundleType]
 
         const payloadMetadataPath = "./payload.toml"
         fs.writeFileSync(payloadMetadataPath, payloadMetadataString, "utf8")
 
         const testDeploy = !!core.getInput('testDeploy') || !shouldDeploy()
-        const isDeploying = !testDeploy ||  core.getInput('forceDeploy');
+        const isDeploying = !testDeploy || core.getInput('forceDeploy');
         const env = loadEnv()
 
         const deployScript = path.join(divvunConfigDir(), "repo", "scripts", "pahkat_deploy_new.sh")
@@ -91,7 +102,7 @@ async function run() {
                 "DEPLOY_SVN_PASSWORD": env.svn.password,
                 "DEPLOY_SVN_REPO": bundle.repo,
                 "DEPLOY_SVN_PKG_ID": bundle.package,
-                "DEPLOY_SVN_PKG_PLATFORM": bundle.platform,
+                "DEPLOY_SVN_PKG_PLATFORM": bundle.platform || pahkatPlatformFromBundleType(bundleType),
                 "DEPLOY_SVN_PKG_PAYLOAD": path.resolve(payload),
                 "DEPLOY_SVN_PKG_PAYLOAD_METADATA": path.resolve(payloadMetadataPath),
                 "DEPLOY_SVN_PKG_VERSION": manifest.package.version,
