@@ -248,13 +248,13 @@ async function bundleKeyboard(manifest, bundleType) {
         const exit = await exec.exec("kbdgen", [
             "--logging", "debug",
             "build",
-            "--github-username", shared_1.env.github.username,
-            "--github-token", shared_1.env.github.token,
             "android", "-R", "--ci", "-o", "output",
             kbdgenPackagePath
         ], {
             env: {
                 ...process.env,
+                "GITHUB_USERNAME": shared_1.env.github.username,
+                "GITHUB_TOKEN": shared_1.env.github.token,
                 "NDK_HOME": process.env.ANDROID_NDK_HOME,
                 "ANDROID_KEYSTORE": path_1.default.join(shared_1.divvunConfigDir(), shared_1.env.android.keystore),
                 "ANDROID_KEYALIAS": shared_1.env.android.keyalias,
@@ -265,7 +265,8 @@ async function bundleKeyboard(manifest, bundleType) {
         if (exit != 0) {
             throw new Error("kbdgen failed");
         }
-        const file = path_1.default.resolve(`output/${manifest.package.name}-${version}_release.apk`);
+        const file = path_1.default.resolve("output", `${manifest.package.name}-${version}_release.apk`);
+        console.log("file", file);
         if (!fs_1.default.existsSync(file))
             throw new Error("no output generated");
         return file;
@@ -276,16 +277,25 @@ async function bundleKeyboard(manifest, bundleType) {
         const exit = await exec.exec("kbdgen", [
             "--logging", "debug",
             "build",
-            "--github-username", shared_1.env.github.username,
-            "--github-token", shared_1.env.github.token,
             "ios", "-R", "--ci", "-o", "output",
             "--kbd-branch", "master",
             kbdgenPackagePath
-        ]);
+        ], {
+            env: {
+                ...process.env,
+                "GITHUB_USERNAME": shared_1.env.github.username,
+                "GITHUB_TOKEN": shared_1.env.github.token,
+                "MATCH_GIT_URL": shared_1.env.ios.match_git_url,
+                "MATCH_PASSWORD": shared_1.env.ios.match_password,
+                "FASTLANE_USER": shared_1.env.ios.fastlane_user,
+                "FASTLANE_PASSWORD": shared_1.env.ios.fastlane_password,
+            }
+        });
         if (exit != 0) {
             throw new Error("kbdgen failed");
         }
-        const file = path_1.default.resolve(`output/ios-build/ipa/HostingApp.ipa`);
+        const file = path_1.default.resolve("output", "ios-build", "ipa", "HostingApp.ipa");
+        console.log("file", file);
         if (!fs_1.default.existsSync(file))
             throw new Error("no output generated");
         return file;

@@ -31,8 +31,9 @@ function loadEnv() {
         const s = fs_1.default.readFileSync(p, "utf8");
         return JSON.parse(s);
     }
-    catch (_a) {
+    catch (e) {
         console.error("Failed to load divvun env");
+        console.error(e);
         return {};
     }
 }

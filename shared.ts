@@ -22,8 +22,9 @@ export function loadEnv() {
     try {
         const s = fs.readFileSync(p, "utf8")
         return JSON.parse(s)
-    } catch {
+    } catch (e) {
         console.error("Failed to load divvun env")
+        console.error(e)
         return {}
     }
 }
