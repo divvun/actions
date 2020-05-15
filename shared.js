@@ -33,7 +33,7 @@ async function getDivvunEnv(name) {
             }
         }
     };
-    await exec.exec("bash", ["-c", `source ./enc/env.sh && echo $${name}`], options);
+    await exec.exec("bash", ["-c", `source ./enc/env.sh`], options);
     return output.trim();
 }
 exports.getDivvunEnv = getDivvunEnv;

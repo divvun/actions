@@ -23,7 +23,7 @@ export async function getDivvunEnv(name: string) {
         }
     }
 
-    await exec.exec("bash", ["-c", `source ./enc/env.sh && echo $${name}`], options)
+    await exec.exec("bash", ["-c", `source ./enc/env.sh`], options)
     return output.trim()
 }
 
