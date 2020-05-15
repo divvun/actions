@@ -18,7 +18,7 @@ export function shouldDeploy() {
 }
 
 function loadEnv() {
-    const p = path.resolve(divvunConfigDir(), "enc", "env.json")
+    const p = path.resolve(divvunConfigDir(), "env.json")
     const s = fs.readFileSync(p, "utf8")
     return JSON.parse(s)
 }

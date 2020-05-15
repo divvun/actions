@@ -26,7 +26,7 @@ function shouldDeploy() {
 }
 exports.shouldDeploy = shouldDeploy;
 function loadEnv() {
-    const p = path_1.default.resolve(divvunConfigDir(), "enc", "env.json");
+    const p = path_1.default.resolve(divvunConfigDir(), "env.json");
     const s = fs_1.default.readFileSync(p, "utf8");
     return JSON.parse(s);
 }
