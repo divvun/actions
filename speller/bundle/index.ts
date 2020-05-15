@@ -4,6 +4,7 @@ import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import * as io from '@actions/io'
 import path from 'path'
+import os from 'os'
 import toml from 'toml'
 import fs from 'fs'
 import { divvunConfigDir, loadEnv } from '../../shared'
@@ -159,7 +160,7 @@ async function consolidateLayouts(manifest: Manifest) {
             console.log(`copy layout ${layout}`)
             await io.mkdirP(path.join(kbdgenPackagePath, "layouts"))
             await io.cp(
-                path.join(tempDir, "layouts", `${layout}.yaml`),
+                path.join(tempDir, `${kbdgenPackageName}.kbdgen`, "layouts", `${layout}.yaml`),
                 path.join(kbdgenPackagePath, "layouts", `${layout}.yaml`)
             )
         }
@@ -172,7 +173,6 @@ async function bundleKeyboard(manifest: Manifest, bundleType: BundleType) {
     console.log("keyboard", bundleType)
     const kbdgenPackagePath = `${manifest.package.name}.kbdgen`
     if (bundleType == "keyboard_android") {
-        console.log("android", bundleType)
         if (!process.env.ANDROID_NDK_HOME)
             throw new Error("ANDROID_NDK_HOME not set")
 
@@ -183,14 +183,18 @@ async function bundleKeyboard(manifest: Manifest, bundleType: BundleType) {
         const exit = await exec.exec("kbdgen", [
             "--logging", "debug",
             "build",
-            "--github-username", await getDivvunEnv("GITHUB_USERNAME"),
-            "--github-token", await getDivvunEnv("GITHUB_TOKEN"),
+            "--github-username", env.github.username,
+            "--github-token", env.github.token,
             "android", "-R", "--ci", "-o", "output",
             kbdgenPackagePath
         ], {
             env: {
                 ...process.env,
                 "NDK_HOME": process.env.ANDROID_NDK_HOME,
+                "ANDROID_KEYSTORE": path.join(divvunConfigDir(), env.android.keystore),
+                "ANDROID_KEYALIAS": env.android.keyalias,
+                "STORE_PW": env.android.store_pw,
+                "KEY_PW": env.android.key_pw
             }
         })
 
@@ -198,7 +202,38 @@ async function bundleKeyboard(manifest: Manifest, bundleType: BundleType) {
             throw new Error("kbdgen failed")
         }
 
-        return path.resolve(`output/${manifest.package.name}-${version}_release.apk`)
+        const file = path.resolve(`output/${manifest.package.name}-${version}_release.apk`)
+        if (!fs.existsSync(file))
+            throw new Error("no output generated")
+        return file
+    } else if (bundleType == "keyboard_ios") {
+        // export TARGET_BUNDLE_NAME=$(cat ${{ parameters.kbdgenFolder }}/targets/ios.yaml | grep 'bundleName:' | cut -c 13-)
+        // export TARGET_VERSION=$(cat ${{ parameters.kbdgenFolder }}/targets/ios.yaml | grep 'version:' | cut -c 10-)
+        // $(System.DefaultWorkingDirectory)/kbdgen --logging debug build --github-username $GITHUB_USERNAME --github-token $GITHUB_TOKEN ios --kbd-branch master -R --ci -o output .
+        // # fastlane pilot upload --skip_submission --skip_waiting_for_build_processing --ipa output/ios-build/ipa/HostingApp.ipa
+
+        await consolidateLayouts(manifest)
+        const iosTarget = YAML.parse(path.resolve(kbdgenPackagePath, "targets", "ios.yaml"))
+        // const version = iosTarget["version"]
+        // const keyAlias = androidTarget["keyAlias"]
+        const exit = await exec.exec("kbdgen", [
+            "--logging", "debug",
+            "build",
+            "--github-username", env.github.username,
+            "--github-token", env.github.token,
+            "ios", "-R", "--ci", "-o", "output",
+            "--kbd-branch", "master",
+            kbdgenPackagePath
+        ])
+
+        if (exit != 0) {
+            throw new Error("kbdgen failed")
+        }
+
+        const file = path.resolve(`output/ios-build/ipa/HostingApp.ipa`)
+        if (!fs.existsSync(file))
+            throw new Error("no output generated")
+        return file
     }
 }
 
@@ -206,16 +241,13 @@ async function run() {
     try {
         const manifestPath = core.getInput('manifest');
         const manifest = toml.parse(fs.readFileSync(manifestPath).toString()) as Manifest
-        // console.log(manifest)
         const bundleType = core.getInput('bundleType') as BundleType;
-
-        console.log(bundleType)
 
         const bundle = manifest.bundles[bundleType]
         if (!bundle)
             throw new Error(`No such bundle ${bundleType}`)
 
-        const spellerOutput = bundleSpeller(manifest, bundleType) || bundleKeyboard(manifest, bundleType);
+        const spellerOutput = await bundleSpeller(manifest, bundleType) || await bundleKeyboard(manifest, bundleType);
         console.log("output", spellerOutput)
         if (spellerOutput) {
             core.setOutput("bundle", spellerOutput)

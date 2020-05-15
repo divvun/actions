@@ -27,7 +27,13 @@ function shouldDeploy() {
 exports.shouldDeploy = shouldDeploy;
 function loadEnv() {
     const p = path_1.default.resolve(divvunConfigDir(), "enc", "env.json");
-    const s = fs_1.default.readFileSync(p, "utf8");
-    return JSON.parse(s);
+    try {
+        const s = fs_1.default.readFileSync(p, "utf8");
+        return JSON.parse(s);
+    }
+    catch (_a) {
+        console.error("Failed to load divvun env");
+        return {};
+    }
 }
 exports.loadEnv = loadEnv;

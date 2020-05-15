@@ -5,7 +5,7 @@ export interface Speller {
 }
 
 export type SpellerBundleType = "speller_win" | "speller_win_mso" | "speller_macos" | "speller_mobile"
-export type KeyboardBundleType = "keyboard_android"
+export type KeyboardBundleType = "keyboard_android" | "keyboard_ios"
 export type BundleType = SpellerBundleType | KeyboardBundleType
 
 export interface Bundle {

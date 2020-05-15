@@ -19,6 +19,11 @@ export function shouldDeploy() {
 
 export function loadEnv() {
     const p = path.resolve(divvunConfigDir(), "enc", "env.json")
-    const s = fs.readFileSync(p, "utf8")
-    return JSON.parse(s)
+    try {
+        const s = fs.readFileSync(p, "utf8")
+        return JSON.parse(s)
+    } catch {
+        console.error("Failed to load divvun env")
+        return {}
+    }
 }

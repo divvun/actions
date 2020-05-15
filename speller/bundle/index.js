@@ -1,14 +1,12 @@
 "use strict";
-var __importStar = (this && this.__importStar) || function(mod) {
+var __importStar = (this && this.__importStar) || function (mod) {
     if (mod && mod.__esModule) return mod;
     var result = {};
-    if (mod != null)
-        for (var k in mod)
-            if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
+    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
     result["default"] = mod;
     return result;
 };
-var __importDefault = (this && this.__importDefault) || function(mod) {
+var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
@@ -93,8 +91,8 @@ async function bundleSpeller(manifest, bundleType) {
             "-V", manifest.package.version,
             "-a", "Developer ID Application: The University of Tromso (2K5J2584NX)",
             "-i", "Developer ID Installer: The University of Tromso (2K5J2584NX)",
-            "-n", await shared_1.getDivvunEnv("MACOS_DEVELOPER_ACCOUNT"),
-            "-k", await shared_1.getDivvunEnv("MACOS_DEVELOPER_PASSWORD_CHAIN_ITEM"),
+            "-n", shared_1.env.macos.developerAccount,
+            "-k", shared_1.env.macos.passwordChainItem,
             "speller",
             "-f", manifest.package.name,
         ].concat(spellerArgs);
@@ -106,7 +104,8 @@ async function bundleSpeller(manifest, bundleType) {
             throw new Error("divvun-bundler failed");
         }
         return path_1.default.resolve(outputFile);
-    } else if (bundleType == "speller_win") {
+    }
+    else if (bundleType == "speller_win") {
         const args = ["-R", "-t", "win", "-o", "output",
             "--uuid", manifest.bundles[bundleType].uuid,
             "-H", manifest.package.human_name,
@@ -123,7 +122,8 @@ async function bundleSpeller(manifest, bundleType) {
             throw new Error("divvun-bundler failed");
         }
         return path_1.default.resolve(outputFile);
-    } else if (bundleType == "speller_win_mso") {
+    }
+    else if (bundleType == "speller_win_mso") {
         const args_mso = ["-R", "-t", "win", "-o", "output",
             "--uuid", manifest.bundles[bundleType].uuid,
             "-H", `${manifest.package.human_name} MSOffice`,
@@ -141,7 +141,8 @@ async function bundleSpeller(manifest, bundleType) {
             throw new Error("divvun-bundler failed");
         }
         return path_1.default.resolve(outputFileMso);
-    } else if (bundleType == "speller_mobile") {
+    }
+    else if (bundleType == "speller_mobile") {
         const files = [];
         const tarDir = path_1.default.resolve("_tar");
         console.log(tarDir);
@@ -200,7 +201,6 @@ async function bundleSpeller(manifest, bundleType) {
             core.setOutput("bundle", path_1.default.resolve(outputFileMso));
 =======
         const outputFile = path_1.default.resolve(tarDir, `${manifest.package.name}-${manifest.package.version}.txz`);
-        console.log(outputFile);
         const exit = await exec.exec("tar", ["cJf", outputFile].concat(files), { cwd: tarDir });
         if (exit != 0) {
             throw new Error("tar failed");
@@ -226,8 +226,12 @@ async function consolidateLayouts(manifest) {
         for (const layout of layouts.layouts) {
             console.log(`copy layout ${layout}`);
             await io.mkdirP(path_1.default.join(kbdgenPackagePath, "layouts"));
+<<<<<<< HEAD
             await io.cp(path_1.default.join(tempDir, "layouts", `${layout}.yaml`), path_1.default.join(kbdgenPackagePath, "layouts", `${layout}.yaml`));
 >>>>>>> add kbdgen building
+=======
+            await io.cp(path_1.default.join(tempDir, `${kbdgenPackageName}.kbdgen`, "layouts", `${layout}.yaml`), path_1.default.join(kbdgenPackagePath, "layouts", `${layout}.yaml`));
+>>>>>>> fix ci
         }
         await io.rmRF(tempDir);
     }
@@ -236,7 +240,6 @@ async function bundleKeyboard(manifest, bundleType) {
     console.log("keyboard", bundleType);
     const kbdgenPackagePath = `${manifest.package.name}.kbdgen`;
     if (bundleType == "keyboard_android") {
-        console.log("android", bundleType);
         if (!process.env.ANDROID_NDK_HOME)
             throw new Error("ANDROID_NDK_HOME not set");
         await consolidateLayouts(manifest);
@@ -245,20 +248,47 @@ async function bundleKeyboard(manifest, bundleType) {
         const exit = await exec.exec("kbdgen", [
             "--logging", "debug",
             "build",
-            "--github-username", await shared_1.getDivvunEnv("GITHUB_USERNAME"),
-            "--github-token", await shared_1.getDivvunEnv("GITHUB_TOKEN"),
+            "--github-username", shared_1.env.github.username,
+            "--github-token", shared_1.env.github.token,
             "android", "-R", "--ci", "-o", "output",
             kbdgenPackagePath
         ], {
             env: {
                 ...process.env,
                 "NDK_HOME": process.env.ANDROID_NDK_HOME,
+                "ANDROID_KEYSTORE": path_1.default.join(shared_1.divvunConfigDir(), shared_1.env.android.keystore),
+                "ANDROID_KEYALIAS": shared_1.env.android.keyalias,
+                "STORE_PW": shared_1.env.android.store_pw,
+                "KEY_PW": shared_1.env.android.key_pw
             }
         });
         if (exit != 0) {
             throw new Error("kbdgen failed");
         }
-        return path_1.default.resolve(`output/${manifest.package.name}-${version}_release.apk`);
+        const file = path_1.default.resolve(`output/${manifest.package.name}-${version}_release.apk`);
+        if (!fs_1.default.existsSync(file))
+            throw new Error("no output generated");
+        return file;
+    }
+    else if (bundleType == "keyboard_ios") {
+        await consolidateLayouts(manifest);
+        const iosTarget = yaml_1.default.parse(path_1.default.resolve(kbdgenPackagePath, "targets", "ios.yaml"));
+        const exit = await exec.exec("kbdgen", [
+            "--logging", "debug",
+            "build",
+            "--github-username", shared_1.env.github.username,
+            "--github-token", shared_1.env.github.token,
+            "ios", "-R", "--ci", "-o", "output",
+            "--kbd-branch", "master",
+            kbdgenPackagePath
+        ]);
+        if (exit != 0) {
+            throw new Error("kbdgen failed");
+        }
+        const file = path_1.default.resolve(`output/ios-build/ipa/HostingApp.ipa`);
+        if (!fs_1.default.existsSync(file))
+            throw new Error("no output generated");
+        return file;
     }
 }
 async function run() {
@@ -266,18 +296,19 @@ async function run() {
         const manifestPath = core.getInput('manifest');
         const manifest = toml_1.default.parse(fs_1.default.readFileSync(manifestPath).toString());
         const bundleType = core.getInput('bundleType');
-        console.log(bundleType);
         const bundle = manifest.bundles[bundleType];
         if (!bundle)
             throw new Error(`No such bundle ${bundleType}`);
-        const spellerOutput = bundleSpeller(manifest, bundleType) || bundleKeyboard(manifest, bundleType);
+        const spellerOutput = await bundleSpeller(manifest, bundleType) || await bundleKeyboard(manifest, bundleType);
         console.log("output", spellerOutput);
         if (spellerOutput) {
             core.setOutput("bundle", spellerOutput);
-        } else {
+        }
+        else {
             throw new Error(`Unsupported bundleType ${bundleType}`);
         }
-    } catch (error) {
+    }
+    catch (error) {
         core.setFailed(error.message);
     }
 }
