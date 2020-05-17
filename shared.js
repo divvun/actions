@@ -30,4 +30,4 @@ function loadEnv() {
     const s = fs_1.default.readFileSync(p, "utf8");
     return JSON.parse(s);
 }
-exports.env = Object.freeze(loadEnv());
+exports.loadEnv = loadEnv;

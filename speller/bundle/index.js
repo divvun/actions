@@ -17,15 +17,16 @@ const path_1 = __importDefault(require("path"));
 const toml_1 = __importDefault(require("toml"));
 const fs_1 = __importDefault(require("fs"));
 const shared_1 = require("../../shared");
-async function bundleEnv() {
+async function bundleEnv(env) {
     return {
         ...process.env,
         "RUST_LOG": "info",
-        "SIGN_PFX_PASSWORD": shared_1.env.windows.pfxPassword,
+        "SIGN_PFX_PASSWORD": env.windows.pfxPassword,
     };
 }
 async function run() {
     try {
+        const env = shared_1.loadEnv();
         const manifestPath = core.getInput('manifest');
         const manifest = toml_1.default.parse(fs_1.default.readFileSync(manifestPath).toString());
         console.log(manifest);
@@ -54,13 +55,13 @@ async function run() {
                 "-V", manifest.package.version,
                 "-a", "Developer ID Application: The University of Tromso (2K5J2584NX)",
                 "-i", "Developer ID Installer: The University of Tromso (2K5J2584NX)",
-                "-n", shared_1.env.macos.developerAccount,
-                "-k", shared_1.env.macos.passwordChainItem,
+                "-n", env.macos.developerAccount,
+                "-k", env.macos.passwordChainItem,
                 "speller",
                 "-f", manifest.package.name,
             ].concat(spellerArgs);
             const exit = await exec.exec("divvun-bundler", args, {
-                env: await bundleEnv()
+                env: await bundleEnv(env)
             });
             const outputFile = `output/${manifest.package.name}-${manifest.package.version}.pkg`;
             if (exit != 0 || !fs_1.default.existsSync(outputFile)) {
@@ -78,7 +79,7 @@ async function run() {
                 "-f", manifest.package.name
             ].concat(spellerArgs);
             const exit = await exec.exec("divvun-bundler.exe", args, {
-                env: await bundleEnv()
+                env: await bundleEnv(env)
             });
             const outputFile = `output/${manifest.package.name}-${manifest.package.version}.exe`;
             if (exit != 0 || !fs_1.default.existsSync(outputFile)) {
@@ -97,7 +98,7 @@ async function run() {
                 "--reg", await io.which("win-reg-tool.exe")
             ].concat(spellerMsoArgs);
             const exitMso = await exec.exec("divvun-bundler.exe", args_mso, {
-                env: await bundleEnv()
+                env: await bundleEnv(env)
             });
             const outputFileMso = `output/${manifest.package.name}-mso-${manifest.package.version}.exe`;
             if (exitMso != 0 || !fs_1.default.existsSync(outputFileMso)) {

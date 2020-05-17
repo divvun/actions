@@ -6,10 +6,10 @@ import * as io from '@actions/io'
 import path from 'path'
 import toml from 'toml'
 import fs from 'fs'
-import { divvunConfigDir, env } from '../../shared'
+import { divvunConfigDir, loadEnv } from '../../shared'
 import { Manifest, BundleType } from '../manifest'
 
-async function bundleEnv() {
+async function bundleEnv(env: any) {
     return {
         ...process.env,
         "RUST_LOG": "info",
@@ -19,6 +19,7 @@ async function bundleEnv() {
 
 async function run() {
     try {
+        const env = loadEnv()
         const manifestPath = core.getInput('manifest');
         const manifest = toml.parse(fs.readFileSync(manifestPath).toString()) as Manifest
         console.log(manifest)
@@ -57,7 +58,7 @@ async function run() {
             ].concat(spellerArgs)
 
             const exit = await exec.exec("divvun-bundler", args, {
-                env: await bundleEnv()
+                env: await bundleEnv(env)
             })
             const outputFile = `output/${manifest.package.name}-${manifest.package.version}.pkg`
 
@@ -77,7 +78,7 @@ async function run() {
             ].concat(spellerArgs)
 
             const exit = await exec.exec("divvun-bundler.exe", args, {
-                env: await bundleEnv()
+                env: await bundleEnv(env)
             })
 
             const outputFile = `output/${manifest.package.name}-${manifest.package.version}.exe`
@@ -99,7 +100,7 @@ async function run() {
             ].concat(spellerMsoArgs)
 
             const exitMso = await exec.exec("divvun-bundler.exe", args_mso, {
-                env: await bundleEnv()
+                env: await bundleEnv(env)
             })
 
             const outputFileMso = `output/${manifest.package.name}-mso-${manifest.package.version}.exe`

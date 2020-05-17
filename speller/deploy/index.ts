@@ -4,7 +4,7 @@ import toml from 'toml'
 import fs from 'fs'
 import path from 'path'
 
-import { divvunConfigDir, env, shouldDeploy } from '../../shared'
+import { divvunConfigDir, loadEnv, shouldDeploy } from '../../shared'
 import { BundleType, Manifest } from '../manifest'
 
 async function run() {
@@ -81,6 +81,7 @@ async function run() {
 
         const testDeploy = !!core.getInput('testDeploy') || !shouldDeploy()
         const isDeploying = !testDeploy ||  core.getInput('forceDeploy');
+        const env = loadEnv()
 
         const deployScript = path.join(divvunConfigDir(), "repo", "scripts", "pahkat_deploy_new.sh")
         const exit = await exec.exec("bash", [deployScript], {

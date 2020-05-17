@@ -17,10 +17,8 @@ export function shouldDeploy() {
     return isMaster
 }
 
-function loadEnv() {
+export function loadEnv() {
     const p = path.resolve(divvunConfigDir(), "enc", "env.json")
     const s = fs.readFileSync(p, "utf8")
     return JSON.parse(s)
 }
-
-export const env = Object.freeze(loadEnv())

@@ -77,12 +77,13 @@ async function run() {
         fs_1.default.writeFileSync(payloadMetadataPath, payloadMetadataString, "utf8");
         const testDeploy = !!core.getInput('testDeploy') || !shared_1.shouldDeploy();
         const isDeploying = !testDeploy || core.getInput('forceDeploy');
+        const env = shared_1.loadEnv();
         const deployScript = path_1.default.join(shared_1.divvunConfigDir(), "repo", "scripts", "pahkat_deploy_new.sh");
         const exit = await exec.exec("bash", [deployScript], {
             env: {
                 ...process.env,
-                "DEPLOY_SVN_USER": shared_1.env.svn.username,
-                "DEPLOY_SVN_PASSWORD": shared_1.env.svn.password,
+                "DEPLOY_SVN_USER": env.svn.username,
+                "DEPLOY_SVN_PASSWORD": env.svn.password,
                 "DEPLOY_SVN_REPO": bundle.repo,
                 "DEPLOY_SVN_PKG_ID": bundle.package,
                 "DEPLOY_SVN_PKG_PLATFORM": bundle.platform,

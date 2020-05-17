@@ -2,10 +2,11 @@ import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import path from 'path'
 
-import { divvunConfigDir, shouldDeploy, env } from '../shared'
+import { divvunConfigDir, shouldDeploy, loadEnv } from '../shared'
 
 async function run() {
     try {
+        const env = loadEnv()
         const testDeploy = !!core.getInput('testDeploy') || !shouldDeploy()
         const isDeploying = !testDeploy ||  core.getInput('forceDeploy');
         const deployScript = path.join(divvunConfigDir(), "repo", "scripts", "pahkat_deploy_new.sh")
