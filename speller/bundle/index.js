@@ -17,59 +17,15 @@ const path_1 = __importDefault(require("path"));
 const toml_1 = __importDefault(require("toml"));
 const fs_1 = __importDefault(require("fs"));
 const shared_1 = require("../../shared");
-<<<<<<< HEAD
 async function bundleEnv(env) {
-=======
-const yaml_1 = __importDefault(require("yaml"));
-async function bundleEnv() {
->>>>>>> add kbdgen building
     return {
         ...process.env,
         "RUST_LOG": "info",
         "SIGN_PFX_PASSWORD": env.windows.pfxPassword,
     };
 }
-<<<<<<< HEAD
-async function run() {
-    try {
-        const env = shared_1.loadEnv();
-        const manifestPath = core.getInput('manifest');
-        const manifest = toml_1.default.parse(fs_1.default.readFileSync(manifestPath).toString());
-        console.log(manifest);
-        const bundleType = core.getInput('bundleType');
-        const bundle = manifest.bundles[bundleType];
-        if (!bundle)
-            throw new Error(`No such bundle ${bundleType}`);
-        const isWindows = process.platform === 'win32';
-        const spellerArgs = [];
-        const spellerMsoArgs = [];
-        for (const spellerName in manifest.spellers) {
-            const speller = manifest.spellers[spellerName];
-            const realSpellerName = (isWindows && speller.name_win) || spellerName;
-            spellerArgs.push("-l");
-            spellerArgs.push(realSpellerName);
-            spellerArgs.push("-z");
-            spellerArgs.push(speller.filename);
-            spellerMsoArgs.push("-l");
-            spellerMsoArgs.push(realSpellerName);
-        }
-        if (bundleType == "speller_macos") {
-            console.log(process.env);
-            const args = [
-                "-R", "-o", "output", "-t", "osx",
-                "-H", manifest.package.human_name,
-                "-V", manifest.package.version,
-                "-a", "Developer ID Application: The University of Tromso (2K5J2584NX)",
-                "-i", "Developer ID Installer: The University of Tromso (2K5J2584NX)",
-                "-n", env.macos.developerAccount,
-                "-k", env.macos.passwordChainItem,
-                "speller",
-                "-f", manifest.package.name,
-            ].concat(spellerArgs);
-            const exit = await exec.exec("divvun-bundler", args, {
-                env: await bundleEnv(env)
-=======
 async function bundleSpeller(manifest, bundleType) {
+    const env = shared_1.loadEnv();
     const isWindows = process.platform === 'win32';
     const spellerArgs = [];
     const spellerMsoArgs = [];
@@ -83,21 +39,27 @@ async function bundleSpeller(manifest, bundleType) {
         spellerMsoArgs.push("-l");
         spellerMsoArgs.push(realSpellerName);
     }
+    const human_name = manifest.package.human_name;
+    const version = manifest.package.version;
     if (bundleType == "speller_macos") {
+        if (!human_name)
+            throw new Error("no human_name specified");
+        if (!version)
+            throw new Error("no version specified");
         console.log(process.env);
         const args = [
             "-R", "-o", "output", "-t", "osx",
-            "-H", manifest.package.human_name,
-            "-V", manifest.package.version,
+            "-H", human_name,
+            "-V", version,
             "-a", "Developer ID Application: The University of Tromso (2K5J2584NX)",
             "-i", "Developer ID Installer: The University of Tromso (2K5J2584NX)",
-            "-n", shared_1.env.macos.developerAccount,
-            "-k", shared_1.env.macos.passwordChainItem,
+            "-n", env.macos.developerAccount,
+            "-k", env.macos.passwordChainItem,
             "speller",
             "-f", manifest.package.name,
         ].concat(spellerArgs);
         const exit = await exec.exec("divvun-bundler", args, {
-            env: await bundleEnv()
+            env: await bundleEnv(env)
         });
         const outputFile = `output/${manifest.package.name}-${manifest.package.version}.pkg`;
         if (exit != 0 || !fs_1.default.existsSync(outputFile)) {
@@ -106,16 +68,20 @@ async function bundleSpeller(manifest, bundleType) {
         return path_1.default.resolve(outputFile);
     }
     else if (bundleType == "speller_win") {
+        if (!human_name)
+            throw new Error("no human_name specified");
+        if (!version)
+            throw new Error("no version specified");
         const args = ["-R", "-t", "win", "-o", "output",
             "--uuid", manifest.bundles[bundleType].uuid,
-            "-H", manifest.package.human_name,
-            "-V", manifest.package.version,
+            "-H", human_name,
+            "-V", version,
             "-c", `${shared_1.divvunConfigDir()}\\enc\\creds\\windows\\divvun.pfx`,
             "speller",
             "-f", manifest.package.name
         ].concat(spellerArgs);
         const exit = await exec.exec("divvun-bundler.exe", args, {
-            env: await bundleEnv()
+            env: await bundleEnv(env)
         });
         const outputFile = `output/${manifest.package.name}-${manifest.package.version}.exe`;
         if (exit != 0 || !fs_1.default.existsSync(outputFile)) {
@@ -124,17 +90,21 @@ async function bundleSpeller(manifest, bundleType) {
         return path_1.default.resolve(outputFile);
     }
     else if (bundleType == "speller_win_mso") {
+        if (!human_name)
+            throw new Error("no human_name specified");
+        if (!version)
+            throw new Error("no version specified");
         const args_mso = ["-R", "-t", "win", "-o", "output",
             "--uuid", manifest.bundles[bundleType].uuid,
-            "-H", `${manifest.package.human_name} MSOffice`,
-            "-V", manifest.package.version,
+            "-H", `${human_name} MSOffice`,
+            "-V", version,
             "-c", `${shared_1.divvunConfigDir()}\\enc\\creds\\windows\\divvun.pfx`,
             "speller_mso",
             "-f", manifest.package.name,
             "--reg", await io.which("win-reg-tool.exe")
         ].concat(spellerMsoArgs);
         const exitMso = await exec.exec("divvun-bundler.exe", args_mso, {
-            env: await bundleEnv()
+            env: await bundleEnv(env)
         });
         const outputFileMso = `output/${manifest.package.name}-mso-${manifest.package.version}.exe`;
         if (exitMso != 0 || !fs_1.default.existsSync(outputFileMso)) {
@@ -143,6 +113,8 @@ async function bundleSpeller(manifest, bundleType) {
         return path_1.default.resolve(outputFileMso);
     }
     else if (bundleType == "speller_mobile") {
+        if (!version)
+            throw new Error("no version specified");
         const files = [];
         const tarDir = path_1.default.resolve("_tar");
         console.log(tarDir);
@@ -155,52 +127,13 @@ async function bundleSpeller(manifest, bundleType) {
             await exec.exec("unzip", ["-vl", spellerTargetFileName], { cwd: tarDir });
             const exit = await exec.exec("thfst-tools", ["zhfst-to-bhfst", spellerTargetFileName], {
                 cwd: tarDir
->>>>>>> add kbdgen building
             });
             if (exit != 0) {
                 throw new Error(`Failed to convert ${spellerName}`);
             }
             files.push(spellerNewFileName);
         }
-<<<<<<< HEAD
-        else if (bundleType == "speller_win") {
-            const args = ["-R", "-t", "win", "-o", "output",
-                "--uuid", bundle.uuid,
-                "-H", manifest.package.human_name,
-                "-V", manifest.package.version,
-                "-c", `${shared_1.divvunConfigDir()}\\enc\\creds\\windows\\divvun.pfx`,
-                "speller",
-                "-f", manifest.package.name
-            ].concat(spellerArgs);
-            const exit = await exec.exec("divvun-bundler.exe", args, {
-                env: await bundleEnv(env)
-            });
-            const outputFile = `output/${manifest.package.name}-${manifest.package.version}.exe`;
-            if (exit != 0 || !fs_1.default.existsSync(outputFile)) {
-                throw new Error("divvun-bundler failed");
-            }
-            core.setOutput("bundle", path_1.default.resolve(outputFile));
-        }
-        else if (bundleType == "speller_win_mso") {
-            const args_mso = ["-R", "-t", "win", "-o", "output",
-                "--uuid", bundle.uuid,
-                "-H", `${manifest.package.human_name} MSOffice`,
-                "-V", manifest.package.version,
-                "-c", `${shared_1.divvunConfigDir()}\\enc\\creds\\windows\\divvun.pfx`,
-                "speller_mso",
-                "-f", manifest.package.name,
-                "--reg", await io.which("win-reg-tool.exe")
-            ].concat(spellerMsoArgs);
-            const exitMso = await exec.exec("divvun-bundler.exe", args_mso, {
-                env: await bundleEnv(env)
-            });
-            const outputFileMso = `output/${manifest.package.name}-mso-${manifest.package.version}.exe`;
-            if (exitMso != 0 || !fs_1.default.existsSync(outputFileMso)) {
-                throw new Error("divvun-bundler failed");
-            }
-            core.setOutput("bundle", path_1.default.resolve(outputFileMso));
-=======
-        const outputFile = path_1.default.resolve(tarDir, `${manifest.package.name}-${manifest.package.version}.txz`);
+        const outputFile = path_1.default.resolve(tarDir, `${manifest.package.name}-${version}.txz`);
         const exit = await exec.exec("tar", ["cJf", outputFile].concat(files), { cwd: tarDir });
         if (exit != 0) {
             throw new Error("tar failed");
@@ -226,27 +159,27 @@ async function consolidateLayouts(manifest) {
         for (const layout of layouts.layouts) {
             console.log(`copy layout ${layout}`);
             await io.mkdirP(path_1.default.join(kbdgenPackagePath, "layouts"));
-<<<<<<< HEAD
-            await io.cp(path_1.default.join(tempDir, "layouts", `${layout}.yaml`), path_1.default.join(kbdgenPackagePath, "layouts", `${layout}.yaml`));
->>>>>>> add kbdgen building
-=======
             await io.cp(path_1.default.join(tempDir, `${kbdgenPackageName}.kbdgen`, "layouts", `${layout}.yaml`), path_1.default.join(kbdgenPackagePath, "layouts", `${layout}.yaml`));
->>>>>>> fix ci
         }
         await io.rmRF(tempDir);
     }
 }
 async function bundleKeyboard(manifest, bundleType) {
-    console.log("keyboard", bundleType);
+    const env = shared_1.loadEnv();
     const kbdgenPackagePath = `${manifest.package.name}.kbdgen`;
     if (bundleType == "keyboard_android") {
         if (!process.env.ANDROID_NDK_HOME)
             throw new Error("ANDROID_NDK_HOME not set");
         await consolidateLayouts(manifest);
-        const androidTarget = yaml_1.default.parse(fs_1.default.readFileSync(path_1.default.resolve(kbdgenPackagePath, "targets", "android.yaml"), 'utf8'));
+        const androidTarget = shared_1.loadKbdgenTarget(kbdgenPackagePath, "android");
         const version = androidTarget["version"];
         if (!version)
             throw new Error("no version in android target");
+        console.log(androidTarget);
+        androidTarget['build'] = 1000 + parseInt(process.env.GITHUB_RUN_ID || "0");
+        console.log(`bump build to ${androidTarget['build']}`);
+        console.log(androidTarget);
+        shared_1.saveKbdgenTarget(kbdgenPackagePath, "android", androidTarget);
         const exit = await exec.exec("kbdgen", [
             "--logging", "debug",
             "build",
@@ -255,13 +188,15 @@ async function bundleKeyboard(manifest, bundleType) {
         ], {
             env: {
                 ...process.env,
-                "GITHUB_USERNAME": shared_1.env.github.username,
-                "GITHUB_TOKEN": shared_1.env.github.token,
+                "GITHUB_USERNAME": env.github.username,
+                "GITHUB_TOKEN": env.github.token,
                 "NDK_HOME": process.env.ANDROID_NDK_HOME,
-                "ANDROID_KEYSTORE": path_1.default.join(shared_1.divvunConfigDir(), shared_1.env.android.keystore),
-                "ANDROID_KEYALIAS": shared_1.env.android.keyalias,
-                "STORE_PW": shared_1.env.android.store_pw,
-                "KEY_PW": shared_1.env.android.key_pw
+                "ANDROID_KEYSTORE": path_1.default.join(shared_1.divvunConfigDir(), env.android.keystore),
+                "ANDROID_KEYALIAS": env.android.keyalias,
+                "STORE_PW": env.android.store_pw,
+                "KEY_PW": env.android.key_pw,
+                "PLAY_STORE_P12": path_1.default.join(shared_1.divvunConfigDir(), env.android.playStoreP12),
+                "PLAY_STORE_ACCOUNT": env.android.playStoreAccount
             }
         });
         if (exit != 0) {
@@ -275,15 +210,16 @@ async function bundleKeyboard(manifest, bundleType) {
     else if (bundleType == "keyboard_ios") {
         const kbdgenEnv = {
             ...process.env,
-            "GITHUB_USERNAME": shared_1.env.github.username,
-            "GITHUB_TOKEN": shared_1.env.github.token,
-            "MATCH_GIT_URL": shared_1.env.ios.match_git_url,
-            "MATCH_PASSWORD": shared_1.env.ios.match_password,
-            "FASTLANE_USER": shared_1.env.ios.fastlane_user,
-            "FASTLANE_PASSWORD": shared_1.env.ios.fastlane_password,
+            "GITHUB_USERNAME": env.github.username,
+            "GITHUB_TOKEN": env.github.token,
+            "MATCH_GIT_URL": env.ios.match_git_url,
+            "MATCH_PASSWORD": env.ios.match_password,
+            "FASTLANE_USER": env.ios.fastlane_user,
+            "FASTLANE_PASSWORD": env.ios.fastlane_password,
+            "MATCH_KEYCHAIN_NAME": "fastlane_tmp_keychain",
+            "MATCH_KEYCHAIN_PASSWORD": ""
         };
         await consolidateLayouts(manifest);
-        const iosTarget = yaml_1.default.parse(fs_1.default.readFileSync(path_1.default.resolve(kbdgenPackagePath, "targets", "ios.yaml"), 'utf8'));
         console.log("kbdgen init");
         let exit = await exec.exec("kbdgen", [
             "--logging", "debug",
@@ -319,27 +255,54 @@ async function bundleKeyboard(manifest, bundleType) {
         return file;
     }
     else if (bundleType == "keyboard_macos") {
-        const macTarget = yaml_1.default.parse(fs_1.default.readFileSync(path_1.default.resolve(kbdgenPackagePath, "targets", "mac.yaml"), 'utf8'));
+        const macTarget = shared_1.loadKbdgenTarget(kbdgenPackagePath, "mac");
         const bundleName = macTarget["bundleName"];
         const version = macTarget["version"];
         if (!version)
             throw new Error("no version in mac target");
         const exit = await exec.exec("kbdgen", [
-            "--logging", "debug",
+            "--logging", "trace",
             "build",
             "mac", "-R", "--ci", "-o", "output",
             kbdgenPackagePath
         ], {
             env: {
                 ...process.env,
-                "DEVELOPER_PASSWORD_CHAIN_ITEM": shared_1.env.macos.passwordChainItem,
-                "DEVELOPER_ACCOUNT": shared_1.env.macos.developerAccount
+                "DEVELOPER_PASSWORD_CHAIN_ITEM": env.macos.passwordChainItem,
+                "DEVELOPER_ACCOUNT": env.macos.developerAccount
             }
         });
         if (exit != 0) {
             throw new Error("kbdgen failed");
         }
         const file = path_1.default.resolve("output", `${bundleName} ${version}.pkg`);
+        console.log("file", file);
+        if (!fs_1.default.existsSync(file))
+            throw new Error("no output generated");
+        return file;
+    }
+    else if (bundleType == "keyboard_win") {
+        const winTarget = shared_1.loadKbdgenTarget(kbdgenPackagePath, "win");
+        const appName = winTarget["appName"];
+        const version = winTarget["version"];
+        if (!version)
+            throw new Error("no version in win target");
+        const exit = await exec.exec("kbdgen", [
+            "--logging", "trace",
+            "build",
+            "win", "-R", "--ci", "-o", "output",
+            kbdgenPackagePath
+        ], {
+            env: {
+                ...process.env,
+                "CODESIGN_PW": env.windows.pfxPassword,
+                "CODESIGN_PFX": `${shared_1.divvunConfigDir()}\\enc\\creds\\windows\\divvun.pfx`,
+            }
+        });
+        if (exit != 0) {
+            throw new Error("kbdgen failed");
+        }
+        const file = path_1.default.resolve("output", `${appName.replace(/ /g, "_")}_${version}.exe`);
         console.log("file", file);
         if (!fs_1.default.existsSync(file))
             throw new Error("no output generated");

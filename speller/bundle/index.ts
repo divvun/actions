@@ -7,9 +7,8 @@ import path from 'path'
 import os from 'os'
 import toml from 'toml'
 import fs from 'fs'
-import { divvunConfigDir, loadEnv } from '../../shared'
+import { divvunConfigDir, loadEnv, loadKbdgenTarget, saveKbdgenTarget } from '../../shared'
 import { Manifest, BundleType } from '../manifest'
-import YAML from 'yaml'
 
 async function bundleEnv(env: any) {
     return {
@@ -36,12 +35,18 @@ async function bundleSpeller(manifest: Manifest, bundleType: BundleType) {
         spellerMsoArgs.push(realSpellerName)
     }
 
+    const human_name = manifest.package.human_name
+    const version = manifest.package.version
     if (bundleType == "speller_macos") {
+        if (!human_name)
+            throw new Error("no human_name specified")
+        if (!version)
+            throw new Error("no version specified")
         console.log(process.env)
         const args = [
             "-R", "-o", "output", "-t", "osx",
-            "-H", manifest.package.human_name,
-            "-V", manifest.package.version,
+            "-H", human_name,
+            "-V", version,
             "-a", "Developer ID Application: The University of Tromso (2K5J2584NX)",
             "-i", "Developer ID Installer: The University of Tromso (2K5J2584NX)",
             "-n", env.macos.developerAccount,
@@ -61,10 +66,15 @@ async function bundleSpeller(manifest: Manifest, bundleType: BundleType) {
 
         return path.resolve(outputFile)
     } else if (bundleType == "speller_win") {
+        if (!human_name)
+            throw new Error("no human_name specified")
+        if (!version)
+            throw new Error("no version specified")
+
         const args = ["-R", "-t", "win", "-o", "output",
             "--uuid", manifest.bundles[bundleType].uuid!,
-            "-H", manifest.package.human_name,
-            "-V", manifest.package.version,
+            "-H", human_name,
+            "-V", version,
             "-c", `${divvunConfigDir()}\\enc\\creds\\windows\\divvun.pfx`,
             "speller",
             "-f", manifest.package.name
@@ -82,10 +92,15 @@ async function bundleSpeller(manifest: Manifest, bundleType: BundleType) {
 
         return path.resolve(outputFile)
     } else if (bundleType == "speller_win_mso") {
+        if (!human_name)
+            throw new Error("no human_name specified")
+        if (!version)
+            throw new Error("no version specified")
+
         const args_mso = ["-R", "-t", "win", "-o", "output",
             "--uuid", manifest.bundles[bundleType].uuid!,
-            "-H", `${manifest.package.human_name} MSOffice`,
-            "-V", manifest.package.version,
+            "-H", `${human_name} MSOffice`,
+            "-V", version,
             "-c", `${divvunConfigDir()}\\enc\\creds\\windows\\divvun.pfx`,
             "speller_mso",
             "-f", manifest.package.name,
@@ -104,6 +119,9 @@ async function bundleSpeller(manifest: Manifest, bundleType: BundleType) {
 
         return path.resolve(outputFileMso)
     } else if (bundleType == "speller_mobile") {
+        if (!version)
+            throw new Error("no version specified")
+
         const files = []
         const tarDir = path.resolve("_tar")
         console.log(tarDir)
@@ -125,7 +143,7 @@ async function bundleSpeller(manifest: Manifest, bundleType: BundleType) {
             files.push(spellerNewFileName)
         }
 
-        const outputFile = path.resolve(tarDir, `${manifest.package.name}-${manifest.package.version}.txz`)
+        const outputFile = path.resolve(tarDir, `${manifest.package.name}-${version}.txz`)
         // Archive
         const exit = await exec.exec("tar", ["cJf", outputFile].concat(files), { cwd: tarDir })
         if (exit != 0) {
@@ -170,17 +188,24 @@ async function consolidateLayouts(manifest: Manifest) {
 }
 
 async function bundleKeyboard(manifest: Manifest, bundleType: BundleType) {
-    console.log("keyboard", bundleType)
+    const env = loadEnv()
+
     const kbdgenPackagePath = `${manifest.package.name}.kbdgen`
     if (bundleType == "keyboard_android") {
         if (!process.env.ANDROID_NDK_HOME)
             throw new Error("ANDROID_NDK_HOME not set")
 
         await consolidateLayouts(manifest)
-        const androidTarget = YAML.parse(fs.readFileSync(path.resolve(kbdgenPackagePath, "targets", "android.yaml"), 'utf8'))
+        const androidTarget = loadKbdgenTarget(kbdgenPackagePath, "android")
         const version = androidTarget["version"]
         if (!version)
             throw new Error("no version in android target")
+        //yq w -i ${{ parameters.kbdgenFolder }}/targets/android.yaml build $GITHUB_RUN_ID
+        console.log(androidTarget)
+        androidTarget['build'] = 1000 + parseInt(process.env.GITHUB_RUN_ID || "0")
+        console.log(`bump build to ${androidTarget['build']}`)
+        console.log(androidTarget)
+        saveKbdgenTarget(kbdgenPackagePath, "android", androidTarget)
         // const keyAlias = androidTarget["keyAlias"]
         const exit = await exec.exec("kbdgen", [
             "--logging", "debug",
@@ -196,7 +221,9 @@ async function bundleKeyboard(manifest: Manifest, bundleType: BundleType) {
                 "ANDROID_KEYSTORE": path.join(divvunConfigDir(), env.android.keystore),
                 "ANDROID_KEYALIAS": env.android.keyalias,
                 "STORE_PW": env.android.store_pw,
-                "KEY_PW": env.android.key_pw
+                "KEY_PW": env.android.key_pw,
+                "PLAY_STORE_P12": path.join(divvunConfigDir(), env.android.playStoreP12),
+                "PLAY_STORE_ACCOUNT": env.android.playStoreAccount
             }
         })
 
@@ -219,10 +246,11 @@ async function bundleKeyboard(manifest: Manifest, bundleType: BundleType) {
             "MATCH_PASSWORD": env.ios.match_password,
             "FASTLANE_USER": env.ios.fastlane_user,
             "FASTLANE_PASSWORD": env.ios.fastlane_password,
+            "MATCH_KEYCHAIN_NAME": "fastlane_tmp_keychain",
+            "MATCH_KEYCHAIN_PASSWORD": ""
         }
 
         await consolidateLayouts(manifest)
-        const iosTarget = YAML.parse(fs.readFileSync(path.resolve(kbdgenPackagePath, "targets", "ios.yaml"), 'utf8'))
 
         console.log("kbdgen init")
         let exit = await exec.exec("kbdgen", [
@@ -268,14 +296,14 @@ async function bundleKeyboard(manifest: Manifest, bundleType: BundleType) {
         //   cp "$(System.DefaultWorkingDirectory)/${{ parameters.kbdgenFolder }}/output/$TARGET_BUNDLE_NAME $TARGET_VERSION.pkg" "$(System.DefaultWorkingDirectory)/${{ parameters.kbdgenFolder }}/output/${{ parameters.name }}.pkg"
         //   sh $(System.DefaultWorkingDirectory)/divvun-ci-config/repo/scripts/pahkat_deploy_svn.sh ${{ parameters.repositoryMac }} "$(System.DefaultWorkingDirectory)/${{ parameters.kbdgenFolder }}/output/${{ parameters.name }}.pkg" ${{ parameters.packageName }} $TARGET_VERSION
         // xnotary
-        const macTarget = YAML.parse(fs.readFileSync(path.resolve(kbdgenPackagePath, "targets", "mac.yaml"), 'utf8'))
+        const macTarget = loadKbdgenTarget(kbdgenPackagePath, "mac")
         const bundleName = macTarget["bundleName"]
         const version = macTarget["version"]
         if (!version)
             throw new Error("no version in mac target")
 
         const exit = await exec.exec("kbdgen", [
-            "--logging", "debug",
+            "--logging", "trace",
             "build",
             "mac", "-R", "--ci", "-o", "output",
             kbdgenPackagePath
@@ -292,6 +320,36 @@ async function bundleKeyboard(manifest: Manifest, bundleType: BundleType) {
         }
 
         const file = path.resolve("output", `${bundleName} ${version}.pkg`)
+        console.log("file", file)
+        if (!fs.existsSync(file))
+            throw new Error("no output generated")
+        return file
+    } else if (bundleType == "keyboard_win") {
+        //kbdgen --logging debug build win -R --ci -o output .
+        const winTarget = loadKbdgenTarget(kbdgenPackagePath, "win")
+        const appName = winTarget["appName"]
+        const version = winTarget["version"]
+        if (!version)
+            throw new Error("no version in win target")
+
+        const exit = await exec.exec("kbdgen", [
+            "--logging", "trace",
+            "build",
+            "win", "-R", "--ci", "-o", "output",
+            kbdgenPackagePath
+        ], {
+            env: {
+                ...process.env,
+                "CODESIGN_PW": env.windows.pfxPassword,
+                "CODESIGN_PFX": `${divvunConfigDir()}\\enc\\creds\\windows\\divvun.pfx`,
+            }
+        })
+
+        if (exit != 0) {
+            throw new Error("kbdgen failed")
+        }
+
+        const file = path.resolve("output", `${appName.replace(/ /g, "_")}_${version}.exe`)
         console.log("file", file)
         if (!fs.existsSync(file))
             throw new Error("no output generated")

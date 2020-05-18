@@ -4,13 +4,13 @@ import toml from 'toml'
 import fs from 'fs'
 import path from 'path'
 
-import { divvunConfigDir, loadEnv, shouldDeploy } from '../../shared'
+import { divvunConfigDir, loadEnv, shouldDeploy, loadKbdgenTarget } from '../../shared'
 import { BundleType, Manifest } from '../manifest'
 
 function pahkatPlatformFromBundleType(type: BundleType) {
-    if (type == "speller_win" || type == "speller_win_mso") {
+    if (type == "speller_win" || type == "speller_win_mso" || type == "keyboard_win") {
         return "windows"
-    } else if (type == "speller_macos") {
+    } else if (type == "speller_macos" || type == "keyboard_macos") {
         return "macos"
     } else if (type == "speller_mobile") {
         return "mobile"
@@ -39,6 +39,9 @@ async function run() {
             }
         }
 
+        // For keyboards, the version comes from the target
+        let version = manifest.package.version
+
         // Generate the payload metadata
         if (bundleType === "speller_win" || bundleType === "speller_win_mso") {
             const productCode = `{${manifest.bundles[bundleType].uuid}}`
@@ -56,10 +59,53 @@ async function run() {
             if (exit != 0) {
                 throw new Error("bundling failed")
             }
+        } else if (bundleType === "keyboard_win") {
+            const target = loadKbdgenTarget(`${manifest.package.name}.kbdgen`, "win")
+            console.log(target)
+            if (!target.uuid) {
+                throw new Error("no uuid found")
+            }
+            version = target.version
+
+            const exit = await exec.exec("pahkat-repomgr", [
+                "payload", "windows-executable",
+                "-i", "1", // TODO: get real size
+                "-s", "1",
+                "-k", "inno",
+                "-p", target.uuid,
+                "-u", "pahkat:payload",
+                "-r", "install,uninstall"
+            ], options)
+
+            if (exit != 0) {
+                throw new Error("bundling failed")
+            }
         } else if (bundleType === "speller_macos") {
             const exit = await exec.exec("pahkat-repomgr", [
                 "payload", "macos-package",
                 "-p", manifest.bundles.speller_macos.pkg_id!,
+                "-i", "1", // TODO: get real size
+                "-s", "1",
+                "-u", "pahkat:payload",
+                "-r", "install,uninstall",
+                "-t", "system,user"
+            ], options)
+
+            if (exit != 0) {
+                throw new Error("bundling failed")
+            }
+        } else if (bundleType === "keyboard_macos") {
+            const target = loadKbdgenTarget(`${manifest.package.name}.kbdgen`, "mac")
+            console.log(target)
+            if (!target.packageId) {
+                throw new Error("no packageId found")
+            }
+
+            version = target.version
+
+            const exit = await exec.exec("pahkat-repomgr", [
+                "payload", "macos-package",
+                "-p", target.packageId,
                 "-i", "1", // TODO: get real size
                 "-s", "1",
                 "-u", "pahkat:payload",
@@ -85,6 +131,9 @@ async function run() {
             throw new Error(`Unsupported bundle type ${bundleType}`)
         }
 
+        if (!version)
+            throw new Error("no version specified");
+
         const bundle = manifest.bundles[bundleType]
 
         const payloadMetadataPath = "./payload.toml"
@@ -105,7 +154,7 @@ async function run() {
                 "DEPLOY_SVN_PKG_PLATFORM": bundle.platform || pahkatPlatformFromBundleType(bundleType),
                 "DEPLOY_SVN_PKG_PAYLOAD": path.resolve(payload),
                 "DEPLOY_SVN_PKG_PAYLOAD_METADATA": path.resolve(payloadMetadataPath),
-                "DEPLOY_SVN_PKG_VERSION": manifest.package.version,
+                "DEPLOY_SVN_PKG_VERSION": version,
                 // TODO: Meh
                 "DEPLOY_SVN_REPO_ARTIFACTS": "https://pahkat.uit.no/artifacts/",
                 "DEPLOY_SVN_COMMIT": isDeploying ? "1" : ""

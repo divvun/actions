@@ -2,6 +2,7 @@ import * as exec from '@actions/exec'
 import * as github from '@actions/github'
 import path from 'path'
 import fs from 'fs'
+import YAML from 'yaml'
 
 
 export function divvunConfigDir() {
@@ -19,12 +20,14 @@ export function shouldDeploy() {
 
 export function loadEnv() {
     const p = path.resolve(divvunConfigDir(), "enc", "env.json")
-    try {
-        const s = fs.readFileSync(p, "utf8")
-        return JSON.parse(s)
-    } catch (e) {
-        console.error("Failed to load divvun env")
-        console.error(e)
-        return {}
-    }
+    const s = fs.readFileSync(p, "utf8")
+    return JSON.parse(s)
+}
+
+export function loadKbdgenTarget(kbdgenPath: string, target: string) {
+    return YAML.parse(fs.readFileSync(path.resolve(kbdgenPath, "targets", `${target}.yaml`), 'utf8'))
+}
+
+export function saveKbdgenTarget(kbdgenPath: string, target: string, body: any) {
+    fs.writeFileSync(path.resolve(kbdgenPath, "targets", `${target}.yaml`), YAML.stringify(body), 'utf8')
 }

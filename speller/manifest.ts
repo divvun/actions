@@ -5,19 +5,22 @@ export interface Speller {
 }
 
 export type SpellerBundleType = "speller_win" | "speller_win_mso" | "speller_macos" | "speller_mobile"
-export type KeyboardBundleType = "keyboard_android" | "keyboard_ios" | "keyboard_macos"
+export type KeyboardBundleType = "keyboard_android" | "keyboard_ios" | "keyboard_macos" | "keyboard_win"
 export type BundleType = SpellerBundleType | KeyboardBundleType
 
 export interface Bundle {
     package: string,
     platform?: "windows" | "macos" | "mobile",
-    uuid?: string,
-    pkg_id?: string,
     repo: string,
 }
 
-export interface KeyboardBundle {
-    consolidated?: boolean
+export type SpellerBundle = Bundle & {
+    uuid?: string,
+    pkg_id?: string,
+}
+
+export type KeyboardBundle = Bundle & {
+    consolidated?: boolean,
 }
 
 export interface ConsolidatedLayouts {
@@ -29,11 +32,11 @@ export interface ConsolidatedLayouts {
 export interface Manifest {
     package: {
         name: string,
-        human_name: string,
-        version: string,
+        human_name?: string,
+        version?: string,
     },
     spellers?: Record<string, Speller>,
-    bundles: Record<SpellerBundleType, Bundle> & Record<KeyboardBundleType, KeyboardBundle>,
+    bundles: Record<SpellerBundleType, SpellerBundle> & Record<KeyboardBundleType, KeyboardBundle>,
     consolidated?: Record<string, ConsolidatedLayouts>
 }
 

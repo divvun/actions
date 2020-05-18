@@ -13,6 +13,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const github = __importStar(require("@actions/github"));
 const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
+const yaml_1 = __importDefault(require("yaml"));
 function divvunConfigDir() {
     const runner = process.env['RUNNER_WORKSPACE'];
     if (!runner)
@@ -27,14 +28,15 @@ function shouldDeploy() {
 exports.shouldDeploy = shouldDeploy;
 function loadEnv() {
     const p = path_1.default.resolve(divvunConfigDir(), "enc", "env.json");
-    try {
-        const s = fs_1.default.readFileSync(p, "utf8");
-        return JSON.parse(s);
-    }
-    catch (e) {
-        console.error("Failed to load divvun env");
-        console.error(e);
-        return {};
-    }
+    const s = fs_1.default.readFileSync(p, "utf8");
+    return JSON.parse(s);
 }
 exports.loadEnv = loadEnv;
+function loadKbdgenTarget(kbdgenPath, target) {
+    return yaml_1.default.parse(fs_1.default.readFileSync(path_1.default.resolve(kbdgenPath, "targets", `${target}.yaml`), 'utf8'));
+}
+exports.loadKbdgenTarget = loadKbdgenTarget;
+function saveKbdgenTarget(kbdgenPath, target, body) {
+    fs_1.default.writeFileSync(path_1.default.resolve(kbdgenPath, "targets", `${target}.yaml`), yaml_1.default.stringify(body), 'utf8');
+}
+exports.saveKbdgenTarget = saveKbdgenTarget;

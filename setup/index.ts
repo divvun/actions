@@ -28,9 +28,9 @@ const TOOLS: Record<string, Tool> = {
     win32: "https://github.com/divvun/pahkat/releases/download/test.2/pahkat-repomgr_1.0.0-alpha.1_windows_amd64.exe",
   },
   kbdgen: {
-    darwin: "https://github.com/divvun/kbdgen/releases/download/v2.0.0-alpha.11/kbdgen_2.0.0-alpha.11_macos_amd64.tar.xz",
-    linux: "https://github.com/divvun/kbdgen/releases/download/v2.0.0-alpha.11/kbdgen_2.0.0-alpha.11_linux_amd64.tar.xz",
-    win32: "https://github.com/divvun/kbdgen/releases/download/v2.0.0-alpha.11/kbdgen_2.0.0-alpha.11_windows_amd64.exe",
+    darwin: "https://github.com/divvun/kbdgen/releases/download/v2.0.0-alpha.12/kbdgen_2.0.0-alpha.12_macos_amd64.tar.xz",
+    linux: "https://github.com/divvun/kbdgen/releases/download/v2.0.0-alpha.12/kbdgen_2.0.0-alpha.12_linux_amd64.tar.xz",
+    win32: "https://github.com/divvun/kbdgen/releases/download/v2.0.0-alpha.12/kbdgen_2.0.0-alpha.12_windows_amd64.exe",
   },
   xcnotary: {
     darwin: "https://github.com/fry/xcnotary/releases/download/v0.4.1/xcnotary"
