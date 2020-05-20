@@ -176,7 +176,7 @@ async function bundleKeyboard(manifest, bundleType) {
         if (!version)
             throw new Error("no version in android target");
         console.log(androidTarget);
-        androidTarget['build'] = 1000 + parseInt(process.env.GITHUB_RUN_ID || "0");
+        androidTarget['build'] = 1000 + parseInt(process.env.GITHUB_RUN_ID || "0", 10);
         console.log(`bump build to ${androidTarget['build']}`);
         console.log(androidTarget);
         shared_1.saveKbdgenTarget(kbdgenPackagePath, "android", androidTarget);
@@ -208,6 +208,16 @@ async function bundleKeyboard(manifest, bundleType) {
         return file;
     }
     else if (bundleType == "keyboard_ios") {
+        await consolidateLayouts(manifest);
+        const iosTarget = shared_1.loadKbdgenTarget(kbdgenPackagePath, "ios");
+        const version = iosTarget["version"];
+        if (!version)
+            throw new Error("no version in ios target");
+        console.log(iosTarget);
+        iosTarget['build'] = 1000 + parseInt(process.env.GITHUB_RUN_ID || "0", 10);
+        console.log(`bump build to ${iosTarget['build']}`);
+        console.log(iosTarget);
+        shared_1.saveKbdgenTarget(kbdgenPackagePath, "ios", iosTarget);
         const kbdgenEnv = {
             ...process.env,
             "GITHUB_USERNAME": env.github.username,
@@ -219,7 +229,6 @@ async function bundleKeyboard(manifest, bundleType) {
             "MATCH_KEYCHAIN_NAME": "fastlane_tmp_keychain",
             "MATCH_KEYCHAIN_PASSWORD": ""
         };
-        await consolidateLayouts(manifest);
         console.log("kbdgen init");
         let exit = await exec.exec("kbdgen", [
             "--logging", "debug",

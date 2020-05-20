@@ -191,18 +191,19 @@ async function bundleKeyboard(manifest: Manifest, bundleType: BundleType) {
     const env = loadEnv()
 
     const kbdgenPackagePath = `${manifest.package.name}.kbdgen`
+
     if (bundleType == "keyboard_android") {
         if (!process.env.ANDROID_NDK_HOME)
             throw new Error("ANDROID_NDK_HOME not set")
-
         await consolidateLayouts(manifest)
+
         const androidTarget = loadKbdgenTarget(kbdgenPackagePath, "android")
         const version = androidTarget["version"]
         if (!version)
             throw new Error("no version in android target")
         //yq w -i ${{ parameters.kbdgenFolder }}/targets/android.yaml build $GITHUB_RUN_ID
         console.log(androidTarget)
-        androidTarget['build'] = 1000 + parseInt(process.env.GITHUB_RUN_ID || "0")
+        androidTarget['build'] = 1000 + parseInt(process.env.GITHUB_RUN_ID || "0", 10)
         console.log(`bump build to ${androidTarget['build']}`)
         console.log(androidTarget)
         saveKbdgenTarget(kbdgenPackagePath, "android", androidTarget)
@@ -238,6 +239,17 @@ async function bundleKeyboard(manifest: Manifest, bundleType: BundleType) {
     } else if (bundleType == "keyboard_ios") {
         // # fastlane pilot upload --skip_submission --skip_waiting_for_build_processing --ipa output/ios-build/ipa/HostingApp.ipa
 
+        await consolidateLayouts(manifest)
+        const iosTarget = loadKbdgenTarget(kbdgenPackagePath, "ios")
+        const version = iosTarget["version"]
+        if (!version)
+            throw new Error("no version in ios target")
+        console.log(iosTarget)
+        iosTarget['build'] = 1000 + parseInt(process.env.GITHUB_RUN_ID || "0", 10)
+        console.log(`bump build to ${iosTarget['build']}`)
+        console.log(iosTarget)
+        saveKbdgenTarget(kbdgenPackagePath, "ios", iosTarget)
+
         const kbdgenEnv = {
             ...process.env,
             "GITHUB_USERNAME": env.github.username,
@@ -249,8 +261,6 @@ async function bundleKeyboard(manifest: Manifest, bundleType: BundleType) {
             "MATCH_KEYCHAIN_NAME": "fastlane_tmp_keychain",
             "MATCH_KEYCHAIN_PASSWORD": ""
         }
-
-        await consolidateLayouts(manifest)
 
         console.log("kbdgen init")
         let exit = await exec.exec("kbdgen", [
