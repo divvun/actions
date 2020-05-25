@@ -118,10 +118,10 @@ async function run() {
         flags.push("--enable-minimised-spellers");
     }
     core.startGroup("Build giella-core and giella-shared");
-    await shared_1.Bash.runScript("./autogen.sh && ./configure && make install", {
+    await shared_1.Bash.runScript("./autogen.sh && ./configure && make", {
         cwd: path.join(githubWorkspace, "giella-core")
     });
-    await shared_1.Bash.runScript("./autogen.sh && ./configure && make install", {
+    await shared_1.Bash.runScript("./autogen.sh && ./configure && make", {
         cwd: path.join(githubWorkspace, "giella-shared")
     });
     core.endGroup();
