@@ -49,23 +49,30 @@ function assertExit0(code: number) {
 
 export class Apt {
     static async update() {
-        assertExit0(await exec("apt-get", ["-qy", "update"], { env }))
+        assertExit0(await exec("sudo", ["apt-get", "-qy", "update"], { env }))
     }
 
     static async install(packages: string[]) {
-        assertExit0(await exec("apt-get", ["install", "-qfy", ...packages], { env }))
+        assertExit0(await exec("sudo", ["apt-get", "install", "-qfy", ...packages], { env }))
     }
 }
 
 export class Pip {
     static async install(packages: string[]) {
-        assertExit0(await exec("pip3", ["install", ...packages], { env }))
+        assertExit0(await exec("sudo", ["pip3", "install", ...packages], { env }))
     }
 }
 
 export class Bash {
-    static async runScript(script: string, cwd: string|undefined = undefined) {
-        assertExit0(await exec("bash", ["-c", script], { env, cwd }))
+    static async runScript(script: string, args: {
+        sudo?: boolean,
+        cwd?: string,
+    } = {}) {
+        if (args.sudo) {
+            assertExit0(await exec("sudo", ["bash", "-c", script], { env, cwd: args.cwd }))
+        } else {
+            assertExit0(await exec("bash", ["-c", script], { env, cwd: args.cwd }))
+        }
     }
 }
 
@@ -89,7 +96,7 @@ wget -q https://apertium.projectjj.com/apt/install-nightly.sh -O install-nightly
 
 export class ProjectJJ {
     static async addNightlyToApt() {
-        await Bash.runScript(PROJECTJJ_NIGHTLY_SH)
+        await Bash.runScript(PROJECTJJ_NIGHTLY_SH, { sudo: true })
     }
 }
 

@@ -15,16 +15,16 @@ class Autotools {
         this.directory = directory;
     }
     async makeBuildDir() {
-        await shared_1.Bash.runScript("mkdir -p build", this.directory);
+        await shared_1.Bash.runScript("mkdir -p build", { cwd: this.directory });
     }
     async runAutogen() {
-        await shared_1.Bash.runScript("./autogen.sh", this.directory);
+        await shared_1.Bash.runScript("./autogen.sh", { cwd: this.directory });
     }
     async runConfigure(flags) {
-        await shared_1.Bash.runScript(`../configure ${flags.join(" ")}`, path.join(this.directory, "build"));
+        await shared_1.Bash.runScript(`../configure ${flags.join(" ")}`, { cwd: path.join(this.directory, "build") });
     }
     async runMake() {
-        await shared_1.Bash.runScript("make -j$(nproc)", path.join(this.directory, "build"));
+        await shared_1.Bash.runScript("make -j$(nproc)", { cwd: path.join(this.directory, "build") });
     }
     async build(flags) {
         await this.makeBuildDir();
@@ -102,13 +102,17 @@ async function run() {
         flags.push("--enable-minimised-spellers");
     }
     core.startGroup("Build giella-core and giella-shared");
-    await shared_1.Bash.runScript("./autogen.sh && ./configure && make install", path.join(githubWorkspace, "giella-core"));
-    await shared_1.Bash.runScript("./autogen.sh && ./configure && make install", path.join(githubWorkspace, "giella-shared"));
+    await shared_1.Bash.runScript("./autogen.sh && ./configure && make install", {
+        cwd: path.join(githubWorkspace, "giella-core")
+    });
+    await shared_1.Bash.runScript("./autogen.sh && ./configure && make install", {
+        cwd: path.join(githubWorkspace, "giella-shared")
+    });
     core.endGroup();
     const builder = new Autotools(path.join(githubWorkspace, "lang"));
     core.debug(`Flags: ${flags}`);
     await builder.build(flags);
-    await shared_1.Bash.runScript("ls -lah tools/spellcheckers/", path.join(githubWorkspace, "lang"));
+    await shared_1.Bash.runScript("ls -lah tools/spellcheckers/", { cwd: path.join(githubWorkspace, "lang") });
 }
 run().catch(err => {
     console.error(err.stack);

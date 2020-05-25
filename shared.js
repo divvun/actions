@@ -56,22 +56,27 @@ function assertExit0(code) {
 }
 class Apt {
     static async update() {
-        assertExit0(await exec_1.exec("apt-get", ["-qy", "update"], { env }));
+        assertExit0(await exec_1.exec("sudo", ["apt-get", "-qy", "update"], { env }));
     }
     static async install(packages) {
-        assertExit0(await exec_1.exec("apt-get", ["install", "-qfy", ...packages], { env }));
+        assertExit0(await exec_1.exec("sudo", ["apt-get", "install", "-qfy", ...packages], { env }));
     }
 }
 exports.Apt = Apt;
 class Pip {
     static async install(packages) {
-        assertExit0(await exec_1.exec("pip3", ["install", ...packages], { env }));
+        assertExit0(await exec_1.exec("sudo", ["pip3", "install", ...packages], { env }));
     }
 }
 exports.Pip = Pip;
 class Bash {
-    static async runScript(script, cwd = undefined) {
-        assertExit0(await exec_1.exec("bash", ["-c", script], { env, cwd }));
+    static async runScript(script, args = {}) {
+        if (args.sudo) {
+            assertExit0(await exec_1.exec("sudo", ["bash", "-c", script], { env, cwd: args.cwd }));
+        }
+        else {
+            assertExit0(await exec_1.exec("bash", ["-c", script], { env, cwd: args.cwd }));
+        }
     }
 }
 exports.Bash = Bash;
@@ -92,7 +97,7 @@ wget -q https://apertium.projectjj.com/apt/install-nightly.sh -O install-nightly
 `;
 class ProjectJJ {
     static async addNightlyToApt() {
-        await Bash.runScript(PROJECTJJ_NIGHTLY_SH);
+        await Bash.runScript(PROJECTJJ_NIGHTLY_SH, { sudo: true });
     }
 }
 exports.ProjectJJ = ProjectJJ;

@@ -1,6 +1,12 @@
 name: 'Install Dependencies'
 description: 'Install dependencies for a speller build'
 
+inputs:
+  sudo:
+    description: Requires sudo
+    default: true
+    required: false
+
 runs:
   using: 'node12'
   main: 'index.js'

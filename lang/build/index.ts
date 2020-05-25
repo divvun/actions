@@ -10,19 +10,19 @@ class Autotools {
     }
 
     async makeBuildDir() {
-        await Bash.runScript("mkdir -p build", this.directory)
+        await Bash.runScript("mkdir -p build", { cwd: this.directory })
     }
 
     async runAutogen() {
-        await Bash.runScript("./autogen.sh", this.directory)
+        await Bash.runScript("./autogen.sh", { cwd: this.directory })
     }
 
     async runConfigure(flags: string[]) {
-        await Bash.runScript(`../configure ${flags.join(" ")}`, path.join(this.directory, "build"))
+        await Bash.runScript(`../configure ${flags.join(" ")}`, { cwd: path.join(this.directory, "build") })
     }
 
     async runMake() {
-        await Bash.runScript("make -j$(nproc)", path.join(this.directory, "build"))
+        await Bash.runScript("make -j$(nproc)", { cwd: path.join(this.directory, "build") })
     }
 
     async build(flags: string[]) {
@@ -126,8 +126,12 @@ async function run() {
     // Begin build
 
     core.startGroup("Build giella-core and giella-shared")
-    await Bash.runScript("./autogen.sh && ./configure && make install", path.join(githubWorkspace, "giella-core"))
-    await Bash.runScript("./autogen.sh && ./configure && make install", path.join(githubWorkspace, "giella-shared"))
+    await Bash.runScript("./autogen.sh && ./configure && make install", {
+        cwd: path.join(githubWorkspace, "giella-core")
+    })
+    await Bash.runScript("./autogen.sh && ./configure && make install", {
+        cwd: path.join(githubWorkspace, "giella-shared")
+    })
     core.endGroup()
 
     const builder = new Autotools(path.join(githubWorkspace, "lang"))
@@ -135,7 +139,7 @@ async function run() {
     core.debug(`Flags: ${flags}`)
     await builder.build(flags)
 
-    await Bash.runScript("ls -lah tools/spellcheckers/", path.join(githubWorkspace, "lang"))
+    await Bash.runScript("ls -lah tools/spellcheckers/", { cwd: path.join(githubWorkspace, "lang") })
 }
 
 run().catch(err => {
