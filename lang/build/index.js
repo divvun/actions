@@ -35,7 +35,7 @@ class Autotools {
 }
 function deriveInputs(inputs) {
     const o = {};
-    for (const input in inputs) {
+    for (const input of inputs) {
         const value = core.getInput(input);
         console.log(input, value);
         if (typeof value === "string") {

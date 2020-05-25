@@ -36,7 +36,7 @@ class Autotools {
 function deriveInputs(inputs: string[]): { [key: string]: any } {
     const o: { [key: string]: any } = {}
 
-    for (const input in inputs) {
+    for (const input of inputs) {
         const value: any = core.getInput(input)
 
         console.log(input, value)
