@@ -37,6 +37,7 @@ function deriveInputs(inputs) {
     const o = {};
     for (const input in inputs) {
         const value = core.getInput(input);
+        console.log(input, value);
         if (typeof value === "string") {
             if (value.includes(",")) {
                 o[input] = value.split(",").map(x => x.trim());
