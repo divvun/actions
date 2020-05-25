@@ -1,6 +1,5 @@
 name: 'Install Dependencies'
 description: 'Install dependencies for a speller build'
-inputs:
 
 runs:
   using: 'node12'

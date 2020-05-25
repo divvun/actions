@@ -1,8 +1,9 @@
 name: 'Build'
 description: 'Build configuration for a language'
 inputs:
+  # General options
   fst:
-    description: 'The FSTs to use for the build'
+    description: 'An array of FSTs to use. Options: hfst, foma.'
     required: true
     default: ["hfst"]
   
@@ -24,10 +25,36 @@ inputs:
   grammar-checkers:
     description: 'Build grammar checkers'
     required: false
-    default: true
+    default: false
 
+  # Language-specific optimisations
   hyperminimalisation:
     description: "Enable hyperminimalisation"
+    required: false
+    default: false
+
+  reversed-intersect:
+    description: "Enable reversed intersect"
+    required: false
+    default: true
+
+  twostep-intersect:
+    description: "Enable twostep intersect"
+    required: false
+    default: true
+
+  speller-optimisation:
+    description: "Enable speller optimisation"
+    required: false
+    default: false
+
+  backend-format:
+    description: "Use specified custom backend format"
+    required: false
+
+  # Angry overrides
+  force-all-tools:
+    description: "Force usage of --enable-all-tools"
     required: false
     default: false
 
@@ -38,3 +65,4 @@ runs:
 
 
 
+W
