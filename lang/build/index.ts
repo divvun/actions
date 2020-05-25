@@ -37,7 +37,19 @@ function deriveInputs(inputs: string[]): { [key: string]: any } {
     const o: { [key: string]: any } = {}
 
     for (const input in inputs) {
-        o[input] = JSON.parse(core.getInput(input))
+        const value: any = core.getInput(input)
+
+        if (typeof value === "string") {
+            if (value.includes(",")) {
+                o[input] = value.split(",").map(x => x.trim())
+            } else if (value === "false") {
+                o[input] = false
+            } else if (value === "true") {
+                o[input] = true
+            } else {
+                o[input] = value
+            }
+        }
     }
 
     return o

@@ -6,7 +6,7 @@ inputs:
     description: Requires sudo
     default: true
     required: false
-
+  
 runs:
   using: 'node12'
   main: 'index.js'
