@@ -10,6 +10,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const exec_1 = require("@actions/exec");
+const core = __importStar(require("@actions/core"));
 const github = __importStar(require("@actions/github"));
 const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
@@ -40,3 +42,57 @@ function saveKbdgenTarget(kbdgenPath, target, body) {
     fs_1.default.writeFileSync(path_1.default.resolve(kbdgenPath, "targets", `${target}.yaml`), yaml_1.default.stringify(body), 'utf8');
 }
 exports.saveKbdgenTarget = saveKbdgenTarget;
+const env = {
+    ...process.env,
+    LANG: "C.UTF-8",
+    LC_ALL: "C.UTF-8",
+    DEBIAN_FRONTEND: "noninteractive",
+    DEBCONF_NONINTERACTIVE_SEEN: "true"
+};
+function assertExit0(code) {
+    if (code !== 0) {
+        core.setFailed(`Process exited with exit code ${code}.`);
+    }
+}
+class Apt {
+    static async update() {
+        assertExit0(await exec_1.exec("apt-get", ["-qy", "update"], { env }));
+    }
+    static async install(packages) {
+        assertExit0(await exec_1.exec("apt-get", ["install", "-qfy", ...packages], { env }));
+    }
+}
+exports.Apt = Apt;
+class Pip {
+    static async install(packages) {
+        assertExit0(await exec_1.exec("pip3", ["install", ...packages], { env }));
+    }
+}
+exports.Pip = Pip;
+class Bash {
+    static async runScript(script, cwd = undefined) {
+        assertExit0(await exec_1.exec("bash", ["-c", script], { env, cwd }));
+    }
+}
+exports.Bash = Bash;
+const CLEAR_KNOWN_HOSTS_SH = `\
+mkdir -pv ~/.ssh
+ssh-keyscan github.com | tee -a ~/.ssh/known_hosts
+cat ~/.ssh/known_hosts | sort | uniq > ~/.ssh/known_hosts.new
+mv ~/.ssh/known_hosts.new ~/.ssh/known_hosts
+`;
+class Ssh {
+    static async cleanKnownHosts() {
+        await Bash.runScript(CLEAR_KNOWN_HOSTS_SH);
+    }
+}
+exports.Ssh = Ssh;
+const PROJECTJJ_NIGHTLY_SH = `\
+wget -q https://apertium.projectjj.com/apt/install-nightly.sh -O install-nightly.sh && bash install-nightly.sh
+`;
+class ProjectJJ {
+    static async addNightlyToApt() {
+        await Bash.runScript(PROJECTJJ_NIGHTLY_SH);
+    }
+}
+exports.ProjectJJ = ProjectJJ;

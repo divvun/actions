@@ -1,0 +1,40 @@
+name: 'Build'
+description: 'Build configuration for a language'
+inputs:
+  fst:
+    description: 'The FSTs to use for the build'
+    required: true
+    default: ["hfst"]
+  
+  spellers:
+    description: 'Build spellers'
+    required: false
+    default: true
+
+  hyphenators:
+    description: 'Build hyphenators'
+    required: false
+    default: true
+
+  analysers:
+    description: 'Build analysers'
+    required: false
+    default: true
+
+  grammar-checkers:
+    description: 'Build grammar checkers'
+    required: false
+    default: true
+
+  hyperminimalisation:
+    description: "Enable hyperminimalisation"
+    required: false
+    default: false
+
+runs:
+  using: 'node12'
+  main: 'index.js'
+
+
+
+

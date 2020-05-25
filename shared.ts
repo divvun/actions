@@ -1,4 +1,5 @@
-import * as exec from '@actions/exec'
+import { exec } from '@actions/exec'
+import * as core from '@actions/core'
 import * as github from '@actions/github'
 import path from 'path'
 import fs from 'fs'
@@ -31,3 +32,64 @@ export function loadKbdgenTarget(kbdgenPath: string, target: string) {
 export function saveKbdgenTarget(kbdgenPath: string, target: string, body: any) {
     fs.writeFileSync(path.resolve(kbdgenPath, "targets", `${target}.yaml`), YAML.stringify(body), 'utf8')
 }
+
+const env = {
+    ...process.env,
+    LANG: "C.UTF-8",
+    LC_ALL: "C.UTF-8",
+    DEBIAN_FRONTEND: "noninteractive",
+    DEBCONF_NONINTERACTIVE_SEEN: "true"
+}
+
+function assertExit0(code: number) {
+    if (code !== 0) {
+        core.setFailed(`Process exited with exit code ${code}.`)
+    }
+}
+
+export class Apt {
+    static async update() {
+        assertExit0(await exec("apt-get", ["-qy", "update"], { env }))
+    }
+
+    static async install(packages: string[]) {
+        assertExit0(await exec("apt-get", ["install", "-qfy", ...packages], { env }))
+    }
+}
+
+export class Pip {
+    static async install(packages: string[]) {
+        assertExit0(await exec("pip3", ["install", ...packages], { env }))
+    }
+}
+
+export class Bash {
+    static async runScript(script: string, cwd: string|undefined = undefined) {
+        assertExit0(await exec("bash", ["-c", script], { env, cwd }))
+    }
+}
+
+// Since some state remains after the builds, don't grow known_hosts infinitely
+const CLEAR_KNOWN_HOSTS_SH = `\
+mkdir -pv ~/.ssh
+ssh-keyscan github.com | tee -a ~/.ssh/known_hosts
+cat ~/.ssh/known_hosts | sort | uniq > ~/.ssh/known_hosts.new
+mv ~/.ssh/known_hosts.new ~/.ssh/known_hosts
+`
+
+export class Ssh {
+    static async cleanKnownHosts() {
+        await Bash.runScript(CLEAR_KNOWN_HOSTS_SH)
+    }
+}
+
+const PROJECTJJ_NIGHTLY_SH = `\
+wget -q https://apertium.projectjj.com/apt/install-nightly.sh -O install-nightly.sh && bash install-nightly.sh
+`
+
+export class ProjectJJ {
+    static async addNightlyToApt() {
+        await Bash.runScript(PROJECTJJ_NIGHTLY_SH)
+    }
+}
+
