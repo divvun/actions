@@ -77,6 +77,8 @@ async function run() {
         "force-all-tools"
     ])
 
+    console.log(JSON.stringify(config, null, 2))
+
     const flags = [
         "--without-forrest",
         "--disable-silent-rules",
