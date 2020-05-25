@@ -203,7 +203,7 @@ async function bundleKeyboard(manifest: Manifest, bundleType: BundleType) {
             throw new Error("no version in android target")
         //yq w -i ${{ parameters.kbdgenFolder }}/targets/android.yaml build $GITHUB_RUN_ID
         console.log(androidTarget)
-        androidTarget['build'] = 1000 + parseInt(process.env.GITHUB_RUN_ID || "0", 10)
+        androidTarget['build'] = (+new Date / 1000 | 0)
         console.log(`bump build to ${androidTarget['build']}`)
         console.log(androidTarget)
         saveKbdgenTarget(kbdgenPackagePath, "android", androidTarget)
@@ -245,7 +245,7 @@ async function bundleKeyboard(manifest: Manifest, bundleType: BundleType) {
         if (!version)
             throw new Error("no version in ios target")
         console.log(iosTarget)
-        iosTarget['build'] = 1000 + parseInt(process.env.GITHUB_RUN_ID || "0", 10)
+        iosTarget['build'] = (+new Date / 1000 | 0)
         console.log(`bump build to ${iosTarget['build']}`)
         console.log(iosTarget)
         saveKbdgenTarget(kbdgenPackagePath, "ios", iosTarget)
