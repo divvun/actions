@@ -78,10 +78,10 @@ async function run() {
         "--disable-silent-rules",
         "--without-xfst"
     ];
-    if (config.fst.contains("foma")) {
+    if (config.fst.includes("foma")) {
         flags.push("--with-foma");
     }
-    if (!config.fst.contains("hfst")) {
+    if (!config.fst.includes("hfst")) {
         flags.push("--without-hfst");
     }
     if (!config.analysers) {
