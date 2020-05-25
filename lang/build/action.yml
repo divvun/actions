@@ -5,7 +5,7 @@ inputs:
   fst:
     description: 'An array of FSTs to use. Options: hfst, foma.'
     required: true
-    default: ["hfst"]
+    default: "[\"hfst\"]"
   
   spellers:
     description: 'Build spellers'
