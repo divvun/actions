@@ -48,6 +48,8 @@ function deriveInputs(inputs) {
             else if (value === "true") {
                 o[input] = true;
             }
+            else if (value === "") {
+            }
             else {
                 o[input] = value;
             }

@@ -48,6 +48,8 @@ function deriveInputs(inputs: string[]): { [key: string]: any } {
                 o[input] = false
             } else if (value === "true") {
                 o[input] = true
+            } else if (value === "") {
+                // Do nothing.
             } else {
                 o[input] = value
             }
