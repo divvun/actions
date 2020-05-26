@@ -80,7 +80,6 @@ async function run() {
     const flags = [
         "--without-forrest",
         "--disable-silent-rules",
-        "--without-xfst"
     ];
     if (config.fst.includes("foma")) {
         flags.push("--with-foma");

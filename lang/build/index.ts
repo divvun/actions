@@ -86,7 +86,8 @@ async function run() {
     const flags = [
         "--without-forrest",
         "--disable-silent-rules",
-        "--without-xfst"
+        // This doesn't work correctly currently, and disables hfst spellers.
+        // "--without-xfst"
     ]
 
     // General configuration
