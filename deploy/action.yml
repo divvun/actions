@@ -4,8 +4,8 @@ inputs:
   repository:
     description: 'Repository to deploy to'
     required: true
-  package:
-    description: 'Pahkat package name'
+  id:
+    description: 'Pahkat package id (the segment that comes after /packages in the package key URL)'
     required: true
   platform:
     description: 'Platform'
@@ -18,7 +18,7 @@ inputs:
     required: true
   payloadMetadata:
     description: 'Path to payload metadata (created by a call like `pahkat payload windows-executable ...`)'
-    required: false
+    required: true
   testDeploy:
     description: "Go as far as possible but don't actually deploy to Pahkat"
     required: false

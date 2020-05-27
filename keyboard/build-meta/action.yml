@@ -1,0 +1,12 @@
+name: 'Build Keyboard Metabundle'
+description: ''
+inputs:
+  keyboard-type:
+    description: The keyboard type
+    required: true
+  bundle-path:
+    description: The path to the .kbdgen bundle directory
+    required: true
+runs:
+  using: 'node12'
+  main: 'index.js'

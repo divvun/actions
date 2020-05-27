@@ -1,0 +1,15 @@
+name: 'Install Pahkat dependencies'
+description: ''
+inputs:
+  repo:
+    description: The URL to the repository to use
+    required: true
+  channel:
+    description: Default channel for the repository
+  packages:
+    description: A file listing the packages to be installed as package URLs, comma-separated
+    required: true
+
+runs:
+  using: 'node12'
+  main: 'index.js'

@@ -4,7 +4,7 @@ description: 'Install dependencies for a speller build'
 inputs:
   sudo:
     description: Requires sudo
-    default: true
+    default: "true"
     required: false
   
 runs:

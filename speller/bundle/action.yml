@@ -1,15 +1,19 @@
-name: 'Bundle a thing'
+name: 'Bundle spellers'
 description: ''
 inputs:
-  manifest:
-    description: 'Manifest file to bundle'
+  speller-type:
+    description: 'The speller type from the matrix'
     required: true
-  bundleType:
-    description: 'What bundle to create'
+  speller-manifest-path:
+    description: 'Path to the speller manifest'
+    required: true
+    default: "manifest.toml"
+  speller-paths:
+    description: A JSON object consisting of desktop and mobile keys with paths to each zhfst speller
     required: true
 outputs:
-  bundle:
-    description: 'The bundled thing. An installer or an archive'
+  payload-path:
+    description: 'The bundled speller ready for upload to a Pahkat repository'
 runs:
   using: 'node12'
   main: 'index.js'

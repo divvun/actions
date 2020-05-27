@@ -2,19 +2,19 @@ import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import path from 'path'
 
-import { divvunConfigDir, shouldDeploy, loadEnv } from '../shared'
+import { divvunConfigDir, shouldDeploy, secrets } from '../shared'
 
 async function run() {
     try {
-        const env = loadEnv()
+        const sec = secrets()
         const testDeploy = !!core.getInput('testDeploy') || !shouldDeploy()
         const isDeploying = !testDeploy ||  core.getInput('forceDeploy');
         const deployScript = path.join(divvunConfigDir(), "repo", "scripts", "pahkat_deploy_new.sh")
         const exit = await exec.exec("bash", [deployScript], {
             env: {
                 ...process.env,
-                "DEPLOY_SVN_USER": env.svn.username,
-                "DEPLOY_SVN_PASSWORD": env.svn.password,
+                "DEPLOY_SVN_USER": sec.svn.username,
+                "DEPLOY_SVN_PASSWORD": sec.svn.password,
                 "DEPLOY_SVN_REPO": core.getInput('repository'),
                 "DEPLOY_SVN_PKG_ID": core.getInput('package'),
                 "DEPLOY_SVN_PKG_PLATFORM": core.getInput('platform'),

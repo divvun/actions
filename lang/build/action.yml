@@ -25,13 +25,11 @@ inputs:
   grammar-checkers:
     description: 'Build grammar checkers'
     required: false
-    default: false
 
   # Language-specific optimisations
   hyperminimalisation:
     description: "Enable hyperminimalisation"
     required: false
-    default: false
 
   reversed-intersect:
     description: "Enable reversed intersect"
@@ -46,7 +44,6 @@ inputs:
   speller-optimisation:
     description: "Enable speller optimisation"
     required: false
-    default: false
 
   backend-format:
     description: "Use specified custom backend format"
@@ -56,8 +53,14 @@ inputs:
   force-all-tools:
     description: "Force usage of --enable-all-tools"
     required: false
-    default: false
 
+  force-desktop-spellers-as-mobile:
+    description: Workaround to interpret all missing mobile spellers as their desktop counterpart
+    required: false
+
+outputs:
+  speller-paths:
+    description: A JSON object consisting of desktop and mobile keys with paths to each zhfst speller
 runs:
   using: 'node12'
   main: 'index.js'

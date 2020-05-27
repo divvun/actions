@@ -1,42 +1,46 @@
+import * as github from '@actions/github'
 
-export interface Speller {
-    filename: string
-    name_win?: string
+export enum SpellerType {
+    MacOS = "speller-macos",
+    Mobile = "speller-mobile",
+    Windows = "speller-windows",
+    WindowsMSOffice = "speller-windows-msoffice",
 }
 
-export type SpellerBundleType = "speller_win" | "speller_win_mso" | "speller_macos" | "speller_mobile"
-export type KeyboardBundleType = "keyboard_android" | "keyboard_ios" | "keyboard_macos" | "keyboard_win"
-export type BundleType = SpellerBundleType | KeyboardBundleType
-
-export interface Bundle {
-    package: string,
-    platform?: "windows" | "macos" | "mobile",
-    repo: string,
+export type SpellerManifest = {
+    name: string,
+    version: string,
+    windows: {
+        system_product_code: string,
+        msoffice_product_code: string,
+    }
+    macos: {
+        system_pkg_id: string,
+    }
 }
 
-export type SpellerBundle = Bundle & {
-    uuid?: string,
-    pkg_id?: string,
+export function deriveLangTag(force3: boolean) {
+    const lang = github.context.repo.repo.split("lang-")[1]
+
+    if (force3) {
+        return lang
+    }
+
+    // It's easier for us to just special case the 3 character variants
+    // than to add another dependency.
+    if (lang == "sme") {
+        return "se"
+    }
+
+    return lang
 }
 
-export type KeyboardBundle = Bundle & {
-    consolidated?: boolean,
-}
+export function derivePackageId(type: SpellerType) {
+    const lang = github.context.repo.repo.split("lang-")[1]
+    
+    if (type == SpellerType.WindowsMSOffice) {
+        return `speller-${lang}-mso`
+    }
 
-export interface ConsolidatedLayouts {
-    git: string,
-    branch?: string,
-    layouts: string[]
+    return `speller-${lang}`
 }
-
-export interface Manifest {
-    package: {
-        name: string,
-        human_name?: string,
-        version?: string,
-    },
-    spellers?: Record<string, Speller>,
-    bundles: Record<SpellerBundleType, SpellerBundle> & Record<KeyboardBundleType, KeyboardBundle>,
-    consolidated?: Record<string, ConsolidatedLayouts>
-}
-

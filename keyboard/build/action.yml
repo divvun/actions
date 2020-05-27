@@ -1,0 +1,9 @@
+name: 'Build Keyboard Bundle'
+description: ''
+inputs:
+  keyboard-type:
+    description: The keyboard type
+    required: true
+runs:
+  using: 'node12'
+  main: 'index.js'

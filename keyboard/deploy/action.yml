@@ -1,0 +1,23 @@
+name: 'Deploy keyboards'
+description: ''
+inputs:
+  keyboard-type:
+    description: 'The speller type from the matrix'
+    required: true
+  payload-path:
+    description: Path to the payload to be uploaded
+    required: true
+  repo:
+    description: Pahkat repository to upload payload and metadata to
+    required: true
+    # Temporary workaround until upload service moved to Divvun
+    default: "https://pahkat.thetc.se/main/"
+  channel:
+    description: Pahkat repository channel
+    required: false
+  force-deploy:
+    description: Override deployment check and always deploy
+    required: false
+runs:
+  using: 'node12'
+  main: 'index.js'

@@ -9,6 +9,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const shared_1 = require("../../shared");
 const core = __importStar(require("@actions/core"));
+const glob = __importStar(require("@actions/glob"));
 const path = __importStar(require("path"));
 class Autotools {
     constructor(directory) {
@@ -63,6 +64,7 @@ async function run() {
         core.setFailed("GITHUB_WORKSPACE not set, failing.");
         return;
     }
+    const requiresDesktopAsMobileWorkaround = core.getInput("force-desktop-spellers-as-mobile");
     const config = deriveInputs([
         "fst",
         "spellers",
@@ -80,6 +82,7 @@ async function run() {
     const flags = [
         "--without-forrest",
         "--disable-silent-rules",
+        "--without-xfst"
     ];
     if (config.fst.includes("foma")) {
         flags.push("--with-foma");
@@ -129,7 +132,48 @@ async function run() {
     const builder = new Autotools(path.join(githubWorkspace, "lang"));
     core.debug(`Flags: ${flags}`);
     await builder.build(flags);
-    await shared_1.Bash.runScript("ls -lah tools/spellcheckers/", { cwd: path.join(githubWorkspace, "lang") });
+    await shared_1.Bash.runScript("ls -lah build/tools/spellcheckers/", { cwd: path.join(githubWorkspace, "lang") });
+    if (config.spellers) {
+        const out = {
+            mobile: {},
+            desktop: {}
+        };
+        const globber = await glob.create(path.join(githubWorkspace, "lang/build/tools/spellcheckers/*.zhfst"), {
+            followSymbolicLinks: false
+        });
+        const files = await globber.glob();
+        let hasSomeItems = false;
+        for (const candidate of files) {
+            if (candidate.endsWith("-mobile.zhfst")) {
+                const v = path.basename(candidate).split("-mobile.zhfst")[0];
+                out.mobile[v] = path.basename(path.resolve(candidate));
+                hasSomeItems = true;
+            }
+            if (candidate.endsWith("-desktop.zhfst")) {
+                const v = path.basename(candidate).split("-desktop.zhfst")[0];
+                out.desktop[v] = path.basename(path.resolve(candidate));
+                hasSomeItems = true;
+            }
+        }
+        if (!hasSomeItems) {
+            throw new Error("Did not find any ZHFST files.");
+        }
+        if (requiresDesktopAsMobileWorkaround) {
+            core.warning("WORKAROUND: FORCING DESKTOP SPELLERS AS MOBILE SPELLERS.");
+            for (const [key, value] of Object.entries(out.desktop)) {
+                if (out.mobile[key] == null) {
+                    out.mobile[key] = value;
+                }
+            }
+        }
+        console.log("Saving speller-paths");
+        core.setOutput("speller-paths", JSON.stringify(out, null, 0));
+        console.log("Setting speller paths to:");
+        console.log(JSON.stringify(out, null, 2));
+    }
+    else {
+        console.log("Not setting speller paths.");
+    }
 }
 run().catch(err => {
     console.error(err.stack);

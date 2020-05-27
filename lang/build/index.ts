@@ -1,5 +1,6 @@
 import { Bash } from "../../shared"
 import * as core from "@actions/core"
+import * as glob from "@actions/glob"
 import * as path from "path"
 
 class Autotools {
@@ -67,6 +68,8 @@ async function run() {
         return
     }
 
+    const requiresDesktopAsMobileWorkaround = core.getInput("force-desktop-spellers-as-mobile")
+
     const config = deriveInputs([
         "fst",
         "spellers",
@@ -86,8 +89,7 @@ async function run() {
     const flags = [
         "--without-forrest",
         "--disable-silent-rules",
-        // This doesn't work correctly currently, and disables hfst spellers.
-        // "--without-xfst"
+        "--without-xfst"
     ]
 
     // General configuration
@@ -158,7 +160,61 @@ async function run() {
     core.debug(`Flags: ${flags}`)
     await builder.build(flags)
 
-    await Bash.runScript("ls -lah tools/spellcheckers/", { cwd: path.join(githubWorkspace, "lang") })
+    await Bash.runScript("ls -lah build/tools/spellcheckers/", { cwd: path.join(githubWorkspace, "lang") })
+
+    if (config.spellers) {
+        // Glob the zhfst files made available in the spellcheckers directory.
+        // Associate their prefixes as their lang code.
+        const out: {
+            mobile: { [key: string]: string },
+            desktop: { [key: string]: string },
+        } = {
+            mobile: {},
+            desktop: {}
+        } 
+        
+        const globber = await glob.create(path.join(githubWorkspace, "lang/build/tools/spellcheckers/*.zhfst"), {
+            followSymbolicLinks: false
+        })
+        const files = await globber.glob()
+
+        let hasSomeItems = false
+
+        for (const candidate of files) {
+            if (candidate.endsWith("-mobile.zhfst")) {
+                const v = path.basename(candidate).split("-mobile.zhfst")[0]
+                out.mobile[v] = path.basename(path.resolve(candidate))
+                hasSomeItems = true
+            }
+
+            if (candidate.endsWith("-desktop.zhfst")) {
+                const v = path.basename(candidate).split("-desktop.zhfst")[0]
+                out.desktop[v] = path.basename(path.resolve(candidate))
+                hasSomeItems = true
+            }
+        }
+
+        if (!hasSomeItems) {
+            throw new Error("Did not find any ZHFST files.")
+        }
+
+        if (requiresDesktopAsMobileWorkaround) {
+            core.warning("WORKAROUND: FORCING DESKTOP SPELLERS AS MOBILE SPELLERS.")
+            for (const [key, value] of Object.entries(out.desktop)) {
+                if (out.mobile[key] == null) {
+                    out.mobile[key] = value
+                }
+            }
+        }
+
+        console.log("Saving speller-paths")
+
+        core.setOutput("speller-paths", JSON.stringify(out, null, 0))
+        console.log("Setting speller paths to:")
+        console.log(JSON.stringify(out, null, 2))
+    } else {
+        console.log("Not setting speller paths.")
+    }
 }
 
 run().catch(err => {
