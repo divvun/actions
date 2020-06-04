@@ -14,10 +14,10 @@ async function run() {
     let payloadPath
 
     if (keyboardType === KeyboardType.MacOS) {
-        Kbdgen.setNightlyVersion(bundlePath, "mac")
+        await Kbdgen.setNightlyVersion(bundlePath, "mac")
         payloadPath = await Kbdgen.buildMacOS(bundlePath)
     } else if (keyboardType === KeyboardType.Windows) {
-        Kbdgen.setNightlyVersion(bundlePath, "win")
+        await Kbdgen.setNightlyVersion(bundlePath, "win")
         payloadPath = await Kbdgen.buildWindows(bundlePath)
     } else {
         throw new Error(`Unhandled keyboard type: ${keyboardType}`)

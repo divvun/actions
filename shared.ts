@@ -8,7 +8,7 @@ import path from 'path'
 import fs from 'fs'
 import YAML from 'yaml'
 import * as tmp from 'tmp'
-
+import { Octokit } from "@octokit/action"
 
 export function divvunConfigDir() {
     const runner = process.env['RUNNER_WORKSPACE']
@@ -433,11 +433,11 @@ export class Kbdgen {
             path.resolve(bundlePath, "targets", `${target}.yaml`), 'utf8')), true)
     }
 
-    static setNightlyVersion(bundlePath: string, target: string) {
+    static async setNightlyVersion(bundlePath: string, target: string) {
         const targetData = Kbdgen.loadTarget(bundlePath, target)
         
         // Set to minute-based timestamp
-        targetData['version'] = versionAsNightly(targetData['version'])
+        targetData['version'] = await versionAsNightly(targetData['version'])
 
         fs.writeFileSync(path.resolve(
             bundlePath, "targets", `${target}.yaml`), YAML.stringify({...targetData}), 'utf8')
@@ -448,8 +448,8 @@ export class Kbdgen {
     static setBuildTimestamp(bundlePath: string, target: string) {
         const targetData = Kbdgen.loadTarget(bundlePath, target)
         
-        // Set to minute-based timestamp
-        targetData['build'] = ((+new Date / 1000 | 0) / 60) | 0
+        // Set to run number
+        targetData['build'] = process.env.GITHUB_RUN_NUMBER!
         
         fs.writeFileSync(path.resolve(
             bundlePath, "targets", `${target}.yaml`), YAML.stringify({...targetData}), 'utf8')
@@ -593,10 +593,6 @@ export class Subversion {
         const sec = secrets()
         const msg = `[CI: Artifact] ${path.basename(payloadPath)}`
 
-        // FIXME: hack because bundler gives us wrong filename
-        core.debug("WORKAROUND: mangling the payload path for svn import")
-        payloadPath = payloadPath.replace("speller-", "")
-
         return await Bash.runScript(`svn import ${payloadPath} ${remotePath} -m "${msg}" --username="${sec.svn.username}" --password="${sec.svn.password}"`)
     }
 }
@@ -608,14 +604,20 @@ export class ThfstTools {
     }
 }
 
-export function versionAsNightly(version: string): string {
+export async function versionAsNightly(version: string): Promise<string> {
     if (version.includes("-")) {
         throw new Error(`Version already includes pre-release segment: ${version}`)
     }
+
+    const octokit = new Octokit();
+    const [owner, repo] = process.env.GITHUB_REPOSITORY!.split("/")
+    const { data } = await octokit.request("GET /repos/:owner/:repo/actions/runs/:run_id", {
+        owner,
+        repo,
+        run_id: parseInt(process.env.GITHUB_RUN_ID!, 10)
+    })
     
-    const nightlyTs = new Date().toISOString()
-        .replace(/[-:\.]/g, "")
-        .replace(/\d{3}Z$/, "Z")
+    const nightlyTs = data.created_at.replace(/[-:\.]/g, "")
 
     return `${version}-nightly.${nightlyTs}`
 }
@@ -668,6 +670,11 @@ export class DivvunBundler {
             })
         }))
 
+        // FIXME: workaround bundler issue creating invalid files
+        await io.cp(
+            path.resolve(`output/${langTag}-${version}.pkg`),
+            path.resolve(`output/${packageId}-${version}.pkg`))
+
         const outputFile = path.resolve(`output/${packageId}-${version}.pkg`)
         return outputFile
     }
@@ -713,7 +720,12 @@ export class DivvunBundler {
             core.debug(err)
         }
 
-        return `output/${packageId}-${version}.exe`
+        // FIXME: workaround bundler issue creating invalid files
+        await io.cp(
+            path.resolve(`output/${langTag}-${version}.exe`),
+            path.resolve(`output/${packageId}-${version}.exe`))
+
+        return path.resolve(`output/${packageId}-${version}.exe`)
     }
 
     static async bundleWindowsMSOffice(
@@ -756,6 +768,11 @@ export class DivvunBundler {
             core.debug("Failed to read output dir")
             core.debug(err)
         }
+
+        // FIXME: workaround bundler issue creating invalid files
+        await io.cp(
+            path.resolve(`output/${langTag}-mso-${version}.exe`),
+            path.resolve(`output/${packageId}-${version}.exe`))
 
         return `output/${packageId}-${version}.exe`
     }

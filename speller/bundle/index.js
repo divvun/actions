@@ -24,7 +24,7 @@ async function run() {
     let { name, version } = manifest;
     const packageId = manifest_1.derivePackageId(spellerType);
     const langTag = manifest_1.deriveLangTag(false);
-    version = shared_1.versionAsNightly(version);
+    version = await shared_1.versionAsNightly(version);
     core.setOutput("version", version);
     if (spellerType == manifest_1.SpellerType.Mobile) {
         const bhfstPaths = [];

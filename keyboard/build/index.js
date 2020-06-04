@@ -18,11 +18,11 @@ async function run() {
     }
     let payloadPath;
     if (keyboardType === types_1.KeyboardType.MacOS) {
-        shared_1.Kbdgen.setNightlyVersion(bundlePath, "mac");
+        await shared_1.Kbdgen.setNightlyVersion(bundlePath, "mac");
         payloadPath = await shared_1.Kbdgen.buildMacOS(bundlePath);
     }
     else if (keyboardType === types_1.KeyboardType.Windows) {
-        shared_1.Kbdgen.setNightlyVersion(bundlePath, "win");
+        await shared_1.Kbdgen.setNightlyVersion(bundlePath, "win");
         payloadPath = await shared_1.Kbdgen.buildWindows(bundlePath);
     }
     else {

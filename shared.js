@@ -20,6 +20,7 @@ const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
 const yaml_1 = __importDefault(require("yaml"));
 const tmp = __importStar(require("tmp"));
+const action_1 = require("@octokit/action");
 function divvunConfigDir() {
     const runner = process.env['RUNNER_WORKSPACE'];
     if (!runner)
@@ -361,15 +362,15 @@ class Kbdgen {
     static loadTarget(bundlePath, target) {
         return nonUndefinedProxy(yaml_1.default.parse(fs_1.default.readFileSync(path_1.default.resolve(bundlePath, "targets", `${target}.yaml`), 'utf8')), true);
     }
-    static setNightlyVersion(bundlePath, target) {
+    static async setNightlyVersion(bundlePath, target) {
         const targetData = Kbdgen.loadTarget(bundlePath, target);
-        targetData['version'] = versionAsNightly(targetData['version']);
+        targetData['version'] = await versionAsNightly(targetData['version']);
         fs_1.default.writeFileSync(path_1.default.resolve(bundlePath, "targets", `${target}.yaml`), yaml_1.default.stringify({ ...targetData }), 'utf8');
         return targetData['version'];
     }
     static setBuildTimestamp(bundlePath, target) {
         const targetData = Kbdgen.loadTarget(bundlePath, target);
-        targetData['build'] = ((+new Date / 1000 | 0) / 60) | 0;
+        targetData['build'] = process.env.GITHUB_RUN_NUMBER;
         fs_1.default.writeFileSync(path_1.default.resolve(bundlePath, "targets", `${target}.yaml`), yaml_1.default.stringify({ ...targetData }), 'utf8');
         return targetData['build'];
     }
@@ -468,8 +469,6 @@ class Subversion {
     static async import(payloadPath, remotePath) {
         const sec = secrets();
         const msg = `[CI: Artifact] ${path_1.default.basename(payloadPath)}`;
-        core.debug("WORKAROUND: mangling the payload path for svn import");
-        payloadPath = payloadPath.replace("speller-", "");
         return await Bash.runScript(`svn import ${payloadPath} ${remotePath} -m "${msg}" --username="${sec.svn.username}" --password="${sec.svn.password}"`);
     }
 }
@@ -481,13 +480,18 @@ class ThfstTools {
     }
 }
 exports.ThfstTools = ThfstTools;
-function versionAsNightly(version) {
+async function versionAsNightly(version) {
     if (version.includes("-")) {
         throw new Error(`Version already includes pre-release segment: ${version}`);
     }
-    const nightlyTs = new Date().toISOString()
-        .replace(/[-:\.]/g, "")
-        .replace(/\d{3}Z$/, "Z");
+    const octokit = new action_1.Octokit();
+    const [owner, repo] = process.env.GITHUB_REPOSITORY.split("/");
+    const { data } = await octokit.request("GET /repos/:owner/:repo/actions/runs/:run_id", {
+        owner,
+        repo,
+        run_id: parseInt(process.env.GITHUB_RUN_ID, 10)
+    });
+    const nightlyTs = data.created_at.replace(/[-:\.]/g, "");
     return `${version}-nightly.${nightlyTs}`;
 }
 exports.versionAsNightly = versionAsNightly;
@@ -523,6 +527,7 @@ class DivvunBundler {
                 "RUST_LOG": "trace"
             })
         }));
+        await io.cp(path_1.default.resolve(`output/${langTag}-${version}.pkg`), path_1.default.resolve(`output/${packageId}-${version}.pkg`));
         const outputFile = path_1.default.resolve(`output/${packageId}-${version}.pkg`);
         return outputFile;
     }
@@ -557,7 +562,8 @@ class DivvunBundler {
             core.debug("Failed to read output dir");
             core.debug(err);
         }
-        return `output/${packageId}-${version}.exe`;
+        await io.cp(path_1.default.resolve(`output/${langTag}-${version}.exe`), path_1.default.resolve(`output/${packageId}-${version}.exe`));
+        return path_1.default.resolve(`output/${packageId}-${version}.exe`);
     }
     static async bundleWindowsMSOffice(name, version, productCode, packageId, langTag, spellerPaths) {
         const sec = secrets();
@@ -591,6 +597,7 @@ class DivvunBundler {
             core.debug("Failed to read output dir");
             core.debug(err);
         }
+        await io.cp(path_1.default.resolve(`output/${langTag}-mso-${version}.exe`), path_1.default.resolve(`output/${packageId}-${version}.exe`));
         return `output/${packageId}-${version}.exe`;
     }
 }
