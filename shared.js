@@ -368,9 +368,9 @@ class Kbdgen {
         fs_1.default.writeFileSync(path_1.default.resolve(bundlePath, "targets", `${target}.yaml`), yaml_1.default.stringify({ ...targetData }), 'utf8');
         return targetData['version'];
     }
-    static setBuildTimestamp(bundlePath, target) {
+    static setBuildNumber(bundlePath, target, start = 0) {
         const targetData = Kbdgen.loadTarget(bundlePath, target);
-        targetData['build'] = parseInt(process.env.GITHUB_RUN_NUMBER, 10);
+        targetData['build'] = start + parseInt(process.env.GITHUB_RUN_NUMBER, 10);
         core.debug("Set build number to " + targetData['build']);
         fs_1.default.writeFileSync(path_1.default.resolve(bundlePath, "targets", `${target}.yaml`), yaml_1.default.stringify({ ...targetData }), 'utf8');
         return targetData['build'];

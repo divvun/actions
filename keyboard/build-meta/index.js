@@ -18,12 +18,18 @@ async function run() {
     }
     await shared_1.Kbdgen.fetchMetaBundle(bundlePath);
     let payloadPath;
+    let buildStart = 0;
+    if (process.env.GITHUB_REPOSITORY === "divvun/divvun-keyboard") {
+        if (keyboardType === types_1.KeyboardType.Android) {
+            buildStart = 1590918851;
+        }
+    }
     if (keyboardType === types_1.KeyboardType.Android) {
-        shared_1.Kbdgen.setBuildTimestamp(bundlePath, "android");
+        shared_1.Kbdgen.setBuildNumber(bundlePath, "android", buildStart);
         payloadPath = await shared_1.Kbdgen.buildAndroid(bundlePath);
     }
     else if (keyboardType === types_1.KeyboardType.iOS) {
-        shared_1.Kbdgen.setBuildTimestamp(bundlePath, "ios");
+        shared_1.Kbdgen.setBuildNumber(bundlePath, "ios", buildStart);
         payloadPath = await shared_1.Kbdgen.build_iOS(bundlePath);
     }
 }

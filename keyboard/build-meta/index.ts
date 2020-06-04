@@ -13,11 +13,19 @@ async function run() {
     await Kbdgen.fetchMetaBundle(bundlePath)
     let payloadPath
 
+    let buildStart = 0
+
+    if (process.env.GITHUB_REPOSITORY! === "divvun/divvun-keyboard") {
+        if (keyboardType === KeyboardType.Android) {
+            buildStart = 1590918851
+        }
+    }
+
     if (keyboardType === KeyboardType.Android) {
-        Kbdgen.setBuildTimestamp(bundlePath, "android")
+        Kbdgen.setBuildNumber(bundlePath, "android", buildStart)
         payloadPath = await Kbdgen.buildAndroid(bundlePath)
     } else if (keyboardType === KeyboardType.iOS) {
-        Kbdgen.setBuildTimestamp(bundlePath, "ios")
+        Kbdgen.setBuildNumber(bundlePath, "ios", buildStart)
         payloadPath = await Kbdgen.build_iOS(bundlePath)
     }
 
