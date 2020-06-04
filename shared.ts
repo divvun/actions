@@ -449,7 +449,8 @@ export class Kbdgen {
         const targetData = Kbdgen.loadTarget(bundlePath, target)
         
         // Set to run number
-        targetData['build'] = process.env.GITHUB_RUN_NUMBER!
+        targetData['build'] = parseInt(process.env.GITHUB_RUN_NUMBER!, 10)
+        core.debug("Set build number to " + targetData['build'])
         
         fs.writeFileSync(path.resolve(
             bundlePath, "targets", `${target}.yaml`), YAML.stringify({...targetData}), 'utf8')
