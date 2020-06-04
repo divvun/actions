@@ -11,6 +11,9 @@ inputs:
   speller-paths:
     description: A JSON object consisting of desktop and mobile keys with paths to each zhfst speller
     required: true
+  GITHUB_TOKEN:
+    description: Github token
+    required: true
 outputs:
   payload-path:
     description: 'The bundled speller ready for upload to a Pahkat repository'

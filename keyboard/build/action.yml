@@ -4,6 +4,9 @@ inputs:
   keyboard-type:
     description: The keyboard type
     required: true
+  GITHUB_TOKEN:
+    description: Github token
+    required: true
 runs:
   using: 'node12'
   main: 'index.js'
