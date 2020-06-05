@@ -1,5 +1,6 @@
 import * as core from '@actions/core'
 import fs from "fs"
+import path from "path"
 
 import { shouldDeploy, PahkatUploader, versionAsNightly, RebootSpec, MacOSPackageTarget } from '../shared'
 
@@ -45,7 +46,12 @@ async function run() {
         return
     }
 
-    await PahkatUploader.upload(payloadPath, "./metadata.toml", {
+    const ext = path.extname(payloadPath)
+    const newPath = path.join(path.dirname(payloadPath), `${packageId}_${version}_${platform}${ext}`)
+    core.debug(`Renaming from ${payloadPath} to ${newPath}`)
+    fs.renameSync(payloadPath, newPath)
+
+    await PahkatUploader.upload(newPath, "./metadata.toml", {
         url,
         version,
         platform,

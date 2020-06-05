@@ -12,6 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(require("@actions/core"));
 const fs_1 = __importDefault(require("fs"));
+const path_1 = __importDefault(require("path"));
 const shared_1 = require("../shared");
 async function run() {
     const packageId = core.getInput('package-id', { required: true });
@@ -46,7 +47,11 @@ async function run() {
         core.warning("Not deploying; ending.");
         return;
     }
-    await shared_1.PahkatUploader.upload(payloadPath, "./metadata.toml", {
+    const ext = path_1.default.extname(payloadPath);
+    const newPath = path_1.default.join(path_1.default.dirname(payloadPath), `${packageId}_${version}_${platform}${ext}`);
+    core.debug(`Renaming from ${payloadPath} to ${newPath}`);
+    fs_1.default.renameSync(payloadPath, newPath);
+    await shared_1.PahkatUploader.upload(newPath, "./metadata.toml", {
         url,
         version,
         platform,
