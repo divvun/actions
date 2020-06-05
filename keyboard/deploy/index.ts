@@ -1,6 +1,5 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
-import toml from 'toml'
 import fs from 'fs'
 
 import { shouldDeploy, MacOSPackageTarget, Kbdgen, validateProductCode } from '../../shared'

@@ -1,28 +1,34 @@
 name: 'Deploy a thing'
 description: ''
 inputs:
-  repository:
-    description: 'Repository to deploy to'
-    required: true
-  id:
-    description: 'Pahkat package id (the segment that comes after /packages in the package key URL)'
+  package-id:
+    description: Package identifier (the part that comes after /packages/ in the package key URL)
     required: true
   platform:
     description: 'Platform'
     required: true
   version:
-    description: 'Deploy version'
+    description: 'Version'
     required: true
-  payload:
+  payload-path:
     description: 'Path to payload artifact to deploy'
     required: true
-  payloadMetadata:
-    description: 'Path to payload metadata (created by a call like `pahkat payload windows-executable ...`)'
+  repo:
+    description: 'Pahkat repository to deploy to'
     required: true
-  testDeploy:
-    description: "Go as far as possible but don't actually deploy to Pahkat"
+  channel:
+    description: 'Pahkat channel'
     required: false
-  forceDeploy:
+  macos-pkg-id:
+    description: for macOS packages, this field is manadatory
+    required: false
+  macos-requires-reboot:
+    description: ''
+    required: false
+  macos-targets:
+    description: ''
+    required: false
+  force-deploy:
     description: "Forces a deployment"
     required: false
 runs:

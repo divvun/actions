@@ -1,39 +1,59 @@
 import * as core from '@actions/core'
-import * as exec from '@actions/exec'
-import path from 'path'
+import fs from "fs"
 
-import { divvunConfigDir, shouldDeploy, secrets } from '../shared'
+import { shouldDeploy, PahkatUploader, versionAsNightly, RebootSpec, MacOSPackageTarget } from '../shared'
 
 async function run() {
-    try {
-        const sec = secrets()
-        const testDeploy = !!core.getInput('testDeploy') || !shouldDeploy()
-        const isDeploying = !testDeploy ||  core.getInput('forceDeploy');
-        const deployScript = path.join(divvunConfigDir(), "repo", "scripts", "pahkat_deploy_new.sh")
-        const exit = await exec.exec("bash", [deployScript], {
-            env: {
-                ...process.env,
-                "DEPLOY_SVN_USER": sec.svn.username,
-                "DEPLOY_SVN_PASSWORD": sec.svn.password,
-                "DEPLOY_SVN_REPO": core.getInput('repository'),
-                "DEPLOY_SVN_PKG_ID": core.getInput('package'),
-                "DEPLOY_SVN_PKG_PLATFORM": core.getInput('platform'),
-                "DEPLOY_SVN_PKG_PAYLOAD": path.resolve(core.getInput('payload')),
-                "DEPLOY_SVN_PKG_PAYLOAD_METADATA": path.resolve(core.getInput('payloadMetadata')),
-                "DEPLOY_SVN_PKG_VERSION": core.getInput('version'),
-                // TODO: Meh
-                "DEPLOY_SVN_REPO_ARTIFACTS": "https://pahkat.uit.no/artifacts/",
-                "DEPLOY_SVN_COMMIT": isDeploying ? "1" : ""
-            }
-        });
+    const packageId = core.getInput('package-id', { required: true })
+    const platform = core.getInput('platform', { required: true })
+    const payloadPath = core.getInput('payload-path', { required: true })
+    const channel = core.getInput('channel') || null
+    const pahkatRepo = core.getInput('repo', { required: true })
 
-        if (exit != 0) {
-            throw new Error("deploy failed")
-        }
+    const url = `${pahkatRepo}packages/${packageId}`
+
+    let version = core.getInput('version', { required: true })
+
+    if (channel === "nightly") {
+        version = await versionAsNightly(version)
     }
-    catch (error) {
-        core.setFailed(error.message);
+
+    core.debug("Version: " + version)
+
+    if (platform === "macos") {
+        const pkgId = core.getInput('macos-pkg-id', { required: true })
+        const rawReqReboot = core.getInput('macos-requires-reboot')
+        const rawTargets = core.getInput('macos-targets')
+
+        const requiresReboot: RebootSpec[] = rawReqReboot
+            ? rawReqReboot.split(',').map(x => x.trim()) as RebootSpec[]
+            : []
+        const targets = rawTargets
+            ? rawTargets.split(',').map(x => x.trim()) as MacOSPackageTarget[]
+            : []
+
+        const data = await PahkatUploader.payload.macosPackage(1, 1, pkgId, requiresReboot, targets, payloadPath)
+        fs.writeFileSync("./metadata.toml", data, "utf8")
+    } else {
+        throw new Error("Unknown platform: " + platform)
     }
+
+    const isDeploying = shouldDeploy() || core.getInput('force-deploy');
+
+    if (!isDeploying) {
+        core.warning("Not deploying; ending.")
+        return
+    }
+
+    await PahkatUploader.upload(payloadPath, "./metadata.toml", {
+        url,
+        version,
+        platform,
+        channel,
+    })
 }
 
-run()
+run().catch(err => {
+    console.error(err.stack)
+    process.exit(1)
+})

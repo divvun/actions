@@ -11,36 +11,49 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(require("@actions/core"));
-const exec = __importStar(require("@actions/exec"));
-const path_1 = __importDefault(require("path"));
+const fs_1 = __importDefault(require("fs"));
 const shared_1 = require("../shared");
 async function run() {
-    try {
-        const sec = shared_1.secrets();
-        const testDeploy = !!core.getInput('testDeploy') || !shared_1.shouldDeploy();
-        const isDeploying = !testDeploy || core.getInput('forceDeploy');
-        const deployScript = path_1.default.join(shared_1.divvunConfigDir(), "repo", "scripts", "pahkat_deploy_new.sh");
-        const exit = await exec.exec("bash", [deployScript], {
-            env: {
-                ...process.env,
-                "DEPLOY_SVN_USER": sec.svn.username,
-                "DEPLOY_SVN_PASSWORD": sec.svn.password,
-                "DEPLOY_SVN_REPO": core.getInput('repository'),
-                "DEPLOY_SVN_PKG_ID": core.getInput('package'),
-                "DEPLOY_SVN_PKG_PLATFORM": core.getInput('platform'),
-                "DEPLOY_SVN_PKG_PAYLOAD": path_1.default.resolve(core.getInput('payload')),
-                "DEPLOY_SVN_PKG_PAYLOAD_METADATA": path_1.default.resolve(core.getInput('payloadMetadata')),
-                "DEPLOY_SVN_PKG_VERSION": core.getInput('version'),
-                "DEPLOY_SVN_REPO_ARTIFACTS": "https://pahkat.uit.no/artifacts/",
-                "DEPLOY_SVN_COMMIT": isDeploying ? "1" : ""
-            }
-        });
-        if (exit != 0) {
-            throw new Error("deploy failed");
-        }
+    const packageId = core.getInput('package-id', { required: true });
+    const platform = core.getInput('platform', { required: true });
+    const payloadPath = core.getInput('payload-path', { required: true });
+    const channel = core.getInput('channel') || null;
+    const pahkatRepo = core.getInput('repo', { required: true });
+    const url = `${pahkatRepo}packages/${packageId}`;
+    let version = core.getInput('version', { required: true });
+    if (channel === "nightly") {
+        version = await shared_1.versionAsNightly(version);
     }
-    catch (error) {
-        core.setFailed(error.message);
+    core.debug("Version: " + version);
+    if (platform === "macos") {
+        const pkgId = core.getInput('macos-pkg-id', { required: true });
+        const rawReqReboot = core.getInput('macos-requires-reboot');
+        const rawTargets = core.getInput('macos-targets');
+        const requiresReboot = rawReqReboot
+            ? rawReqReboot.split(',').map(x => x.trim())
+            : [];
+        const targets = rawTargets
+            ? rawTargets.split(',').map(x => x.trim())
+            : [];
+        const data = await shared_1.PahkatUploader.payload.macosPackage(1, 1, pkgId, requiresReboot, targets, payloadPath);
+        fs_1.default.writeFileSync("./metadata.toml", data, "utf8");
     }
+    else {
+        throw new Error("Unknown platform: " + platform);
+    }
+    const isDeploying = shared_1.shouldDeploy() || core.getInput('force-deploy');
+    if (!isDeploying) {
+        core.warning("Not deploying; ending.");
+        return;
+    }
+    await shared_1.PahkatUploader.upload(payloadPath, "./metadata.toml", {
+        url,
+        version,
+        platform,
+        channel,
+    });
 }
-run();
+run().catch(err => {
+    console.error(err.stack);
+    process.exit(1);
+});
