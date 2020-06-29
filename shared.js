@@ -156,7 +156,7 @@ class Tar {
         core.debug(`Created tmp dir: ${tmpDir.name}`);
         for (const p of paths) {
             core.debug(`Copying ${p} into ${stagingDir}`);
-            await io.cp(p, stagingDir);
+            await io.cp(p, stagingDir, { recursive: true });
         }
         core.debug(`Tarring`);
         await Bash.runScript(`tar cf ../file.tar *`, { cwd: stagingDir });
