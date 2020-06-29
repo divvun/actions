@@ -146,17 +146,39 @@ export class Bash {
 }
 
 export class Tar {
+    static URL_XZ_WINDOWS = "https://tukaani.org/xz/xz-5.2.5-windows.zip"
+
+    static async bootstrap() {
+        if (process.platform !== "win32") {
+            return
+        }
+
+        core.debug("Attempt to download xz tools")
+        const xzToolsZip = await tc.downloadTool(Tar.URL_XZ_WINDOWS)
+        await tc.extractZip(xzToolsZip, process.env.RUNNER_WORKSPACE!)
+        core.addPath(path.join(process.env.RUNNER_WORKSPACE!, "bin_x86-64"))
+    }
+
     static async createFlatTxz(paths: string[], outputPath: string) {
         const tmpDir = tmp.dirSync()
+        const stagingDir = path.join(tmpDir.name, "staging")
+        fs.mkdirSync(stagingDir)
+
         core.debug(`Created tmp dir: ${tmpDir.name}`)
 
         for (const p of paths) {
-            core.debug(`Copying ${p} into ${tmpDir.name}`)
-            await io.cp(p, tmpDir.name)
+            core.debug(`Copying ${p} into ${stagingDir}`)
+            await io.cp(p, stagingDir)
         }
 
-        core.debug(`Txzing`)
-        await Bash.runScript(`tar cf - * | xz -9 > ${outputPath}`, { cwd: tmpDir.name })
+        core.debug(`Tarring`)
+        await Bash.runScript(`tar cf ../file.tar *`, { cwd: stagingDir })
+
+        core.debug("xz -9'ing")
+        await Bash.runScript(`xz -9 ../file.tar`, { cwd: stagingDir })
+
+        core.debug("Copying file.tar.xz to " + outputPath)
+        await io.cp(path.join(tmpDir.name, "file.tar.xz"), outputPath)
     }
 }
 
@@ -167,7 +189,6 @@ export class PahkatPrefix {
     static URL_LINUX = "https://pahkat.uit.no/artifacts/pahkat-prefix-cli_0.1.0_linux_amd64.txz"
     static URL_MACOS = "https://pahkat.uit.no/artifacts/pahkat-prefix-cli_0.1.0_macos_amd64.txz"
     static URL_WINDOWS = "https://pahkat.uit.no/artifacts/pahkat-prefix-cli_0.1.0_windows_amd64.txz"
-    static URL_XZ_WINDOWS = "https://tukaani.org/xz/xz-5.2.5-windows.zip"
 
     static get path(): string {
         return path.join(process.env.RUNNER_WORKSPACE!, "pahkat-prefix")
@@ -188,10 +209,7 @@ export class PahkatPrefix {
             console.log(await tc.extractTar(txz, process.env.RUNNER_WORKSPACE!))
         } else if (platform === "win32") {
             // Windows kinda can't deal with no xz.
-            core.debug("Attempt to download xz tools")
-            const xzToolsZip = await tc.downloadTool(PahkatPrefix.URL_XZ_WINDOWS)
-            await tc.extractZip(xzToolsZip, process.env.RUNNER_WORKSPACE!)
-            core.addPath(path.join(process.env.RUNNER_WORKSPACE!, "bin_x86-64"))
+            await Tar.bootstrap()
             
             // Now we can download things
             const txz = await tc.downloadTool(PahkatPrefix.URL_WINDOWS,

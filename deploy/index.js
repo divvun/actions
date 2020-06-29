@@ -14,19 +14,49 @@ const core = __importStar(require("@actions/core"));
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
 const shared_1 = require("../shared");
+var PackageType;
+(function (PackageType) {
+    PackageType["MacOSPackage"] = "MacOSPackage";
+    PackageType["WindowsExecutable"] = "WindowsExecutable";
+    PackageType["TarballPackage"] = "TarballPackage";
+})(PackageType || (PackageType = {}));
+function getPackageType(platform) {
+    const givenType = core.getInput('type');
+    if (givenType == null) {
+        if (platform === "macos") {
+            return PackageType.MacOSPackage;
+        }
+        else if (platform === "windows") {
+            return PackageType.WindowsExecutable;
+        }
+        else {
+            return PackageType.TarballPackage;
+        }
+    }
+    switch (givenType) {
+        case PackageType.MacOSPackage:
+        case PackageType.WindowsExecutable:
+        case PackageType.TarballPackage:
+            return givenType;
+        default:
+            throw new Error("Unhandled package type: " + givenType);
+    }
+}
 async function run() {
     const packageId = core.getInput('package-id', { required: true });
     const platform = core.getInput('platform', { required: true });
+    const packageType = getPackageType(platform);
     const payloadPath = core.getInput('payload-path', { required: true });
     const channel = core.getInput('channel') || null;
     const pahkatRepo = core.getInput('repo', { required: true });
     const url = `${pahkatRepo}packages/${packageId}`;
     let version = core.getInput('version', { required: true });
     if (channel === "nightly") {
+        core.debug("Generating nightly-suffixed version due to channel 'nightly'");
         version = await shared_1.versionAsNightly(version);
     }
     core.debug("Version: " + version);
-    if (platform === "macos") {
+    if (packageType === PackageType.MacOSPackage) {
         const pkgId = core.getInput('macos-pkg-id', { required: true });
         const rawReqReboot = core.getInput('macos-requires-reboot');
         const rawTargets = core.getInput('macos-targets');
@@ -40,7 +70,7 @@ async function run() {
         fs_1.default.writeFileSync("./metadata.toml", data, "utf8");
     }
     else {
-        throw new Error("Unknown platform: " + platform);
+        throw new Error("Unhandled package type: " + packageType);
     }
     const isDeploying = shared_1.shouldDeploy() || core.getInput('force-deploy');
     if (!isDeploying) {

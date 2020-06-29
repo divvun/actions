@@ -140,18 +140,34 @@ class Bash {
 }
 exports.Bash = Bash;
 class Tar {
+    static async bootstrap() {
+        if (process.platform !== "win32") {
+            return;
+        }
+        core.debug("Attempt to download xz tools");
+        const xzToolsZip = await tc.downloadTool(Tar.URL_XZ_WINDOWS);
+        await tc.extractZip(xzToolsZip, process.env.RUNNER_WORKSPACE);
+        core.addPath(path_1.default.join(process.env.RUNNER_WORKSPACE, "bin_x86-64"));
+    }
     static async createFlatTxz(paths, outputPath) {
         const tmpDir = tmp.dirSync();
+        const stagingDir = path_1.default.join(tmpDir.name, "staging");
+        fs_1.default.mkdirSync(stagingDir);
         core.debug(`Created tmp dir: ${tmpDir.name}`);
         for (const p of paths) {
-            core.debug(`Copying ${p} into ${tmpDir.name}`);
-            await io.cp(p, tmpDir.name);
+            core.debug(`Copying ${p} into ${stagingDir}`);
+            await io.cp(p, stagingDir);
         }
-        core.debug(`Txzing`);
-        await Bash.runScript(`tar cf - * | xz -9 > ${outputPath}`, { cwd: tmpDir.name });
+        core.debug(`Tarring`);
+        await Bash.runScript(`tar cf ../file.tar *`, { cwd: stagingDir });
+        core.debug("xz -9'ing");
+        await Bash.runScript(`xz -9 ../file.tar`, { cwd: stagingDir });
+        core.debug("Copying file.tar.xz to " + outputPath);
+        await io.cp(path_1.default.join(tmpDir.name, "file.tar.xz"), outputPath);
     }
 }
 exports.Tar = Tar;
+Tar.URL_XZ_WINDOWS = "https://tukaani.org/xz/xz-5.2.5-windows.zip";
 var RebootSpec;
 (function (RebootSpec) {
     RebootSpec["Install"] = "install";
@@ -182,10 +198,7 @@ class PahkatPrefix {
             console.log(await tc.extractTar(txz, process.env.RUNNER_WORKSPACE));
         }
         else if (platform === "win32") {
-            core.debug("Attempt to download xz tools");
-            const xzToolsZip = await tc.downloadTool(PahkatPrefix.URL_XZ_WINDOWS);
-            await tc.extractZip(xzToolsZip, process.env.RUNNER_WORKSPACE);
-            core.addPath(path_1.default.join(process.env.RUNNER_WORKSPACE, "bin_x86-64"));
+            await Tar.bootstrap();
             const txz = await tc.downloadTool(PahkatPrefix.URL_WINDOWS, path_1.default.join(process.env.RUNNER_WORKSPACE, "pahkat-dl.txz"));
             core.debug("Attempt to unxz");
             await exec_1.exec("xz", ["-d", txz]);
@@ -216,7 +229,6 @@ exports.PahkatPrefix = PahkatPrefix;
 PahkatPrefix.URL_LINUX = "https://pahkat.uit.no/artifacts/pahkat-prefix-cli_0.1.0_linux_amd64.txz";
 PahkatPrefix.URL_MACOS = "https://pahkat.uit.no/artifacts/pahkat-prefix-cli_0.1.0_macos_amd64.txz";
 PahkatPrefix.URL_WINDOWS = "https://pahkat.uit.no/artifacts/pahkat-prefix-cli_0.1.0_windows_amd64.txz";
-PahkatPrefix.URL_XZ_WINDOWS = "https://tukaani.org/xz/xz-5.2.5-windows.zip";
 var MacOSPackageTarget;
 (function (MacOSPackageTarget) {
     MacOSPackageTarget["System"] = "system";

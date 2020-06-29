@@ -4,9 +4,40 @@ import path from "path"
 
 import { shouldDeploy, PahkatUploader, versionAsNightly, RebootSpec, MacOSPackageTarget } from '../shared'
 
+enum PackageType {
+    MacOSPackage = "MacOSPackage",
+    WindowsExecutable = "WindowsExecutable",
+    TarballPackage = "TarballPackage",
+}
+
+function getPackageType(platform: string): PackageType {
+    const givenType = core.getInput('type')
+
+    if (givenType == null) {
+        if (platform === "macos") {
+            return PackageType.MacOSPackage
+        } else if (platform === "windows") {
+            return PackageType.WindowsExecutable
+        } else {
+            return PackageType.TarballPackage
+        }
+    }
+
+    switch (givenType) {
+        case PackageType.MacOSPackage:
+        case PackageType.WindowsExecutable:
+        case PackageType.TarballPackage:
+            return givenType
+        default:
+            throw new Error("Unhandled package type: " + givenType)
+    }
+
+}
+
 async function run() {
     const packageId = core.getInput('package-id', { required: true })
     const platform = core.getInput('platform', { required: true })
+    const packageType = getPackageType(platform)
     const payloadPath = core.getInput('payload-path', { required: true })
     const channel = core.getInput('channel') || null
     const pahkatRepo = core.getInput('repo', { required: true })
@@ -16,12 +47,13 @@ async function run() {
     let version = core.getInput('version', { required: true })
 
     if (channel === "nightly") {
+        core.debug("Generating nightly-suffixed version due to channel 'nightly'")
         version = await versionAsNightly(version)
     }
 
     core.debug("Version: " + version)
 
-    if (platform === "macos") {
+    if (packageType === PackageType.MacOSPackage) {
         const pkgId = core.getInput('macos-pkg-id', { required: true })
         const rawReqReboot = core.getInput('macos-requires-reboot')
         const rawTargets = core.getInput('macos-targets')
@@ -36,7 +68,7 @@ async function run() {
         const data = await PahkatUploader.payload.macosPackage(1, 1, pkgId, requiresReboot, targets, payloadPath)
         fs.writeFileSync("./metadata.toml", data, "utf8")
     } else {
-        throw new Error("Unknown platform: " + platform)
+        throw new Error("Unhandled package type: " + packageType)
     }
 
     const isDeploying = shouldDeploy() || core.getInput('force-deploy');

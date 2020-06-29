@@ -1,0 +1,12 @@
+name: 'Create flat .txz file'
+description: ''
+inputs:
+  path:
+    description: Directory to files to be .txz'd. It applies a glob to the directory, and does not include this parent.
+    required: true
+outputs:
+  txz-path:
+    description: Path to the created .txz file
+runs:
+  using: 'node12'
+  main: 'index.js'

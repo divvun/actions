@@ -1,0 +1,9 @@
+name: 'Codesign'
+description: ''
+inputs:
+  path:
+    description: Path to the executable or binary to be codesigned
+    required: true
+runs:
+  using: 'node12'
+  main: 'index.js'
