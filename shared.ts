@@ -584,7 +584,7 @@ export class Kbdgen {
             {
                 env: {
                     "CODESIGN_PW": sec.windows.pfxPassword,
-                    "CODESIGN_PFX": `${divvunConfigDir()}\\enc\\creds\\windows\\divvun.pfx`,
+                    "CODESIGN_PFX": DIVVUN_PFX,
                 }
             }
         )

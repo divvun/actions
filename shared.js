@@ -460,7 +460,7 @@ class Kbdgen {
         await Bash.runScript(`kbdgen --logging debug build win -R --ci -o output ${abs}`, {
             env: {
                 "CODESIGN_PW": sec.windows.pfxPassword,
-                "CODESIGN_PFX": `${divvunConfigDir()}\\enc\\creds\\windows\\divvun.pfx`,
+                "CODESIGN_PFX": exports.DIVVUN_PFX,
             }
         });
         const globber = await glob.create(path_1.default.join(cwd, "output", `*.exe`), {

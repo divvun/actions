@@ -14,11 +14,9 @@ async function run() {
     const filePath = core.getInput('path', { required: true });
     const sec = shared_1.secrets();
     if (process.platform == "win32") {
-        const pw = sec.windows.pfxPassword;
-        const pfx = `${shared_1.divvunConfigDir()}\\enc\\creds\\windows\\divvun.pfx`;
         await exec.exec("signtool.exe", [
             "sign", "/t", "http://timestamp.verisign.com/scripts/timstamp.dll",
-            "/f", pfx, "/p", pw,
+            "/f", shared_1.DIVVUN_PFX, "/p", sec.windows.pfxPassword,
             filePath
         ]);
     }
