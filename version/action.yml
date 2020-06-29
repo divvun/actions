@@ -1,0 +1,13 @@
+name: 'Get version'
+description: ''
+inputs:
+  cargo:
+    description: Get the version from the Cargo.toml file at the given path, or base if value is 'true'
+  nightly:
+    description: Add a nightly version suffix
+outputs:
+  version:
+    description: The generated version
+runs:
+  using: 'node12'
+  main: 'index.js'
