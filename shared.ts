@@ -97,6 +97,30 @@ export class Pip {
     }
 }
 
+export class Powershell {
+    static async runScript(script: string, args: {
+        cwd?: string,
+        env?: { [key: string]: string }
+    } = {}) {
+        const thisEnv = Object.assign({}, env(), args.env)
+
+        const out: string[] = []
+        const err: string[] = []
+
+        const listeners = {
+            stdout: (data: Buffer) => {
+                out.push(data.toString())
+            },
+            stderr: (data: Buffer) => {
+                err.push(data.toString())
+            }
+        }
+        
+        assertExit0(await exec("pwsh", ["-c", script], { env: thisEnv, cwd: args.cwd, listeners }))
+        return [out.join(""), err.join("")]
+    }
+}
+
 export class Bash {
     static async runScript(script: string, args: {
         sudo?: boolean,

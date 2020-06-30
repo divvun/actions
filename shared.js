@@ -101,6 +101,24 @@ class Pip {
     }
 }
 exports.Pip = Pip;
+class Powershell {
+    static async runScript(script, args = {}) {
+        const thisEnv = Object.assign({}, env(), args.env);
+        const out = [];
+        const err = [];
+        const listeners = {
+            stdout: (data) => {
+                out.push(data.toString());
+            },
+            stderr: (data) => {
+                err.push(data.toString());
+            }
+        };
+        assertExit0(await exec_1.exec("pwsh", ["-c", script], { env: thisEnv, cwd: args.cwd, listeners }));
+        return [out.join(""), err.join("")];
+    }
+}
+exports.Powershell = Powershell;
 class Bash {
     static async runScript(script, args = {}) {
         const thisEnv = Object.assign({}, env(), args.env);

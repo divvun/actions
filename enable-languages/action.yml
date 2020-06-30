@@ -1,0 +1,8 @@
+name: 'Enable languages (Windows)'
+description: ''
+inputs:
+  tags:
+    description: Language tags, comma-separated
+runs:
+  using: 'node12'
+  main: 'index.js'
