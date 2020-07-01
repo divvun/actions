@@ -2,7 +2,7 @@ import * as core from '@actions/core'
 import fs from "fs"
 
 import toml from "toml"
-import { versionAsNightly, isCurrentBranch } from '../shared'
+import { versionAsNightly, isCurrentBranch, nonUndefinedProxy } from '../shared'
 
 function getCargoToml() {
     const cargo = core.getInput("cargo")
@@ -12,10 +12,10 @@ function getCargoToml() {
     }
 
     if (cargo === "true") {
-        return toml.parse(fs.readFileSync("./Cargo.toml", "utf8"))
+        return nonUndefinedProxy(toml.parse(fs.readFileSync("./Cargo.toml", "utf8")))
     }
 
-    return toml.parse(fs.readFileSync(cargo, "utf8"))
+    return nonUndefinedProxy(toml.parse(fs.readFileSync(cargo, "utf8")))
 }
 
 function deriveNightly() {
@@ -36,7 +36,7 @@ async function run() {
     let version 
 
     if (cargoToml != null) {
-        version = cargoToml.version
+        version = cargoToml.package.version
     } else if (csharp != null) {
         version = process.env.GitBuildVersionSimple
     } else {

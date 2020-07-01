@@ -37,7 +37,7 @@ async function run() {
     const csharp = core.getInput("csharp");
     let version;
     if (cargoToml != null) {
-        version = cargoToml.version;
+        version = cargoToml.package.version;
     }
     else if (csharp != null) {
         version = process.env.GitBuildVersionSimple;
