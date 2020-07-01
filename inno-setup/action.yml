@@ -1,0 +1,14 @@
+name: 'Create Inno Setup installer'
+description: ''
+inputs:
+  path:
+    description: Path to .iss file
+    required: true
+  defines:
+    description: The defines to be passed to ISCC. `name=value`, space-delimited.
+outputs:
+  installer-path:
+    description: Path to generated .exe installer.
+runs:
+  using: 'node12'
+  main: 'index.js'
