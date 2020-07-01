@@ -1,13 +1,17 @@
 name: 'Get version'
 description: ''
 inputs:
+  csharp:
+    description: Get the version from Nerdbank.GitVersioning environment variables.
   cargo:
     description: Get the version from the Cargo.toml file at the given path, or base if value is 'true'
   nightly:
-    description: Add a nightly version suffix
+    description: Add a nightly version suffix if `true`, or if string matches current branch name
 outputs:
   version:
     description: The generated version
+  channel:
+    description: Pahkat channel to deploy to
 runs:
   using: 'node12'
   main: 'index.js'

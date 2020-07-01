@@ -102,8 +102,8 @@ class Pip {
 }
 exports.Pip = Pip;
 class Powershell {
-    static async runScript(script, args = {}) {
-        const thisEnv = Object.assign({}, env(), args.env);
+    static async runScript(script, opts = {}) {
+        const thisEnv = Object.assign({}, env(), opts.env);
         const out = [];
         const err = [];
         const listeners = {
@@ -114,7 +114,7 @@ class Powershell {
                 err.push(data.toString());
             }
         };
-        assertExit0(await exec_1.exec("pwsh", ["-c", script], { env: thisEnv, cwd: args.cwd, listeners }));
+        assertExit0(await exec_1.exec("pwsh", ["-c", script], { env: thisEnv, cwd: opts.cwd, listeners }));
         return [out.join(""), err.join("")];
     }
 }
@@ -697,3 +697,16 @@ function validateProductCode(kind, code) {
     throw new Error("Unhandled kind: " + kind);
 }
 exports.validateProductCode = validateProductCode;
+function isCurrentBranch(names) {
+    const value = process.env.GITHUB_REF;
+    if (value == null) {
+        return false;
+    }
+    for (const name of names) {
+        if (value === `ref/heads/${name}`) {
+            return true;
+        }
+    }
+    return false;
+}
+exports.isCurrentBranch = isCurrentBranch;

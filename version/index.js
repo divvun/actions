@@ -24,19 +24,37 @@ function getCargoToml() {
     }
     return toml_1.default.parse(fs_1.default.readFileSync(cargo, "utf8"));
 }
+function deriveNightly() {
+    const nightly = core.getInput("nightly");
+    if (nightly === "true") {
+        return true;
+    }
+    return shared_1.isCurrentBranch(nightly.split(",").map(x => x.trim()));
+}
 async function run() {
-    const isNightly = core.getInput("nightly") === "true";
+    const isNightly = deriveNightly();
     const cargoToml = getCargoToml();
+    const csharp = core.getInput("csharp");
+    let version;
     if (cargoToml != null) {
-        let { version } = cargoToml;
-        if (isNightly) {
-            version = await shared_1.versionAsNightly(version);
-        }
-        core.setOutput("version", version);
+        version = cargoToml.version;
+    }
+    else if (csharp != null) {
+        version = process.env.GitBuildVersionSimple;
     }
     else {
         throw new Error("Did not find a suitable mechanism to derive the version.");
     }
+    if (version == null) {
+        throw new Error("Did not find any version.");
+    }
+    if (isNightly) {
+        core.debug("Generating nightly version");
+        version = await shared_1.versionAsNightly(version);
+        core.setOutput("channel", "nightly");
+    }
+    core.debug("Setting version to: " + version);
+    core.setOutput("version", version);
 }
 run().catch(err => {
     console.error(err.stack);

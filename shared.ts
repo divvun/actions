@@ -98,11 +98,11 @@ export class Pip {
 }
 
 export class Powershell {
-    static async runScript(script: string, args: {
+    static async runScript(script: string, opts: {
         cwd?: string,
         env?: { [key: string]: string }
     } = {}) {
-        const thisEnv = Object.assign({}, env(), args.env)
+        const thisEnv = Object.assign({}, env(), opts.env)
 
         const out: string[] = []
         const err: string[] = []
@@ -116,7 +116,7 @@ export class Powershell {
             }
         }
         
-        assertExit0(await exec("pwsh", ["-c", script], { env: thisEnv, cwd: args.cwd, listeners }))
+        assertExit0(await exec("pwsh", ["-c", script], { env: thisEnv, cwd: opts.cwd, listeners }))
         return [out.join(""), err.join("")]
     }
 }
@@ -890,4 +890,20 @@ export function validateProductCode(kind: WindowsExecutableKind, code: string): 
     }
 
     throw new Error("Unhandled kind: " + kind)
+}
+
+export function isCurrentBranch(names: string[]) {
+    const value = process.env.GITHUB_REF
+
+    if (value == null) {
+        return false
+    }
+
+    for (const name of names) {
+        if (value === `ref/heads/${name}`) {
+            return true
+        }
+    }
+
+    return false
 }

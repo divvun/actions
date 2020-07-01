@@ -20,12 +20,21 @@ inputs:
     description: 'Pahkat channel'
     required: false
   macos-pkg-id:
-    description: for macOS packages, this field is manadatory
+    description: "macOS operating system package identifier (macOS: required)"
     required: false
   macos-requires-reboot:
     description: ''
     required: false
   macos-targets:
+    description: ''
+    required: false
+  windows-product-code:
+    description: "Windows product code (Windows: required)"
+    required: false
+  windows-kind:
+    description: The kind of installer
+    required: false
+  windows-requires-reboot:
     description: ''
     required: false
   force-deploy:
