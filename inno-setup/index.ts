@@ -24,8 +24,8 @@ async function run() {
 
     const installerOutput = tmp.dirSync({ keep: true }).name
 
-    await exec.exec(ISCC_PATH, [
-        "/Qp", `/O${installerOutput}`, signCmd, ...defines, issPath
+    await exec.exec(`${ISCC_PATH} ${signCmd}`, [
+        "/Qp", `/O${installerOutput}`, ...defines, issPath
     ])
 
     core.setOutput("installer-path", path.join(installerOutput, "install.exe"))
