@@ -20,9 +20,9 @@ function getCargoToml() {
         return null;
     }
     if (cargo === "true") {
-        return toml_1.default.parse(fs_1.default.readFileSync("./Cargo.toml", "utf8"));
+        return shared_1.nonUndefinedProxy(toml_1.default.parse(fs_1.default.readFileSync("./Cargo.toml", "utf8")));
     }
-    return toml_1.default.parse(fs_1.default.readFileSync(cargo, "utf8"));
+    return shared_1.nonUndefinedProxy(toml_1.default.parse(fs_1.default.readFileSync(cargo, "utf8")));
 }
 function deriveNightly() {
     const nightly = core.getInput("nightly");

@@ -15,7 +15,7 @@ const exec = __importStar(require("@actions/exec"));
 const tmp_1 = __importDefault(require("tmp"));
 const path_1 = __importDefault(require("path"));
 const shared_1 = require("../shared");
-const ISCC_PATH = "C:\\Program Files (x86)\\Inno Setup 6\\ISCC.exe";
+const ISCC_PATH = `"C:\\Program Files (x86)\\Inno Setup 6\\ISCC.exe"`;
 async function run() {
     const issPath = core.getInput('path', { required: true });
     const rawDefines = core.getInput('defines');

@@ -4,7 +4,7 @@ import tmp from 'tmp'
 import path from 'path'
 import { secrets, DIVVUN_PFX } from '../shared'
 
-const ISCC_PATH = "C:\\Program Files (x86)\\Inno Setup 6\\ISCC.exe"
+const ISCC_PATH = `"C:\\Program Files (x86)\\Inno Setup 6\\ISCC.exe"`
 
 async function run() {
     const issPath = core.getInput('path', { required: true })
