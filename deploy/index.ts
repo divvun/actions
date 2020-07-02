@@ -77,6 +77,7 @@ async function run() {
     const packageId = core.getInput('package-id', { required: true })
     const { packageType, platform } = getPlatformAndType()
     const payloadPath = core.getInput('payload-path', { required: true })
+    const arch = core.getInput('arch') || null
     const channel = core.getInput('channel') || null
     const pahkatRepo = core.getInput('repo', { required: true })
 
@@ -128,6 +129,9 @@ async function run() {
             requiresReboot,
             payloadPath)
         fs.writeFileSync("./metadata.toml", data, "utf8")
+    } else if (packageType === PackageType.TarballPackage) {
+        const data = await PahkatUploader.payload.tarballPackage(1, 1, payloadPath)
+        fs.writeFileSync("./metadata.toml", data, "utf8")
     } else {
         throw new Error(`Unhandled package type: '${packageType}'`)
     }
@@ -147,6 +151,7 @@ async function run() {
     await PahkatUploader.upload(newPath, "./metadata.toml", {
         url,
         version,
+        arch,
         platform,
         channel,
     })
