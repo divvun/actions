@@ -705,7 +705,7 @@ function isCurrentBranch(names) {
         return false;
     }
     for (const name of names) {
-        if (value === `ref/heads/${name}`) {
+        if (value === `refs/heads/${name}`) {
             return true;
         }
     }

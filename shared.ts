@@ -903,7 +903,7 @@ export function isCurrentBranch(names: string[]) {
     }
 
     for (const name of names) {
-        if (value === `ref/heads/${name}`) {
+        if (value === `refs/heads/${name}`) {
             return true
         }
     }
