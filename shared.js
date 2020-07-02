@@ -699,6 +699,8 @@ function validateProductCode(kind, code) {
 exports.validateProductCode = validateProductCode;
 function isCurrentBranch(names) {
     const value = process.env.GITHUB_REF;
+    core.debug(`names: ${names}`);
+    core.debug(`GITHUB_REF: '${value}'`);
     if (value == null) {
         return false;
     }

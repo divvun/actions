@@ -20,6 +20,8 @@ function getCargoToml() {
 
 function deriveNightly() {
     const nightly = core.getInput("nightly")
+
+    core.debug(`nightly input: '${nightly}'`)
     
     if (nightly === "true") {
         return true
@@ -36,8 +38,10 @@ async function run() {
     let version 
 
     if (cargoToml != null) {
+        core.debug("Getting version from TOML")
         version = cargoToml.package.version
     } else if (csharp != null) {
+        core.debug("Getting version from GitVersioning C#")
         version = process.env.GitBuildVersionSimple
     } else {
         throw new Error("Did not find a suitable mechanism to derive the version.")

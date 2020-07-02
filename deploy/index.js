@@ -23,8 +23,9 @@ var PackageType;
 function getPlatformAndType() {
     let platform = core.getInput('platform');
     const givenType = core.getInput('type');
-    if (givenType == null) {
-        if (platform == null) {
+    core.debug(`Platform: '${platform}', Type: '${givenType}'`);
+    if (givenType == null || givenType.trim() === "") {
+        if (platform == null || givenType.trim() === "") {
             throw new Error("Either platform or type must be set.");
         }
         if (platform === "macos") {
@@ -46,7 +47,7 @@ function getPlatformAndType() {
             };
         }
     }
-    if (platform == null) {
+    if (platform == null || platform.trim() === "") {
         switch (givenType) {
             case PackageType.MacOSPackage:
                 platform = "macos";
@@ -64,7 +65,7 @@ function getPlatformAndType() {
         case PackageType.TarballPackage:
             return { packageType: givenType, platform };
         default:
-            throw new Error("Unhandled package type: " + givenType);
+            throw new Error(`Unhandled package type: '${givenType}'`);
     }
 }
 async function run() {
@@ -112,7 +113,7 @@ async function run() {
         fs_1.default.writeFileSync("./metadata.toml", data, "utf8");
     }
     else {
-        throw new Error("Unhandled package type: " + packageType);
+        throw new Error(`Unhandled package type: '${packageType}'`);
     }
     const isDeploying = shared_1.shouldDeploy() || core.getInput('force-deploy');
     if (!isDeploying) {

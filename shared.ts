@@ -895,6 +895,9 @@ export function validateProductCode(kind: WindowsExecutableKind, code: string): 
 export function isCurrentBranch(names: string[]) {
     const value = process.env.GITHUB_REF
 
+    core.debug(`names: ${names}`)
+    core.debug(`GITHUB_REF: '${value}'`)
+
     if (value == null) {
         return false
     }
