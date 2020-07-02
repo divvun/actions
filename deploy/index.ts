@@ -18,13 +18,13 @@ enum PackageType {
 }
 
 function getPlatformAndType(): { packageType: PackageType, platform: string } {
-    let platform = core.getInput('platform')
-    const givenType = core.getInput('type')
+    let platform = core.getInput('platform') || null
+    const givenType = core.getInput('type') || null
 
     core.debug(`Platform: '${platform}', Type: '${givenType}'`)
 
-    if (givenType == null || givenType.trim() === "") {
-        if (platform == null || givenType.trim() === "") {
+    if (givenType == null) {
+        if (platform == null) {
             throw new Error("Either platform or type must be set.")
         }
 
@@ -46,7 +46,7 @@ function getPlatformAndType(): { packageType: PackageType, platform: string } {
         }
     }
 
-    if (platform == null || platform.trim() === "") {
+    if (platform == null) {
         switch (givenType) {
             case PackageType.MacOSPackage:
                 platform = "macos"
@@ -59,13 +59,17 @@ function getPlatformAndType(): { packageType: PackageType, platform: string } {
         }
     }
 
-    switch (givenType) {
-        case PackageType.MacOSPackage:
-        case PackageType.WindowsExecutable:
-        case PackageType.TarballPackage:
-            return { packageType: givenType, platform }
-        default:
-            throw new Error(`Unhandled package type: '${givenType}'`)
+    if (platform != null) {
+        switch (givenType) {
+            case PackageType.MacOSPackage:
+            case PackageType.WindowsExecutable:
+            case PackageType.TarballPackage:
+                return { packageType: givenType, platform }
+            default:
+                throw new Error(`Unhandled package type: '${givenType}'`)
+        }
+    } else {
+        throw new Error(`Platform was null, should be unreachable.`)
     }
 }
 
