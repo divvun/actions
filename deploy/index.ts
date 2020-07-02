@@ -3,7 +3,6 @@ import fs from "fs"
 import path from "path"
 
 import {
-    shouldDeploy,
     PahkatUploader,
     RebootSpec,
     MacOSPackageTarget,
@@ -134,13 +133,6 @@ async function run() {
         fs.writeFileSync("./metadata.toml", data, "utf8")
     } else {
         throw new Error(`Unhandled package type: '${packageType}'`)
-    }
-
-    const isDeploying = shouldDeploy() || core.getInput('force-deploy');
-
-    if (!isDeploying) {
-        core.warning("Not deploying; ending.")
-        return
     }
 
     const ext = path.extname(payloadPath)

@@ -37,9 +37,6 @@ inputs:
   windows-requires-reboot:
     description: ''
     required: false
-  force-deploy:
-    description: "Forces a deployment"
-    required: false
   GITHUB_TOKEN:
     description: Github token
     required: true

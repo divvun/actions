@@ -125,11 +125,6 @@ async function run() {
     else {
         throw new Error(`Unhandled package type: '${packageType}'`);
     }
-    const isDeploying = shared_1.shouldDeploy() || core.getInput('force-deploy');
-    if (!isDeploying) {
-        core.warning("Not deploying; ending.");
-        return;
-    }
     const ext = path_1.default.extname(payloadPath);
     const newPath = path_1.default.join(path_1.default.dirname(payloadPath), `${packageId}_${version}_${platform}${ext}`);
     core.debug(`Renaming from ${payloadPath} to ${newPath}`);
