@@ -162,10 +162,14 @@ class Tar {
         if (process.platform !== "win32") {
             return;
         }
+        const outputPath = path_1.default.join(process.env.RUNNER_WORKSPACE, "bin_x86-64");
+        if (fs_1.default.existsSync(path_1.default.join(outputPath, "xz.exe"))) {
+            return;
+        }
         core.debug("Attempt to download xz tools");
         const xzToolsZip = await tc.downloadTool(Tar.URL_XZ_WINDOWS);
         await tc.extractZip(xzToolsZip, process.env.RUNNER_WORKSPACE);
-        core.addPath(path_1.default.join(process.env.RUNNER_WORKSPACE, "bin_x86-64"));
+        core.addPath(outputPath);
     }
     static async createFlatTxz(paths, outputPath) {
         const tmpDir = tmp.dirSync();

@@ -177,10 +177,15 @@ export class Tar {
             return
         }
 
+        const outputPath = path.join(process.env.RUNNER_WORKSPACE!, "bin_x86-64")
+        if (fs.existsSync(path.join(outputPath, "xz.exe"))) {
+            return
+        }
+
         core.debug("Attempt to download xz tools")
         const xzToolsZip = await tc.downloadTool(Tar.URL_XZ_WINDOWS)
         await tc.extractZip(xzToolsZip, process.env.RUNNER_WORKSPACE!)
-        core.addPath(path.join(process.env.RUNNER_WORKSPACE!, "bin_x86-64"))
+        core.addPath(outputPath)
     }
 
     static async createFlatTxz(paths: string[], outputPath: string) {
