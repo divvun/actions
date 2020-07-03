@@ -62,7 +62,7 @@ async function run() {
             const pathItems = [packageId, version, platform];
             artifactPath = path_1.default.join(path_1.default.dirname(payloadPath), `${pathItems.join("_")}${ext}`);
             artifactUrl = path_1.default.join(shared_2.PahkatUploader.ARTIFACTS_URL, path_1.default.basename(artifactPath));
-            payloadMetadata = await shared_2.PahkatUploader.release.windowsExecutable(releaseReq(version, platform, { "windivvun": "*" }, channel), artifactUrl, 1, 1, shared_2.WindowsExecutableKind.Nsis, productCode, [shared_2.RebootSpec.Install, shared_2.RebootSpec.Uninstall]);
+            payloadMetadata = await shared_2.PahkatUploader.release.windowsExecutable(releaseReq(version, platform, { "https://pahkat.uit.no/tools/windivvun": "*" }, channel), artifactUrl, 1, 1, shared_2.WindowsExecutableKind.Nsis, productCode, [shared_2.RebootSpec.Install, shared_2.RebootSpec.Uninstall]);
         }
         else if (spellerType === manifest_1.SpellerType.MacOS) {
             platform = "macos";
@@ -71,7 +71,7 @@ async function run() {
             const pathItems = [packageId, version, platform];
             artifactPath = path_1.default.join(path_1.default.dirname(payloadPath), `${pathItems.join("_")}${ext}`);
             artifactUrl = path_1.default.join(shared_2.PahkatUploader.ARTIFACTS_URL, path_1.default.basename(artifactPath));
-            payloadMetadata = await shared_2.PahkatUploader.release.macosPackage(releaseReq(version, platform, { "macdivvun": "*" }, channel), artifactUrl, 1, 1, pkgId, [shared_2.RebootSpec.Install, shared_2.RebootSpec.Uninstall], [shared_1.MacOSPackageTarget.System, shared_1.MacOSPackageTarget.User]);
+            payloadMetadata = await shared_2.PahkatUploader.release.macosPackage(releaseReq(version, platform, { "https://pahkat.uit.no/tools/macdivvun": "*" }, channel), artifactUrl, 1, 1, pkgId, [shared_2.RebootSpec.Install, shared_2.RebootSpec.Uninstall], [shared_1.MacOSPackageTarget.System, shared_1.MacOSPackageTarget.User]);
         }
         else if (spellerType === manifest_1.SpellerType.Mobile) {
             platform = "mobile";

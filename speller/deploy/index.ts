@@ -67,7 +67,7 @@ async function run() {
             artifactUrl = path.join(PahkatUploader.ARTIFACTS_URL, path.basename(artifactPath))
 
             payloadMetadata = await PahkatUploader.release.windowsExecutable(
-                releaseReq(version, platform, { "windivvun": "*" }, channel),
+                releaseReq(version, platform, { "https://pahkat.uit.no/tools/windivvun": "*" }, channel),
                 artifactUrl,
                 1,
                 1, 
@@ -84,7 +84,7 @@ async function run() {
             artifactUrl = path.join(PahkatUploader.ARTIFACTS_URL, path.basename(artifactPath))
 
             payloadMetadata = await PahkatUploader.release.macosPackage(
-                releaseReq(version, platform, { "macdivvun": "*" }, channel),
+                releaseReq(version, platform, { "https://pahkat.uit.no/tools/macdivvun": "*" }, channel),
                 artifactUrl,
                 1,
                 1,
