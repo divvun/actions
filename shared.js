@@ -142,11 +142,6 @@ class Bash {
                 err.push(data.toString());
             }
         };
-        if (process.platform === 'win32') {
-            core.debug("DETECTED WIN32 EXPERIENCE, TIME TO SHINE");
-            assertExit0(await exec_1.exec("pwsh", ["-c", script], { env: thisEnv, cwd: args.cwd, listeners }));
-            return [out.join(""), err.join("")];
-        }
         if (args.sudo) {
             assertExit0(await exec_1.exec("sudo", ["bash", "-c", script], { env: thisEnv, cwd: args.cwd, listeners }));
         }

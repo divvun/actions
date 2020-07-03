@@ -61,7 +61,7 @@ async function run() {
             const ext = path_1.default.extname(payloadPath);
             const pathItems = [packageId, version, platform];
             artifactPath = path_1.default.join(path_1.default.dirname(payloadPath), `${pathItems.join("_")}${ext}`);
-            artifactUrl = path_1.default.join(shared_2.PahkatUploader.ARTIFACTS_URL, path_1.default.basename(artifactPath));
+            artifactUrl = `${shared_2.PahkatUploader.ARTIFACTS_URL}${path_1.default.basename(artifactPath)}`;
             payloadMetadata = await shared_2.PahkatUploader.release.windowsExecutable(releaseReq(version, platform, { "https://pahkat.uit.no/tools/windivvun": "*" }, channel), artifactUrl, 1, 1, shared_2.WindowsExecutableKind.Nsis, productCode, [shared_2.RebootSpec.Install, shared_2.RebootSpec.Uninstall]);
         }
         else if (spellerType === manifest_1.SpellerType.MacOS) {
@@ -70,7 +70,7 @@ async function run() {
             const ext = path_1.default.extname(payloadPath);
             const pathItems = [packageId, version, platform];
             artifactPath = path_1.default.join(path_1.default.dirname(payloadPath), `${pathItems.join("_")}${ext}`);
-            artifactUrl = path_1.default.join(shared_2.PahkatUploader.ARTIFACTS_URL, path_1.default.basename(artifactPath));
+            artifactUrl = `${shared_2.PahkatUploader.ARTIFACTS_URL}${path_1.default.basename(artifactPath)}`;
             payloadMetadata = await shared_2.PahkatUploader.release.macosPackage(releaseReq(version, platform, { "https://pahkat.uit.no/tools/macdivvun": "*" }, channel), artifactUrl, 1, 1, pkgId, [shared_2.RebootSpec.Install, shared_2.RebootSpec.Uninstall], [shared_1.MacOSPackageTarget.System, shared_1.MacOSPackageTarget.User]);
         }
         else if (spellerType === manifest_1.SpellerType.Mobile) {
@@ -78,7 +78,7 @@ async function run() {
             const ext = path_1.default.extname(payloadPath);
             const pathItems = [packageId, version, platform];
             artifactPath = path_1.default.join(path_1.default.dirname(payloadPath), `${pathItems.join("_")}${ext}`);
-            artifactUrl = path_1.default.join(shared_2.PahkatUploader.ARTIFACTS_URL, path_1.default.basename(artifactPath));
+            artifactUrl = `${shared_2.PahkatUploader.ARTIFACTS_URL}${path_1.default.basename(artifactPath)}`;
             payloadMetadata = await shared_2.PahkatUploader.release.tarballPackage(releaseReq(version, platform, {}, channel), artifactUrl, 1, 1);
         }
         else {
@@ -87,10 +87,10 @@ async function run() {
         if (payloadMetadata == null) {
             throw new Error("Payload is null; this is a logic error.");
         }
+        fs_1.default.writeFileSync("./payload.toml", payloadMetadata, "utf8");
         if (platform == null) {
             throw new Error("Platform is null; this is a logic error.");
         }
-        fs_1.default.writeFileSync("./payload.toml", payloadMetadata, "utf8");
         if (artifactPath == null) {
             throw new Error("artifact path is null; this is a logic error.");
         }

@@ -57,7 +57,7 @@ async function run() {
         const ext = path_1.default.extname(payloadPath);
         const pathItems = [packageId, version, platform];
         artifactPath = path_1.default.join(path_1.default.dirname(payloadPath), `${pathItems.join("_")}${ext}`);
-        artifactUrl = path_1.default.join(shared_2.PahkatUploader.ARTIFACTS_URL, path_1.default.basename(artifactPath));
+        artifactUrl = `${shared_2.PahkatUploader.ARTIFACTS_URL}${path_1.default.basename(artifactPath)}`;
         payloadMetadata = await shared_2.PahkatUploader.release.macosPackage(releaseReq(version, platform, channel), artifactUrl, 1, 1, pkgId, [shared_2.RebootSpec.Install, shared_2.RebootSpec.Uninstall], [shared_1.MacOSPackageTarget.System, shared_1.MacOSPackageTarget.User]);
     }
     else if (keyboardType === types_1.KeyboardType.Windows) {
@@ -68,7 +68,7 @@ async function run() {
         const ext = path_1.default.extname(payloadPath);
         const pathItems = [packageId, version, platform];
         artifactPath = path_1.default.join(path_1.default.dirname(payloadPath), `${pathItems.join("_")}${ext}`);
-        artifactUrl = path_1.default.join(shared_2.PahkatUploader.ARTIFACTS_URL, path_1.default.basename(artifactPath));
+        artifactUrl = `${shared_2.PahkatUploader.ARTIFACTS_URL}${path_1.default.basename(artifactPath)}`;
         payloadMetadata = await shared_2.PahkatUploader.release.windowsExecutable(releaseReq(version, platform, channel), artifactUrl, 1, 1, shared_2.WindowsExecutableKind.Inno, productCode, [shared_2.RebootSpec.Install, shared_2.RebootSpec.Uninstall]);
     }
     else {

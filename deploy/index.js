@@ -97,7 +97,7 @@ async function run() {
         pathItems.push(arch);
     }
     const artifactPath = path_1.default.join(path_1.default.dirname(payloadPath), `${pathItems.join("_")}${ext}`);
-    const artifactUrl = path_1.default.join(shared_1.PahkatUploader.ARTIFACTS_URL, path_1.default.basename(artifactPath));
+    const artifactUrl = `${shared_1.PahkatUploader.ARTIFACTS_URL}${path_1.default.basename(artifactPath)}`;
     const releaseReq = {
         platform,
         version,
