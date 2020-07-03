@@ -64,7 +64,7 @@ async function run() {
             const ext = path.extname(payloadPath)
             const pathItems = [packageId, version, platform]
             artifactPath = path.join(path.dirname(payloadPath), `${pathItems.join("_")}${ext}`)
-            artifactUrl = path.join(PahkatUploader.ARTIFACTS_URL, path.basename(artifactPath))
+            artifactUrl = `${PahkatUploader.ARTIFACTS_URL}${path.basename(artifactPath)}`
 
             payloadMetadata = await PahkatUploader.release.windowsExecutable(
                 releaseReq(version, platform, { "https://pahkat.uit.no/tools/windivvun": "*" }, channel),
@@ -81,7 +81,7 @@ async function run() {
             const ext = path.extname(payloadPath)
             const pathItems = [packageId, version, platform]
             artifactPath = path.join(path.dirname(payloadPath), `${pathItems.join("_")}${ext}`)
-            artifactUrl = path.join(PahkatUploader.ARTIFACTS_URL, path.basename(artifactPath))
+            artifactUrl = `${PahkatUploader.ARTIFACTS_URL}${path.basename(artifactPath)}`
 
             payloadMetadata = await PahkatUploader.release.macosPackage(
                 releaseReq(version, platform, { "https://pahkat.uit.no/tools/macdivvun": "*" }, channel),
@@ -97,7 +97,7 @@ async function run() {
             const ext = path.extname(payloadPath)
             const pathItems = [packageId, version, platform]
             artifactPath = path.join(path.dirname(payloadPath), `${pathItems.join("_")}${ext}`)
-            artifactUrl = path.join(PahkatUploader.ARTIFACTS_URL, path.basename(artifactPath))
+            artifactUrl = `${PahkatUploader.ARTIFACTS_URL}${path.basename(artifactPath)}`
             
             payloadMetadata = await PahkatUploader.release.tarballPackage(
                 releaseReq(version, platform, {}, channel),
@@ -112,11 +112,11 @@ async function run() {
             throw new Error("Payload is null; this is a logic error.")
         }
 
+        fs.writeFileSync("./payload.toml", payloadMetadata, "utf8")
+
         if (platform == null) {
             throw new Error("Platform is null; this is a logic error.")
         }
-
-        fs.writeFileSync("./payload.toml", payloadMetadata, "utf8")
 
         if (artifactPath == null) {
             throw new Error("artifact path is null; this is a logic error.")

@@ -97,7 +97,6 @@ async function run() {
     let version = core.getInput('version', { required: true })
     core.debug("Version: " + version)
 
-
     const ext = path.extname(payloadPath)
     const pathItems = [packageId, version, platform]
 
@@ -106,7 +105,7 @@ async function run() {
     }
 
     const artifactPath = path.join(path.dirname(payloadPath), `${pathItems.join("_")}${ext}`)
-    const artifactUrl = path.join(PahkatUploader.ARTIFACTS_URL, path.basename(artifactPath))
+    const artifactUrl = `${PahkatUploader.ARTIFACTS_URL}${path.basename(artifactPath)}`
 
     const releaseReq: ReleaseRequest = {
         platform,
