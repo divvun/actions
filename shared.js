@@ -281,79 +281,107 @@ class PahkatUploader {
         }));
         return output;
     }
-    static async upload(payloadPath, payloadManifestPath, manifest) {
-        if (!fs_1.default.existsSync(payloadManifestPath)) {
-            throw new Error(`Missing required payload manifest at path ${payloadManifestPath}`);
+    static async upload(artifactPath, artifactUrl, releaseManifestPath, repoUrl) {
+        if (!fs_1.default.existsSync(releaseManifestPath)) {
+            throw new Error(`Missing required payload manifest at path ${releaseManifestPath}`);
         }
-        const payloadUrl = `${PahkatUploader.ARTIFACTS_URL}${path_1.default.basename(payloadPath)}`;
-        await Subversion.import(payloadPath, payloadUrl);
+        await Subversion.import(artifactPath, artifactUrl);
         const args = ["upload",
-            "-u", manifest.url,
-            "-v", manifest.version,
-            "-p", manifest.platform,
-            "-P", payloadManifestPath,
+            "-u", repoUrl,
+            "-P", releaseManifestPath,
         ];
-        if (manifest.channel) {
-            args.push("-c");
-            args.push(manifest.channel);
-        }
-        if (manifest.arch) {
-            args.push("-a");
-            args.push(manifest.arch);
-        }
         console.log(await PahkatUploader.run(args));
+    }
+    static releaseArgs(release) {
+        const args = [
+            "release",
+        ];
+        if (release.authors) {
+            args.push("--authors");
+            for (const item of release.authors) {
+                args.push(item);
+            }
+        }
+        if (release.arch) {
+            args.push("--arch");
+            args.push(release.arch);
+        }
+        if (release.dependencies) {
+            const deps = Object.entries(release.dependencies)
+                .map(x => `${x[0]}::${x[1]}`)
+                .join(",");
+            args.push("-d");
+            args.push(deps);
+        }
+        if (release.channel) {
+            args.push("--channel");
+            args.push(release.channel);
+        }
+        if (release.license) {
+            args.push("-l");
+            args.push(release.license);
+        }
+        if (release.licenseUrl) {
+            args.push("--license-url");
+            args.push(release.licenseUrl);
+        }
+        args.push("-p");
+        args.push(release.platform);
+        args.push("--version");
+        args.push(release.version);
+        return args;
     }
 }
 exports.PahkatUploader = PahkatUploader;
 PahkatUploader.ARTIFACTS_URL = "https://pahkat.uit.no/artifacts/";
-PahkatUploader.payload = {
-    async windowsExecutable(installSize, size, kind, productCode, requiresReboot, payloadPath) {
-        const payloadUrl = `${PahkatUploader.ARTIFACTS_URL}${path_1.default.basename(payloadPath)}`;
-        const args = [
-            "payload", "windows-executable",
+PahkatUploader.release = {
+    async windowsExecutable(release, artifactUrl, installSize, size, kind, productCode, requiresReboot) {
+        const payloadArgs = [
+            "windows-executable",
             "-i", (installSize | 0).toString(),
             "-s", (size | 0).toString(),
             "-p", productCode,
-            "-u", payloadUrl
+            "-u", artifactUrl
         ];
         if (kind != null) {
-            args.push("-k");
-            args.push(kind);
+            payloadArgs.push("-k");
+            payloadArgs.push(kind);
         }
         if (requiresReboot.length > 0) {
-            args.push("-r");
-            args.push(requiresReboot.join(","));
+            payloadArgs.push("-r");
+            payloadArgs.push(requiresReboot.join(","));
         }
-        return await PahkatUploader.run(args);
+        const releaseArgs = PahkatUploader.releaseArgs(release);
+        return await PahkatUploader.run([...releaseArgs, ...payloadArgs]);
     },
-    async macosPackage(installSize, size, pkgId, requiresReboot, targets, payloadPath) {
-        const payloadUrl = `${PahkatUploader.ARTIFACTS_URL}${path_1.default.basename(payloadPath)}`;
-        const args = [
-            "payload", "macos-package",
+    async macosPackage(release, artifactUrl, installSize, size, pkgId, requiresReboot, targets) {
+        const payloadArgs = [
+            "macos-package",
             "-i", (installSize | 0).toString(),
             "-s", (size | 0).toString(),
             "-p", pkgId,
-            "-u", payloadUrl
+            "-u", artifactUrl
         ];
         if (targets.length > 0) {
-            args.push("-t");
-            args.push(targets.join(","));
+            payloadArgs.push("-t");
+            payloadArgs.push(targets.join(","));
         }
         if (requiresReboot.length > 0) {
-            args.push("-r");
-            args.push(requiresReboot.join(","));
+            payloadArgs.push("-r");
+            payloadArgs.push(requiresReboot.join(","));
         }
-        return await PahkatUploader.run(args);
+        const releaseArgs = PahkatUploader.releaseArgs(release);
+        return await PahkatUploader.run([...releaseArgs, ...payloadArgs]);
     },
-    async tarballPackage(installSize, size, payloadPath) {
-        const payloadUrl = `${PahkatUploader.ARTIFACTS_URL}${path_1.default.basename(payloadPath)}`;
-        const args = [
-            "payload", "tarball-package",
+    async tarballPackage(release, artifactUrl, installSize, size) {
+        const payloadArgs = [
+            "tarball-package",
             "-i", (installSize | 0).toString(),
             "-s", (size | 0).toString(),
-            "-u", payloadUrl
+            "-u", artifactUrl
         ];
-        return await PahkatUploader.run(args);
+        const releaseArgs = PahkatUploader.releaseArgs(release);
+        return await PahkatUploader.run([...releaseArgs, ...payloadArgs]);
     },
 };
 const CLEAR_KNOWN_HOSTS_SH = `\

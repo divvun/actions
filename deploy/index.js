@@ -73,16 +73,44 @@ function getPlatformAndType() {
         throw new Error(`Platform was null, should be unreachable.`);
     }
 }
+function getDependencies() {
+    const deps = core.getInput('dependencies') || null;
+    if (deps == null) {
+        return null;
+    }
+    return JSON.parse(deps);
+}
 async function run() {
     const packageId = core.getInput('package-id', { required: true });
     const { packageType, platform } = getPlatformAndType();
     const payloadPath = core.getInput('payload-path', { required: true });
     const arch = core.getInput('arch') || null;
     const channel = core.getInput('channel') || null;
+    const dependencies = getDependencies();
     const pahkatRepo = core.getInput('repo', { required: true });
-    const url = `${pahkatRepo}packages/${packageId}`;
+    const repoPackageUrl = `${pahkatRepo}packages/${packageId}`;
     let version = core.getInput('version', { required: true });
     core.debug("Version: " + version);
+    const ext = path_1.default.extname(payloadPath);
+    const pathItems = [packageId, version, platform];
+    if (arch != null) {
+        pathItems.push(arch);
+    }
+    const artifactPath = path_1.default.join(path_1.default.dirname(payloadPath), `${pathItems.join("_")}${ext}`);
+    const artifactUrl = path_1.default.join(shared_1.PahkatUploader.ARTIFACTS_URL, path_1.default.basename(artifactPath));
+    const releaseReq = {
+        platform,
+        version,
+    };
+    if (channel) {
+        releaseReq.channel = channel;
+    }
+    if (arch) {
+        releaseReq.arch = arch;
+    }
+    if (dependencies) {
+        releaseReq.dependencies = dependencies;
+    }
     if (packageType === PackageType.MacOSPackage) {
         const pkgId = core.getInput('macos-pkg-id', { required: true });
         const rawReqReboot = core.getInput('macos-requires-reboot');
@@ -93,7 +121,7 @@ async function run() {
         const targets = rawTargets
             ? rawTargets.split(',').map(x => x.trim())
             : [];
-        const data = await shared_1.PahkatUploader.payload.macosPackage(1, 1, pkgId, requiresReboot, targets, payloadPath);
+        const data = await shared_1.PahkatUploader.release.macosPackage(releaseReq, artifactUrl, 1, 1, pkgId, requiresReboot, targets);
         fs_1.default.writeFileSync("./metadata.toml", data, "utf8");
     }
     else if (packageType === PackageType.WindowsExecutable) {
@@ -115,31 +143,19 @@ async function run() {
             default:
                 throw new Error("Unhandled Windows executable kind: " + kind);
         }
-        const data = await shared_1.PahkatUploader.payload.windowsExecutable(1, 1, kind, productCode, requiresReboot, payloadPath);
+        const data = await shared_1.PahkatUploader.release.windowsExecutable(releaseReq, artifactUrl, 1, 1, kind, productCode, requiresReboot);
         fs_1.default.writeFileSync("./metadata.toml", data, "utf8");
     }
     else if (packageType === PackageType.TarballPackage) {
-        const data = await shared_1.PahkatUploader.payload.tarballPackage(1, 1, payloadPath);
+        const data = await shared_1.PahkatUploader.release.tarballPackage(releaseReq, artifactUrl, 1, 1);
         fs_1.default.writeFileSync("./metadata.toml", data, "utf8");
     }
     else {
         throw new Error(`Unhandled package type: '${packageType}'`);
     }
-    const ext = path_1.default.extname(payloadPath);
-    const pathItems = [packageId, version, platform];
-    if (arch != null) {
-        pathItems.push(arch);
-    }
-    const newPath = path_1.default.join(path_1.default.dirname(payloadPath), `${pathItems.join("_")}${ext}`);
-    core.debug(`Renaming from ${payloadPath} to ${newPath}`);
-    fs_1.default.renameSync(payloadPath, newPath);
-    await shared_1.PahkatUploader.upload(newPath, "./metadata.toml", {
-        url,
-        version,
-        arch,
-        platform,
-        channel,
-    });
+    core.debug(`Renaming from ${payloadPath} to ${artifactPath}`);
+    fs_1.default.renameSync(payloadPath, artifactPath);
+    await shared_1.PahkatUploader.upload(artifactPath, artifactUrl, "./metadata.toml", repoPackageUrl);
 }
 run().catch(err => {
     console.error(err.stack);

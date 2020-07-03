@@ -13,12 +13,26 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(require("@actions/core"));
 const toml_1 = __importDefault(require("toml"));
 const fs_1 = __importDefault(require("fs"));
+const path_1 = __importDefault(require("path"));
 const shared_1 = require("../../shared");
 const shared_2 = require("../../shared");
 const manifest_1 = require("../manifest");
 function loadManifest(manifestPath) {
     const manifestString = fs_1.default.readFileSync(manifestPath, "utf8");
     return shared_1.nonUndefinedProxy(toml_1.default.parse(manifestString), true);
+}
+function releaseReq(version, platform, dependencies, channel) {
+    const req = {
+        version,
+        platform,
+    };
+    if (Object.keys(dependencies).length) {
+        req.dependencies = dependencies;
+    }
+    if (channel) {
+        req.channel = channel;
+    }
+    return req;
 }
 async function run() {
     try {
@@ -29,9 +43,11 @@ async function run() {
         const channel = core.getInput('channel') || null;
         const pahkatRepo = core.getInput('repo', { required: true });
         const packageId = manifest_1.derivePackageId(spellerType);
-        const url = `${pahkatRepo}packages/${packageId}`;
+        const repoPackageUrl = `${pahkatRepo}packages/${packageId}`;
         let payloadMetadata = null;
         let platform = null;
+        let artifactPath = null;
+        let artifactUrl = null;
         if (spellerType === manifest_1.SpellerType.Windows || spellerType === manifest_1.SpellerType.WindowsMSOffice) {
             platform = "windows";
             let productCode;
@@ -42,16 +58,28 @@ async function run() {
                 productCode = manifest.windows.msoffice_product_code;
             }
             productCode = shared_1.validateProductCode(shared_2.WindowsExecutableKind.Nsis, productCode);
-            payloadMetadata = await shared_2.PahkatUploader.payload.windowsExecutable(1, 1, shared_2.WindowsExecutableKind.Nsis, productCode, [shared_2.RebootSpec.Install, shared_2.RebootSpec.Uninstall], payloadPath);
+            const ext = path_1.default.extname(payloadPath);
+            const pathItems = [packageId, version, platform];
+            artifactPath = path_1.default.join(path_1.default.dirname(payloadPath), `${pathItems.join("_")}${ext}`);
+            artifactUrl = path_1.default.join(shared_2.PahkatUploader.ARTIFACTS_URL, path_1.default.basename(artifactPath));
+            payloadMetadata = await shared_2.PahkatUploader.release.windowsExecutable(releaseReq(version, platform, { "windivvun": "*" }, channel), artifactUrl, 1, 1, shared_2.WindowsExecutableKind.Nsis, productCode, [shared_2.RebootSpec.Install, shared_2.RebootSpec.Uninstall]);
         }
         else if (spellerType === manifest_1.SpellerType.MacOS) {
             platform = "macos";
             const pkgId = manifest.macos.system_pkg_id;
-            payloadMetadata = await shared_2.PahkatUploader.payload.macosPackage(1, 1, pkgId, [shared_2.RebootSpec.Install, shared_2.RebootSpec.Uninstall], [shared_1.MacOSPackageTarget.System, shared_1.MacOSPackageTarget.User], payloadPath);
+            const ext = path_1.default.extname(payloadPath);
+            const pathItems = [packageId, version, platform];
+            artifactPath = path_1.default.join(path_1.default.dirname(payloadPath), `${pathItems.join("_")}${ext}`);
+            artifactUrl = path_1.default.join(shared_2.PahkatUploader.ARTIFACTS_URL, path_1.default.basename(artifactPath));
+            payloadMetadata = await shared_2.PahkatUploader.release.macosPackage(releaseReq(version, platform, { "macdivvun": "*" }, channel), artifactUrl, 1, 1, pkgId, [shared_2.RebootSpec.Install, shared_2.RebootSpec.Uninstall], [shared_1.MacOSPackageTarget.System, shared_1.MacOSPackageTarget.User]);
         }
         else if (spellerType === manifest_1.SpellerType.Mobile) {
             platform = "mobile";
-            payloadMetadata = await shared_2.PahkatUploader.payload.tarballPackage(1, 1, payloadPath);
+            const ext = path_1.default.extname(payloadPath);
+            const pathItems = [packageId, version, platform];
+            artifactPath = path_1.default.join(path_1.default.dirname(payloadPath), `${pathItems.join("_")}${ext}`);
+            artifactUrl = path_1.default.join(shared_2.PahkatUploader.ARTIFACTS_URL, path_1.default.basename(artifactPath));
+            payloadMetadata = await shared_2.PahkatUploader.release.tarballPackage(releaseReq(version, platform, {}, channel), artifactUrl, 1, 1);
         }
         else {
             throw new Error(`Unsupported bundle type ${spellerType}`);
@@ -63,17 +91,18 @@ async function run() {
             throw new Error("Platform is null; this is a logic error.");
         }
         fs_1.default.writeFileSync("./payload.toml", payloadMetadata, "utf8");
+        if (artifactPath == null) {
+            throw new Error("artifact path is null; this is a logic error.");
+        }
+        if (artifactUrl == null) {
+            throw new Error("artifact url is null; this is a logic error.");
+        }
         const isDeploying = shared_1.shouldDeploy() || core.getInput('force-deploy');
         if (!isDeploying) {
             core.warning("Not deploying; ending.");
             return;
         }
-        await shared_2.PahkatUploader.upload(payloadPath, "./payload.toml", {
-            url,
-            version,
-            platform,
-            channel,
-        });
+        await shared_2.PahkatUploader.upload(artifactPath, artifactUrl, "./metadata.toml", repoPackageUrl);
     }
     catch (error) {
         core.setFailed(error.message);

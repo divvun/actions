@@ -280,14 +280,15 @@ export enum MacOSPackageTarget {
     User = "user"
 }
 
-export type UploadManifest = {
-    // This is the full path to the package in the repository,
-    // not the payload url
-    url: string
-    version: string
-    platform: string
-    arch?: string | null
-    channel?: string | null
+export type ReleaseRequest = {
+    version: string,
+    platform: string,
+    arch?: string,
+    channel?: string,
+    authors?: string[],
+    license?: string,
+    licenseUrl?: string,
+    dependencies?: { [key: string]: string }
 }
 
 export class PahkatUploader {
@@ -320,113 +321,151 @@ export class PahkatUploader {
         return output
     }
 
-    static async upload(payloadPath: string, payloadManifestPath: string, manifest: UploadManifest) {
-        if (!fs.existsSync(payloadManifestPath)) {
-            throw new Error(`Missing required payload manifest at path ${payloadManifestPath}`)
+    static async upload(artifactPath: string, artifactUrl: string, releaseManifestPath: string, repoUrl: string) {
+        if (!fs.existsSync(releaseManifestPath)) {
+            throw new Error(`Missing required payload manifest at path ${releaseManifestPath}`)
         }
         
         // Step 1: Use SVN to do the crimes.
-        const payloadUrl = `${PahkatUploader.ARTIFACTS_URL}${path.basename(payloadPath)}`
-        await Subversion.import(payloadPath, payloadUrl)
+        await Subversion.import(artifactPath, artifactUrl)
 
         // Step 2: Push the manifest to the server.
         const args = ["upload",
-            "-u", manifest.url,
-            "-v", manifest.version,
-            "-p", manifest.platform,
-            "-P", payloadManifestPath,
+            "-u", repoUrl,
+            "-P", releaseManifestPath,
         ]
-        if (manifest.channel) {
-            args.push("-c")
-            args.push(manifest.channel)
-        }
-        if (manifest.arch) {
-            args.push("-a")
-            args.push(manifest.arch)
-        }
-
         console.log(await PahkatUploader.run(args))
 
     }
 
-    static payload = {
+    static releaseArgs(release: ReleaseRequest) {
+        const args = [
+            "release",
+        ]
+
+        if (release.authors) {
+            args.push("--authors")
+            for (const item of release.authors) {
+                args.push(item)
+            }
+        }
+
+        if (release.arch) {
+            args.push("--arch")
+            args.push(release.arch)
+        }
+
+        if (release.dependencies) {
+            const deps = Object.entries(release.dependencies)
+                .map(x => `${x[0]}::${x[1]}`)
+                .join(",")
+
+            args.push("-d")
+            args.push(deps)
+        }
+
+        if (release.channel) {
+            args.push("--channel")
+            args.push(release.channel)
+        }
+
+        if (release.license) {
+            args.push("-l")
+            args.push(release.license)
+        }
+
+        if (release.licenseUrl) {
+            args.push("--license-url")
+            args.push(release.licenseUrl)
+        }
+
+        args.push("-p")
+        args.push(release.platform)
+        
+        args.push("--version")
+        args.push(release.version)
+
+        return args
+    }
+
+    static release = {
         async windowsExecutable(
+            release: ReleaseRequest,
+            artifactUrl: string,
             installSize: number,
             size: number,
             kind: WindowsExecutableKind | null,
             productCode: string,
             requiresReboot: RebootSpec[],
-            payloadPath: string
         ): Promise<string> {
-            const payloadUrl = `${PahkatUploader.ARTIFACTS_URL}${path.basename(payloadPath)}`
-
-            const args = [
-                "payload", "windows-executable",
+            const payloadArgs = [
+                "windows-executable",
                 "-i", (installSize | 0).toString(),
                 "-s", (size | 0).toString(),
                 "-p", productCode,
-                "-u", payloadUrl
+                "-u", artifactUrl
             ]
 
             if (kind != null) {
-                args.push("-k")
-                args.push(kind)
+                payloadArgs.push("-k")
+                payloadArgs.push(kind)
             }
 
             if (requiresReboot.length > 0) {
-                args.push("-r")
-                args.push(requiresReboot.join(","))
+                payloadArgs.push("-r")
+                payloadArgs.push(requiresReboot.join(","))
             }
 
-            return await PahkatUploader.run(args)
+            const releaseArgs = PahkatUploader.releaseArgs(release)
+            return await PahkatUploader.run([...releaseArgs, ...payloadArgs])
         },
         
         async macosPackage(
+            release: ReleaseRequest,
+            artifactUrl: string,
             installSize: number,
             size: number,
             pkgId: string,
             requiresReboot: RebootSpec[],
             targets: MacOSPackageTarget[],
-            payloadPath: string
         ): Promise<string> {
-            const payloadUrl = `${PahkatUploader.ARTIFACTS_URL}${path.basename(payloadPath)}`
-
-            const args = [
-                "payload", "macos-package",
+            const payloadArgs = [
+                "macos-package",
                 "-i", (installSize | 0).toString(),
                 "-s", (size | 0).toString(),
                 "-p", pkgId,
-                "-u", payloadUrl
+                "-u", artifactUrl
             ]
 
             if (targets.length > 0) {
-                args.push("-t")
-                args.push(targets.join(","))
+                payloadArgs.push("-t")
+                payloadArgs.push(targets.join(","))
             }
 
             if (requiresReboot.length > 0) {
-                args.push("-r")
-                args.push(requiresReboot.join(","))
+                payloadArgs.push("-r")
+                payloadArgs.push(requiresReboot.join(","))
             }
 
-            return await PahkatUploader.run(args)
+            const releaseArgs = PahkatUploader.releaseArgs(release)
+            return await PahkatUploader.run([...releaseArgs, ...payloadArgs])
         },
         
         async tarballPackage(
+            release: ReleaseRequest,
+            artifactUrl: string,
             installSize: number,
-            size: number,
-            payloadPath: string
+            size: number
         ): Promise<string> {
-            const payloadUrl = `${PahkatUploader.ARTIFACTS_URL}${path.basename(payloadPath)}`
-
-            const args = [
-                "payload", "tarball-package",
+            const payloadArgs = [
+                "tarball-package",
                 "-i", (installSize | 0).toString(),
                 "-s", (size | 0).toString(),
-                "-u", payloadUrl
+                "-u", artifactUrl
             ]
 
-            return await PahkatUploader.run(args)
+            const releaseArgs = PahkatUploader.releaseArgs(release)
+            return await PahkatUploader.run([...releaseArgs, ...payloadArgs])
         },
     }
 }

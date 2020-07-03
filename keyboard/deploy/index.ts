@@ -1,8 +1,9 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
 import fs from 'fs'
+import path from 'path'
 
-import { shouldDeploy, MacOSPackageTarget, Kbdgen, validateProductCode } from '../../shared'
+import { shouldDeploy, MacOSPackageTarget, Kbdgen, validateProductCode, ReleaseRequest } from '../../shared'
 
 import { PahkatUploader, WindowsExecutableKind, RebootSpec } from "../../shared"
 import { KeyboardType, getBundle } from '../types'
@@ -18,6 +19,19 @@ export function derivePackageId() {
     return `keyboard-${lang}`
 }
 
+function releaseReq(version: string, platform: string, channel: string | null): ReleaseRequest {
+    const req: ReleaseRequest = {
+        version,
+        platform
+    }
+
+    if (channel) {
+        req.channel = channel
+    }
+
+    return req
+}
+
 async function run() {
     const payloadPath = core.getInput('payload-path', { required: true })
     const keyboardType = core.getInput('keyboard-type', { required: true }) as KeyboardType
@@ -25,40 +39,54 @@ async function run() {
     const channel = core.getInput('channel') || null;
     const pahkatRepo = core.getInput('repo', { required: true });
     const packageId = derivePackageId()
-    
-    const url = `${pahkatRepo}packages/${packageId}`
+
+    const repoPackageUrl = `${pahkatRepo}packages/${packageId}`
 
     let payloadMetadata: string | null = null
     let platform: string | null = null
     let version: string | null = null
+    let artifactPath: string | null = null
+    let artifactUrl: string | null = null
 
     if (keyboardType === KeyboardType.MacOS) {
         const target = Kbdgen.loadTarget(bundlePath, "mac")
         const pkgId = target.packageId
-        version = target.version
+        version = target.version as string
         platform = "macos"
 
-        payloadMetadata = await PahkatUploader.payload.macosPackage(
+        const ext = path.extname(payloadPath)
+        const pathItems = [packageId, version, platform]
+        artifactPath = path.join(path.dirname(payloadPath), `${pathItems.join("_")}${ext}`)
+        artifactUrl = path.join(PahkatUploader.ARTIFACTS_URL, path.basename(artifactPath))
+
+        payloadMetadata = await PahkatUploader.release.macosPackage(
+            releaseReq(version, platform, channel),
+            artifactUrl,
             1,
             1,
             pkgId,
             [RebootSpec.Install, RebootSpec.Uninstall],
-            [MacOSPackageTarget.System, MacOSPackageTarget.User],
-            payloadPath)
+            [MacOSPackageTarget.System, MacOSPackageTarget.User])
 
     } else if (keyboardType === KeyboardType.Windows) {
         const target = Kbdgen.loadTarget(bundlePath, "win")
         const productCode = validateProductCode(WindowsExecutableKind.Inno, target.uuid)
-        version = target.version
+        version = target.version as string
         platform = "windows"
 
-        payloadMetadata = await PahkatUploader.payload.windowsExecutable(
+        const ext = path.extname(payloadPath)
+        const pathItems = [packageId, version, platform]
+        artifactPath = path.join(path.dirname(payloadPath), `${pathItems.join("_")}${ext}`)
+        artifactUrl = path.join(PahkatUploader.ARTIFACTS_URL, path.basename(artifactPath))
+
+        payloadMetadata = await PahkatUploader.release.windowsExecutable(
+            releaseReq(version, platform, channel),
+            artifactUrl,
             1,
             1, 
             WindowsExecutableKind.Inno,
             productCode,
-            [RebootSpec.Install, RebootSpec.Uninstall],
-            payloadPath)
+            [RebootSpec.Install, RebootSpec.Uninstall])
     } else {
         throw new Error("Unhandled keyboard type: " + keyboardType)
     }
@@ -68,11 +96,19 @@ async function run() {
     }
 
     if (version == null) {
-        throw new Error("Platform is null; this is a logic error.")
+        throw new Error("Version is null; this is a logic error.")
     }
 
     if (platform == null) {
         throw new Error("Platform is null; this is a logic error.")
+    }
+
+    if (artifactPath == null) {
+        throw new Error("artifact path is null; this is a logic error.")
+    }
+
+    if (artifactUrl == null) {
+        throw new Error("artifact url is null; this is a logic error.")
     }
 
     fs.writeFileSync("./payload.toml", payloadMetadata, "utf8")
@@ -84,12 +120,7 @@ async function run() {
         return
     }
 
-    await PahkatUploader.upload(payloadPath, "./payload.toml", {
-        url,
-        version,
-        platform,
-        channel,
-    })
+    await PahkatUploader.upload(artifactPath, artifactUrl, "./metadata.toml", repoPackageUrl)
 }
 
 run().catch(err => {

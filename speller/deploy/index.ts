@@ -1,9 +1,9 @@
 import * as core from '@actions/core'
 import toml from 'toml'
 import fs from 'fs'
+import path from 'path'
 
-import { shouldDeploy, MacOSPackageTarget, nonUndefinedProxy, validateProductCode } from '../../shared'
-
+import { shouldDeploy, MacOSPackageTarget, nonUndefinedProxy, validateProductCode, ReleaseRequest } from '../../shared'
 import { PahkatUploader, WindowsExecutableKind, RebootSpec } from "../../shared"
 import { SpellerManifest, SpellerType, derivePackageId } from '../manifest'
 
@@ -11,6 +11,23 @@ import { SpellerManifest, SpellerType, derivePackageId } from '../manifest'
 function loadManifest(manifestPath: string): SpellerManifest {
     const manifestString = fs.readFileSync(manifestPath, "utf8")
     return nonUndefinedProxy(toml.parse(manifestString), true)
+}
+
+function releaseReq(version: string, platform: string, dependencies: any, channel: string | null): ReleaseRequest {
+    const req: ReleaseRequest = {
+        version,
+        platform,
+    }
+
+    if (Object.keys(dependencies).length) {
+        req.dependencies = dependencies
+    }
+
+    if (channel) {
+        req.channel = channel
+    }
+
+    return req
 }
 
 async function run() {
@@ -24,10 +41,12 @@ async function run() {
         const pahkatRepo = core.getInput('repo', { required: true });
         const packageId = derivePackageId(spellerType)
         
-        const url = `${pahkatRepo}packages/${packageId}`
+        const repoPackageUrl = `${pahkatRepo}packages/${packageId}`
 
         let payloadMetadata: string | null = null
         let platform: string | null = null
+        let artifactPath: string | null = null
+        let artifactUrl: string | null = null
 
         // Generate the payload metadata
         if (spellerType === SpellerType.Windows || spellerType === SpellerType.WindowsMSOffice) {
@@ -42,31 +61,49 @@ async function run() {
             }
             productCode = validateProductCode(WindowsExecutableKind.Nsis, productCode)
 
-            payloadMetadata = await PahkatUploader.payload.windowsExecutable(
+            const ext = path.extname(payloadPath)
+            const pathItems = [packageId, version, platform]
+            artifactPath = path.join(path.dirname(payloadPath), `${pathItems.join("_")}${ext}`)
+            artifactUrl = path.join(PahkatUploader.ARTIFACTS_URL, path.basename(artifactPath))
+
+            payloadMetadata = await PahkatUploader.release.windowsExecutable(
+                releaseReq(version, platform, { "windivvun": "*" }, channel),
+                artifactUrl,
                 1,
                 1, 
                 WindowsExecutableKind.Nsis,
                 productCode,
-                [RebootSpec.Install, RebootSpec.Uninstall],
-                payloadPath)
+                [RebootSpec.Install, RebootSpec.Uninstall])
         } else if (spellerType === SpellerType.MacOS) {
             platform = "macos"
             const pkgId = manifest.macos.system_pkg_id
 
-            payloadMetadata = await PahkatUploader.payload.macosPackage(
+            const ext = path.extname(payloadPath)
+            const pathItems = [packageId, version, platform]
+            artifactPath = path.join(path.dirname(payloadPath), `${pathItems.join("_")}${ext}`)
+            artifactUrl = path.join(PahkatUploader.ARTIFACTS_URL, path.basename(artifactPath))
+
+            payloadMetadata = await PahkatUploader.release.macosPackage(
+                releaseReq(version, platform, { "macdivvun": "*" }, channel),
+                artifactUrl,
                 1,
                 1,
                 pkgId,
                 [RebootSpec.Install, RebootSpec.Uninstall],
-                [MacOSPackageTarget.System, MacOSPackageTarget.User],
-                payloadPath)
+                [MacOSPackageTarget.System, MacOSPackageTarget.User])
         } else if (spellerType === SpellerType.Mobile) {
             platform = "mobile"
 
-            payloadMetadata = await PahkatUploader.payload.tarballPackage(
+            const ext = path.extname(payloadPath)
+            const pathItems = [packageId, version, platform]
+            artifactPath = path.join(path.dirname(payloadPath), `${pathItems.join("_")}${ext}`)
+            artifactUrl = path.join(PahkatUploader.ARTIFACTS_URL, path.basename(artifactPath))
+            
+            payloadMetadata = await PahkatUploader.release.tarballPackage(
+                releaseReq(version, platform, {}, channel),
+                artifactUrl,
                 1,
-                1,
-                payloadPath)
+                1)
         } else {
             throw new Error(`Unsupported bundle type ${spellerType}`)
         }
@@ -81,19 +118,22 @@ async function run() {
 
         fs.writeFileSync("./payload.toml", payloadMetadata, "utf8")
 
+        if (artifactPath == null) {
+            throw new Error("artifact path is null; this is a logic error.")
+        }
+    
+        if (artifactUrl == null) {
+            throw new Error("artifact url is null; this is a logic error.")
+        }
+    
         const isDeploying = shouldDeploy() || core.getInput('force-deploy');
-
+    
         if (!isDeploying) {
             core.warning("Not deploying; ending.")
             return
         }
-
-        await PahkatUploader.upload(payloadPath, "./payload.toml", {
-            url,
-            version,
-            platform,
-            channel,
-        })
+    
+        await PahkatUploader.upload(artifactPath, artifactUrl, "./metadata.toml", repoPackageUrl)
     }
     catch (error) {
         core.setFailed(error.message);
