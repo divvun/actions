@@ -126,7 +126,11 @@ async function run() {
         throw new Error(`Unhandled package type: '${packageType}'`);
     }
     const ext = path_1.default.extname(payloadPath);
-    const newPath = path_1.default.join(path_1.default.dirname(payloadPath), `${packageId}_${version}_${platform}${ext}`);
+    const pathItems = [packageId, version, platform];
+    if (arch != null) {
+        pathItems.push(arch);
+    }
+    const newPath = path_1.default.join(path_1.default.dirname(payloadPath), `${pathItems.join("_")}${ext}`);
     core.debug(`Renaming from ${payloadPath} to ${newPath}`);
     fs_1.default.renameSync(payloadPath, newPath);
     await shared_1.PahkatUploader.upload(newPath, "./metadata.toml", {

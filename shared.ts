@@ -227,7 +227,7 @@ export class PahkatPrefix {
         
         if (platform === "linux") {
             const txz = await tc.downloadTool(PahkatPrefix.URL_LINUX)
-            console.log(await tc.extractTar(txz, process.env.RUNNER_WORKSPACE!))
+            console.log(await tc.extractTar(txz, process.env.RUNNER_WORKSPACE!, "Jx"))
         } else if (platform === "darwin") {
             const txz = await tc.downloadTool(PahkatPrefix.URL_MACOS)
             console.log(await tc.extractTar(txz, process.env.RUNNER_WORKSPACE!))

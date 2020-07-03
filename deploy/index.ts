@@ -136,7 +136,14 @@ async function run() {
     }
 
     const ext = path.extname(payloadPath)
-    const newPath = path.join(path.dirname(payloadPath), `${packageId}_${version}_${platform}${ext}`)
+    const pathItems = [packageId, version, platform]
+
+    if (arch != null) {
+        pathItems.push(arch)
+    }
+
+    const newPath = path.join(path.dirname(payloadPath), `${pathItems.join("_")}${ext}`)
+    
     core.debug(`Renaming from ${payloadPath} to ${newPath}`)
     fs.renameSync(payloadPath, newPath)
 
