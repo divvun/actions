@@ -119,6 +119,17 @@ class Powershell {
     }
 }
 exports.Powershell = Powershell;
+class DefaultShell {
+    static async runScript(script, args = {}) {
+        if (process.platform === "win32") {
+            return await Powershell.runScript(script, args);
+        }
+        else {
+            return await Bash.runScript(script, args);
+        }
+    }
+}
+exports.DefaultShell = DefaultShell;
 class Bash {
     static async runScript(script, args = {}) {
         const thisEnv = Object.assign({}, env(), args.env);
@@ -225,18 +236,18 @@ class PahkatPrefix {
         else {
             throw new Error(`Unsupported platform: ${platform}`);
         }
-        await Bash.runScript(`pahkat-prefix-cli init -c ${PahkatPrefix.path}`);
+        await DefaultShell.runScript(`pahkat-prefix-cli init -c ${PahkatPrefix.path}`);
     }
     static async addRepo(url, channel) {
         if (channel != null) {
-            await Bash.runScript(`pahkat-prefix-cli config repo add -c ${PahkatPrefix.path} ${url} ${channel}`);
+            await DefaultShell.runScript(`pahkat-prefix-cli config repo add -c ${PahkatPrefix.path} ${url} ${channel}`);
         }
         else {
-            await Bash.runScript(`pahkat-prefix-cli config repo add -c ${PahkatPrefix.path} ${url}`);
+            await DefaultShell.runScript(`pahkat-prefix-cli config repo add -c ${PahkatPrefix.path} ${url}`);
         }
     }
     static async install(packages) {
-        await Bash.runScript(`pahkat-prefix-cli install ${packages.join(" ")} -c ${PahkatPrefix.path}`);
+        await DefaultShell.runScript(`pahkat-prefix-cli install ${packages.join(" ")} -c ${PahkatPrefix.path}`);
         for (const pkg of packages) {
             core.addPath(path_1.default.join(PahkatPrefix.path, "pkg", pkg, "bin"));
         }
@@ -502,7 +513,7 @@ class Kbdgen {
         const msklcZip = await tc.downloadTool("https://pahkat.uit.no/artifacts/msklc.zip");
         const msklcPath = await tc.extractZip(msklcZip);
         core.exportVariable("MSKLC_PATH", path_1.default.join(msklcPath, "msklc1.4"));
-        await Bash.runScript(`kbdgen --logging debug build win -R --ci -o output ${abs}`, {
+        await Powershell.runScript(`kbdgen --logging debug build win -R --ci -o output ${abs}`, {
             env: {
                 "CODESIGN_PW": sec.windows.pfxPassword,
                 "CODESIGN_PFX": exports.DIVVUN_PFX,
@@ -529,13 +540,13 @@ class Subversion {
         core.debug("Remote path: " + remotePath);
         const sec = secrets();
         const msg = `[CI: Artifact] ${path_1.default.basename(payloadPath)}`;
-        return await Bash.runScript(`svn import ${payloadPath} ${remotePath} -m "${msg}" --username="${sec.svn.username}" --password="${sec.svn.password}"`);
+        return await DefaultShell.runScript(`svn import ${payloadPath} ${remotePath} -m "${msg}" --username="${sec.svn.username}" --password="${sec.svn.password}"`);
     }
 }
 exports.Subversion = Subversion;
 class ThfstTools {
     static async zhfstToBhfst(zhfstPath) {
-        await Bash.runScript(`thfst-tools zhfst-to-bhfst ${zhfstPath}`);
+        await DefaultShell.runScript(`thfst-tools zhfst-to-bhfst ${zhfstPath}`);
         return `${path_1.default.basename(zhfstPath, ".zhfst")}.bhfst`;
     }
 }

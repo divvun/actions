@@ -121,6 +121,20 @@ export class Powershell {
     }
 }
 
+export class DefaultShell {
+    static async runScript(script: string, args: {
+        sudo?: boolean,
+        cwd?: string,
+        env?: { [key: string]: string }
+    } = {}) {
+        if (process.platform === "win32") {
+            return await Powershell.runScript(script, args)
+        } else {
+            return await Bash.runScript(script, args)
+        }
+    }
+}
+
 export class Bash {
     static async runScript(script: string, args: {
         sudo?: boolean,
@@ -248,19 +262,19 @@ export class PahkatPrefix {
         }
 
         // Init the repo
-        await Bash.runScript(`pahkat-prefix-cli init -c ${PahkatPrefix.path}`)
+        await DefaultShell.runScript(`pahkat-prefix-cli init -c ${PahkatPrefix.path}`)
     }
 
     static async addRepo(url: string, channel?: string) {
         if (channel != null) {
-            await Bash.runScript(`pahkat-prefix-cli config repo add -c ${PahkatPrefix.path} ${url} ${channel}`)
+            await DefaultShell.runScript(`pahkat-prefix-cli config repo add -c ${PahkatPrefix.path} ${url} ${channel}`)
         } else {
-            await Bash.runScript(`pahkat-prefix-cli config repo add -c ${PahkatPrefix.path} ${url}`)
+            await DefaultShell.runScript(`pahkat-prefix-cli config repo add -c ${PahkatPrefix.path} ${url}`)
         }
     }
 
     static async install(packages: string[]) {
-        await Bash.runScript(`pahkat-prefix-cli install ${packages.join(" ")} -c ${PahkatPrefix.path}`)
+        await DefaultShell.runScript(`pahkat-prefix-cli install ${packages.join(" ")} -c ${PahkatPrefix.path}`)
 
         for (const pkg of packages) {
             core.addPath(path.join(PahkatPrefix.path, "pkg", pkg, "bin"))
@@ -640,7 +654,7 @@ export class Kbdgen {
         // Export MSKLC_PATH
         core.exportVariable("MSKLC_PATH", path.join(msklcPath, "msklc1.4"))
 
-        await Bash.runScript(
+        await Powershell.runScript(
             `kbdgen --logging debug build win -R --ci -o output ${abs}`,
             {
                 env: {
@@ -672,17 +686,17 @@ export class Subversion {
     static async import(payloadPath: string, remotePath: string) {
         core.debug("Payload path: " + payloadPath)
         core.debug("Remote path: " + remotePath)
-        
+
         const sec = secrets()
         const msg = `[CI: Artifact] ${path.basename(payloadPath)}`
 
-        return await Bash.runScript(`svn import ${payloadPath} ${remotePath} -m "${msg}" --username="${sec.svn.username}" --password="${sec.svn.password}"`)
+        return await DefaultShell.runScript(`svn import ${payloadPath} ${remotePath} -m "${msg}" --username="${sec.svn.username}" --password="${sec.svn.password}"`)
     }
 }
 
 export class ThfstTools {
     static async zhfstToBhfst(zhfstPath: string): Promise<string> {
-        await Bash.runScript(`thfst-tools zhfst-to-bhfst ${zhfstPath}`)
+        await DefaultShell.runScript(`thfst-tools zhfst-to-bhfst ${zhfstPath}`)
         return `${path.basename(zhfstPath, ".zhfst")}.bhfst`
     }
 }
