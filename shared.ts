@@ -670,6 +670,9 @@ export class Kbdgen {
 
 export class Subversion {
     static async import(payloadPath: string, remotePath: string) {
+        core.debug("Payload path: " + payloadPath)
+        core.debug("Remote path: " + remotePath)
+        
         const sec = secrets()
         const msg = `[CI: Artifact] ${path.basename(payloadPath)}`
 

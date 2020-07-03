@@ -525,6 +525,8 @@ class Kbdgen {
 exports.Kbdgen = Kbdgen;
 class Subversion {
     static async import(payloadPath, remotePath) {
+        core.debug("Payload path: " + payloadPath);
+        core.debug("Remote path: " + remotePath);
         const sec = secrets();
         const msg = `[CI: Artifact] ${path_1.default.basename(payloadPath)}`;
         return await Bash.runScript(`svn import ${payloadPath} ${remotePath} -m "${msg}" --username="${sec.svn.username}" --password="${sec.svn.password}"`);
