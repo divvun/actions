@@ -15,7 +15,7 @@ const fs_1 = __importDefault(require("fs"));
 const toml_1 = __importDefault(require("toml"));
 const shared_1 = require("../shared");
 function getCargoToml() {
-    const cargo = core.getInput("cargo");
+    const cargo = core.getInput("cargo") || null;
     if (cargo == null) {
         return null;
     }
@@ -25,7 +25,10 @@ function getCargoToml() {
     return shared_1.nonUndefinedProxy(toml_1.default.parse(fs_1.default.readFileSync(cargo, "utf8")));
 }
 function deriveNightly() {
-    const nightly = core.getInput("nightly");
+    const nightly = core.getInput("nightly") || null;
+    if (nightly == null) {
+        return false;
+    }
     core.debug(`nightly input: '${nightly}'`);
     if (nightly === "true") {
         return true;
@@ -35,7 +38,7 @@ function deriveNightly() {
 async function run() {
     const isNightly = deriveNightly();
     const cargoToml = getCargoToml();
-    const csharp = core.getInput("csharp");
+    const csharp = core.getInput("csharp") || null;
     let version;
     if (cargoToml != null) {
         core.debug("Getting version from TOML");

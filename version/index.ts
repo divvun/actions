@@ -5,7 +5,7 @@ import toml from "toml"
 import { versionAsNightly, isCurrentBranch, nonUndefinedProxy } from '../shared'
 
 function getCargoToml() {
-    const cargo = core.getInput("cargo")
+    const cargo = core.getInput("cargo") || null
 
     if (cargo == null) {
         return null
@@ -19,7 +19,11 @@ function getCargoToml() {
 }
 
 function deriveNightly() {
-    const nightly = core.getInput("nightly")
+    const nightly = core.getInput("nightly") || null
+
+    if (nightly == null) {
+        return false
+    }
 
     core.debug(`nightly input: '${nightly}'`)
     
@@ -33,7 +37,7 @@ function deriveNightly() {
 async function run() {
     const isNightly = deriveNightly()
     const cargoToml = getCargoToml()
-    const csharp = core.getInput("csharp")
+    const csharp = core.getInput("csharp") || null
 
     let version 
 
