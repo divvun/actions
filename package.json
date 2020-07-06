@@ -23,7 +23,6 @@
         "yaml": "^1.9.2"
     },
     "devDependencies": {
-        "@zeit/ncc": "^0.22.1",
         "typescript": "^3.8.3"
     }
 }
