@@ -89,12 +89,9 @@ async function run() {
     if (artifactUrl == null) {
         throw new Error("artifact url is null; this is a logic error.");
     }
-    fs_1.default.writeFileSync("./payload.toml", payloadMetadata, "utf8");
-    const isDeploying = shared_1.shouldDeploy() || core.getInput('force-deploy');
-    if (!isDeploying) {
-        core.warning("Not deploying; ending.");
-        return;
-    }
+    fs_1.default.writeFileSync("./metadata.toml", payloadMetadata, "utf8");
+    core.debug(`Renaming from ${payloadPath} to ${artifactPath}`);
+    fs_1.default.renameSync(payloadPath, artifactPath);
     await shared_2.PahkatUploader.upload(artifactPath, artifactUrl, "./metadata.toml", repoPackageUrl);
 }
 run().catch(err => {

@@ -3,7 +3,7 @@ import * as github from '@actions/github'
 import fs from 'fs'
 import path from 'path'
 
-import { shouldDeploy, MacOSPackageTarget, Kbdgen, validateProductCode, ReleaseRequest } from '../../shared'
+import { MacOSPackageTarget, Kbdgen, validateProductCode, ReleaseRequest } from '../../shared'
 
 import { PahkatUploader, WindowsExecutableKind, RebootSpec } from "../../shared"
 import { KeyboardType, getBundle } from '../types'
@@ -112,6 +112,9 @@ async function run() {
     }
 
     fs.writeFileSync("./metadata.toml", payloadMetadata, "utf8")
+
+    core.debug(`Renaming from ${payloadPath} to ${artifactPath}`)
+    fs.renameSync(payloadPath, artifactPath)
 
     await PahkatUploader.upload(artifactPath, artifactUrl, "./metadata.toml", repoPackageUrl)
 }

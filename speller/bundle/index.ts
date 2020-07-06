@@ -45,6 +45,15 @@ async function run() {
             throw new Error("Missing system_product_code")
         }
 
+        // Fix names of zhfst files to match their tag
+        const zhfstPaths: string[] = []
+        fs.mkdirSync("./zhfst")
+        for (const [key, value] of Object.entries(spellerPaths.desktop)) {
+            const out = path.resolve(path.join("./zhfst", `${key}.zhfst`))
+            fs.renameSync(value, out)
+            zhfstPaths.push(out)
+        }
+
         const builder = new InnoSetupBuilder()
 
         builder.name(name)
@@ -56,7 +65,7 @@ async function run() {
             .files(files => {
                 const flags = ["ignoreversion", "recursesubdirs", "uninsrestartdelete"]
 
-                for (const zhfstPath of Object.values(spellerPaths.desktop)) {
+                for (const zhfstPath of zhfstPaths) {
                     files.add(zhfstPath, "{app}", flags)
                 }
 

@@ -3,7 +3,7 @@ import toml from 'toml'
 import fs from 'fs'
 import path from 'path'
 
-import { shouldDeploy, MacOSPackageTarget, nonUndefinedProxy, validateProductCode, ReleaseRequest } from '../../shared'
+import { MacOSPackageTarget, nonUndefinedProxy, validateProductCode, ReleaseRequest } from '../../shared'
 import { PahkatUploader, WindowsExecutableKind, RebootSpec } from "../../shared"
 import { SpellerManifest, SpellerType, derivePackageId } from '../manifest'
 
@@ -117,6 +117,9 @@ async function run() {
         if (artifactUrl == null) {
             throw new Error("artifact url is null; this is a logic error.")
         }
+
+        core.debug(`Renaming from ${payloadPath} to ${artifactPath}`)
+        fs.renameSync(payloadPath, artifactPath)
     
         await PahkatUploader.upload(artifactPath, artifactUrl, "./metadata.toml", repoPackageUrl)
     }

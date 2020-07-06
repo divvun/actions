@@ -90,6 +90,8 @@ async function run() {
         if (artifactUrl == null) {
             throw new Error("artifact url is null; this is a logic error.");
         }
+        core.debug(`Renaming from ${payloadPath} to ${artifactPath}`);
+        fs_1.default.renameSync(payloadPath, artifactPath);
         await shared_2.PahkatUploader.upload(artifactPath, artifactUrl, "./metadata.toml", repoPackageUrl);
     }
     catch (error) {

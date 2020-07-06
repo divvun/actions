@@ -45,6 +45,13 @@ async function run() {
         if (manifest.windows.system_product_code == null) {
             throw new Error("Missing system_product_code");
         }
+        const zhfstPaths = [];
+        fs_1.default.mkdirSync("./zhfst");
+        for (const [key, value] of Object.entries(spellerPaths.desktop)) {
+            const out = path_1.default.resolve(path_1.default.join("./zhfst", `${key}.zhfst`));
+            fs_1.default.renameSync(value, out);
+            zhfstPaths.push(out);
+        }
         const builder = new inno_1.InnoSetupBuilder();
         builder.name(name)
             .version(version)
@@ -54,7 +61,7 @@ async function run() {
             .defaultDirName(`{commonpf}\\WinDivvun\\Spellers\\${langTag}`)
             .files(files => {
             const flags = ["ignoreversion", "recursesubdirs", "uninsrestartdelete"];
-            for (const zhfstPath of Object.values(spellerPaths.desktop)) {
+            for (const zhfstPath of zhfstPaths) {
                 files.add(zhfstPath, "{app}", flags);
             }
             return files;
