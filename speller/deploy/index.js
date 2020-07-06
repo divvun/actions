@@ -48,21 +48,14 @@ async function run() {
         let platform = null;
         let artifactPath = null;
         let artifactUrl = null;
-        if (spellerType === manifest_1.SpellerType.Windows || spellerType === manifest_1.SpellerType.WindowsMSOffice) {
+        if (spellerType === manifest_1.SpellerType.Windows) {
             platform = "windows";
-            let productCode;
-            if (spellerType === manifest_1.SpellerType.Windows) {
-                productCode = manifest.windows.system_product_code;
-            }
-            else {
-                productCode = manifest.windows.msoffice_product_code;
-            }
-            productCode = shared_1.validateProductCode(shared_2.WindowsExecutableKind.Nsis, productCode);
+            const productCode = shared_1.validateProductCode(shared_2.WindowsExecutableKind.Inno, manifest.windows.system_product_code);
             const ext = path_1.default.extname(payloadPath);
             const pathItems = [packageId, version, platform];
             artifactPath = path_1.default.join(path_1.default.dirname(payloadPath), `${pathItems.join("_")}${ext}`);
             artifactUrl = `${shared_2.PahkatUploader.ARTIFACTS_URL}${path_1.default.basename(artifactPath)}`;
-            payloadMetadata = await shared_2.PahkatUploader.release.windowsExecutable(releaseReq(version, platform, { "https://pahkat.uit.no/tools/windivvun": "*" }, channel), artifactUrl, 1, 1, shared_2.WindowsExecutableKind.Nsis, productCode, [shared_2.RebootSpec.Install, shared_2.RebootSpec.Uninstall]);
+            payloadMetadata = await shared_2.PahkatUploader.release.windowsExecutable(releaseReq(version, platform, { "https://pahkat.uit.no/tools/windivvun": "*" }, channel), artifactUrl, 1, 1, shared_2.WindowsExecutableKind.Inno, productCode, [shared_2.RebootSpec.Install, shared_2.RebootSpec.Uninstall]);
         }
         else if (spellerType === manifest_1.SpellerType.MacOS) {
             platform = "macos";

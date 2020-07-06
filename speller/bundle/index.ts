@@ -4,10 +4,12 @@ import path from 'path'
 import toml from 'toml'
 import fs from 'fs'
 
-import { ThfstTools, Tar, SpellerPaths, DivvunBundler, versionAsNightly, nonUndefinedProxy } from '../../shared'
+import { ThfstTools, Tar, SpellerPaths, DivvunBundler, nonUndefinedProxy } from '../../shared'
 import { SpellerType, SpellerManifest, derivePackageId, deriveLangTag } from '../manifest'
+import { makeInstaller } from '../../inno-setup/lib'
 
 async function run() {
+    const version = core.getInput("version", { required: true })
     const spellerType = core.getInput("speller-type", { required: true }) as SpellerType
     const manifest = nonUndefinedProxy(toml.parse(fs.readFileSync(
         core.getInput("speller-manifest-path", { required: true }), "utf8"
@@ -16,13 +18,9 @@ async function run() {
         core.getInput("speller-paths", { required: true })
     ), true) as SpellerPaths
 
-    let { name, version } = manifest
+    let { name } = manifest
     const packageId = derivePackageId(spellerType)
     const langTag = deriveLangTag(false)
-
-    // TODO: allow non-nightly builds
-    version = await versionAsNightly(version)
-    core.setOutput("version", version)
 
     if (spellerType == SpellerType.Mobile) {
         const bhfstPaths = []
@@ -46,19 +44,8 @@ async function run() {
             throw new Error("Missing system_product_code")
         }
 
-        const payloadPath = await DivvunBundler.bundleWindows(name, version, manifest.windows.system_product_code,
-            packageId, langTag, spellerPaths)
-
-        core.setOutput("payload-path", payloadPath)
-    } else if (spellerType == SpellerType.WindowsMSOffice) {
-        if (manifest.windows.msoffice_product_code == null) {
-            throw new Error("Missing msoffice_product_code")
-        }
-        
-        const payloadPath = await DivvunBundler.bundleWindowsMSOffice(name, version, manifest.windows.msoffice_product_code,
-            packageId, langTag, spellerPaths)
-
-
+        // TODO: add installer
+        const payloadPath = await makeInstaller("./install.iss")
         core.setOutput("payload-path", payloadPath)
     } else if (spellerType == SpellerType.MacOS) {
         const payloadPath = await DivvunBundler.bundleMacOS(name, version, packageId, langTag, spellerPaths)

@@ -3,17 +3,20 @@ import * as github from '@actions/github'
 export enum SpellerType {
     MacOS = "speller-macos",
     Mobile = "speller-mobile",
-    Windows = "speller-windows",
-    WindowsMSOffice = "speller-windows-msoffice",
+    Windows = "speller-windows"
+}
+
+export type WindowsSpellerManifest = {
+    system_product_code: string,
+
+    // This includes a list of UUIDs that need to be uninstalled before installing the new one.
+    legacy_product_codes?: string[]
 }
 
 export type SpellerManifest = {
     name: string,
     version: string,
-    windows: {
-        system_product_code: string,
-        msoffice_product_code: string,
-    }
+    windows: WindowsSpellerManifest,
     macos: {
         system_pkg_id: string,
     }
@@ -37,10 +40,6 @@ export function deriveLangTag(force3: boolean) {
 
 export function derivePackageId(type: SpellerType) {
     const lang = github.context.repo.repo.split("lang-")[1]
-    
-    if (type == SpellerType.WindowsMSOffice) {
-        return `speller-${lang}-mso`
-    }
 
     return `speller-${lang}`
 }

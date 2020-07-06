@@ -13,7 +13,6 @@ var SpellerType;
     SpellerType["MacOS"] = "speller-macos";
     SpellerType["Mobile"] = "speller-mobile";
     SpellerType["Windows"] = "speller-windows";
-    SpellerType["WindowsMSOffice"] = "speller-windows-msoffice";
 })(SpellerType = exports.SpellerType || (exports.SpellerType = {}));
 function deriveLangTag(force3) {
     const lang = github.context.repo.repo.split("lang-")[1];
@@ -28,9 +27,6 @@ function deriveLangTag(force3) {
 exports.deriveLangTag = deriveLangTag;
 function derivePackageId(type) {
     const lang = github.context.repo.repo.split("lang-")[1];
-    if (type == SpellerType.WindowsMSOffice) {
-        return `speller-${lang}-mso`;
-    }
     return `speller-${lang}`;
 }
 exports.derivePackageId = derivePackageId;

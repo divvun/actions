@@ -24,6 +24,16 @@ function getCargoToml() {
     }
     return shared_1.nonUndefinedProxy(toml_1.default.parse(fs_1.default.readFileSync(cargo, "utf8")));
 }
+function getSpellerManifestToml() {
+    const manifest = core.getInput("manifest") || null;
+    if (manifest == null) {
+        return null;
+    }
+    if (manifest === "true") {
+        return shared_1.nonUndefinedProxy(toml_1.default.parse(fs_1.default.readFileSync("./manifest.toml", "utf8")));
+    }
+    return shared_1.nonUndefinedProxy(toml_1.default.parse(fs_1.default.readFileSync(manifest, "utf8")));
+}
 function deriveNightly() {
     const nightly = core.getInput("nightly") || null;
     if (nightly == null) {
@@ -38,6 +48,7 @@ function deriveNightly() {
 async function run() {
     const isNightly = deriveNightly();
     const cargoToml = getCargoToml();
+    const spellerManifest = getSpellerManifestToml();
     const csharp = core.getInput("csharp") || null;
     let version;
     if (cargoToml != null) {
@@ -47,6 +58,10 @@ async function run() {
     else if (csharp != null) {
         core.debug("Getting version from GitVersioning C#");
         version = process.env.GitBuildVersionSimple;
+    }
+    else if (spellerManifest != null) {
+        core.debug("Getting version from speller manifest");
+        version = spellerManifest.version;
     }
     else {
         throw new Error("Did not find a suitable mechanism to derive the version.");

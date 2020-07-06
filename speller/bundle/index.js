@@ -17,15 +17,15 @@ const toml_1 = __importDefault(require("toml"));
 const fs_1 = __importDefault(require("fs"));
 const shared_1 = require("../../shared");
 const manifest_1 = require("../manifest");
+const lib_1 = require("../../inno-setup/lib");
 async function run() {
+    const version = core.getInput("version", { required: true });
     const spellerType = core.getInput("speller-type", { required: true });
     const manifest = shared_1.nonUndefinedProxy(toml_1.default.parse(fs_1.default.readFileSync(core.getInput("speller-manifest-path", { required: true }), "utf8")), true);
     const spellerPaths = shared_1.nonUndefinedProxy(JSON.parse(core.getInput("speller-paths", { required: true })), true);
-    let { name, version } = manifest;
+    let { name } = manifest;
     const packageId = manifest_1.derivePackageId(spellerType);
     const langTag = manifest_1.deriveLangTag(false);
-    version = await shared_1.versionAsNightly(version);
-    core.setOutput("version", version);
     if (spellerType == manifest_1.SpellerType.Mobile) {
         const bhfstPaths = [];
         for (const [langTag, zhfstPath] of Object.entries(spellerPaths.mobile)) {
@@ -44,14 +44,7 @@ async function run() {
         if (manifest.windows.system_product_code == null) {
             throw new Error("Missing system_product_code");
         }
-        const payloadPath = await shared_1.DivvunBundler.bundleWindows(name, version, manifest.windows.system_product_code, packageId, langTag, spellerPaths);
-        core.setOutput("payload-path", payloadPath);
-    }
-    else if (spellerType == manifest_1.SpellerType.WindowsMSOffice) {
-        if (manifest.windows.msoffice_product_code == null) {
-            throw new Error("Missing msoffice_product_code");
-        }
-        const payloadPath = await shared_1.DivvunBundler.bundleWindowsMSOffice(name, version, manifest.windows.msoffice_product_code, packageId, langTag, spellerPaths);
+        const payloadPath = await lib_1.makeInstaller("./install.iss");
         core.setOutput("payload-path", payloadPath);
     }
     else if (spellerType == manifest_1.SpellerType.MacOS) {

@@ -49,18 +49,10 @@ async function run() {
         let artifactUrl: string | null = null
 
         // Generate the payload metadata
-        if (spellerType === SpellerType.Windows || spellerType === SpellerType.WindowsMSOffice) {
+        if (spellerType === SpellerType.Windows) {
             platform = "windows"
-
-            let productCode
+            const productCode = validateProductCode(WindowsExecutableKind.Inno, manifest.windows.system_product_code)
             
-            if (spellerType === SpellerType.Windows) {
-                productCode = manifest.windows.system_product_code
-            } else {
-                productCode = manifest.windows.msoffice_product_code
-            }
-            productCode = validateProductCode(WindowsExecutableKind.Nsis, productCode)
-
             const ext = path.extname(payloadPath)
             const pathItems = [packageId, version, platform]
             artifactPath = path.join(path.dirname(payloadPath), `${pathItems.join("_")}${ext}`)
@@ -71,7 +63,7 @@ async function run() {
                 artifactUrl,
                 1,
                 1, 
-                WindowsExecutableKind.Nsis,
+                WindowsExecutableKind.Inno,
                 productCode,
                 [RebootSpec.Install, RebootSpec.Uninstall])
         } else if (spellerType === SpellerType.MacOS) {

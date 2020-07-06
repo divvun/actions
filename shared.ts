@@ -776,103 +776,54 @@ export class DivvunBundler {
         return outputFile
     }
 
-    static async bundleWindows(
-        name: string,
-        version: string,
-        productCode: string,
-        packageId: string,
-        langTag: string,
-        spellerPaths: SpellerPaths
-    ) {
-        const sec = secrets();
+    // static async bundleWindows(
+    //     name: string,
+    //     version: string,
+    //     manifest: WindowsSpellerManifest,
+    //     packageId: string,
+    //     langTag: string,
+    //     spellerPaths: SpellerPaths
+    // ) {
+    //     const sec = secrets();
 
-        let exe: string
-        if (process.platform === "win32") {
-            exe = path.join(PahkatPrefix.path, "pkg", "divvun-bundler", "bin", "divvun-bundler.exe")
-        } else {
-            exe = "divvun-bundler"
-        }
+    //     let exe: string
+    //     if (process.platform === "win32") {
+    //         exe = path.join(PahkatPrefix.path, "pkg", "divvun-bundler", "bin", "divvun-bundler.exe")
+    //     } else {
+    //         exe = "divvun-bundler"
+    //     }
 
-        const args = ["-R", "-t", "win", "-o", "output",
-            "--uuid", productCode,
-            "-H", name,
-            "-V", version,
-            "-c", DIVVUN_PFX,
-            "speller",
-            "-f", langTag,
-            ...deriveBundlerArgs(spellerPaths)
-        ]
+    //     const args = ["-R", "-t", "win", "-o", "output",
+    //         "--uuid", productCode,
+    //         "-H", name,
+    //         "-V", version,
+    //         "-c", DIVVUN_PFX,
+    //         "speller",
+    //         "-f", langTag,
+    //         ...deriveBundlerArgs(spellerPaths)
+    //     ]
 
-        assertExit0(await exec(exe, args, {
-            env: Object.assign({}, env(), {
-                "RUST_LOG": "trace",
-                "SIGN_PFX_PASSWORD": sec.windows.pfxPassword,
-            })
-        }))
+    //     assertExit0(await exec(exe, args, {
+    //         env: Object.assign({}, env(), {
+    //             "RUST_LOG": "trace",
+    //             "SIGN_PFX_PASSWORD": sec.windows.pfxPassword,
+    //         })
+    //     }))
 
-        try {
-            core.debug(fs.readdirSync("output").join(", "))
-        } catch (err) {
-            core.debug("Failed to read output dir")
-            core.debug(err)
-        }
+    //     try {
+    //         core.debug(fs.readdirSync("output").join(", "))
+    //     } catch (err) {
+    //         core.debug("Failed to read output dir")
+    //         core.debug(err)
+    //     }
 
-        // FIXME: workaround bundler issue creating invalid files
-        await io.cp(
-            path.resolve(`output/${langTag}-${version}.exe`),
-            path.resolve(`output/${packageId}-${version}.exe`))
+    //     // FIXME: workaround bundler issue creating invalid files
+    //     await io.cp(
+    //         path.resolve(`output/${langTag}-${version}.exe`),
+    //         path.resolve(`output/${packageId}-${version}.exe`))
 
-        return path.resolve(`output/${packageId}-${version}.exe`)
-    }
-
-    static async bundleWindowsMSOffice(
-        name: string,
-        version: string,
-        productCode: string,
-        packageId: string,
-        langTag: string,
-        spellerPaths: SpellerPaths
-    ) {
-        const sec = secrets();
-        let exe: string
-        if (process.platform === "win32") {
-            exe = path.join(PahkatPrefix.path, "pkg", "divvun-bundler", "bin", "divvun-bundler.exe")
-        } else {
-            exe = "divvun-bundler"
-        }
-
-        const args = ["-R", "-t", "win", "-o", "output",
-            "--uuid", productCode,
-            "-H", `${name} MS Office`,
-            "-V", version,
-            "-c", DIVVUN_PFX,
-            "speller_mso",
-            "-f", langTag,
-            "--reg", path.join(PahkatPrefix.path, "pkg", "win-reg-tool", "bin", "win-reg-tool.exe"),
-            ...deriveBundlerArgs(spellerPaths, false)
-        ]
-
-        assertExit0(await exec(exe, args, {
-            env: Object.assign({}, env(), {
-                "RUST_LOG": "trace",
-                "SIGN_PFX_PASSWORD": sec.windows.pfxPassword,
-            })
-        }))
-
-        try {
-            core.debug(fs.readdirSync("output").join(", "))
-        } catch (err) {
-            core.debug("Failed to read output dir")
-            core.debug(err)
-        }
-
-        // FIXME: workaround bundler issue creating invalid files
-        await io.cp(
-            path.resolve(`output/${langTag}-mso-${version}.exe`),
-            path.resolve(`output/${packageId}-${version}.exe`))
-
-        return `output/${packageId}-${version}.exe`
-    }
+    //     return path.resolve(`output/${packageId}-${version}.exe`)
+    // }
 }
 
 export function nonUndefinedProxy(obj: any, withNull: boolean = false): any {
