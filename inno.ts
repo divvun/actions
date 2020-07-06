@@ -83,6 +83,9 @@ export class InnoSetupBuilder {
             Compression: "lzma",
             SolidCompression: "yes",
             WizardStyle: "modern",
+            SignedUninstaller: "yes",
+            SignTool: "signtool",
+            MinVersion: this.data.minVersion || "6.3.9200"  
         }).map(x => `${x[0]}=${x[1]}`).join("\n")
 
         const iss: any = {

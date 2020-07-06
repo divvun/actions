@@ -70,6 +70,9 @@ class InnoSetupBuilder {
             Compression: "lzma",
             SolidCompression: "yes",
             WizardStyle: "modern",
+            SignedUninstaller: "yes",
+            SignTool: "signtool",
+            MinVersion: this.data.minVersion || "6.3.9200"
         }).map(x => `${x[0]}=${x[1]}`).join("\n");
         const iss = {
             setup,
@@ -122,9 +125,8 @@ Name: "spanish"; MessagesFile: "compiler:Languages\\Spanish.isl"
 Name: "turkish"; MessagesFile: "compiler:Languages\\Turkish.isl"
 Name: "ukrainian"; MessagesFile: "compiler:Languages\\Ukrainian.isl"
 `;
-const INNO_CODE_SECTION = `\
-[Code]
-function UninstallIfExists(sInput: String, sArgs: String): String;
+const INNO_CODE_HEADER = `\
+function UninstallIfExists(sInput: String; sArgs: String): String;
 var
   sUnInstPath: String;
   sUnInstallString: String;
@@ -143,7 +145,8 @@ begin
     end;
   end;
 end;
-
+`;
+const INNO_CODE_EVENTS = `\
 procedure CurStepChanged(CurStep: TSetupStep);
 var
     RunResult: String;
@@ -187,7 +190,7 @@ function generateNsisUninst(productCode) {
     return `\
 if Result = '' then
 begin
-    Result := UninstallIfExists('${productCode}');
+    Result := UninstallIfExists('${productCode}', '/S');
 end;
 `;
 }
@@ -253,10 +256,11 @@ end;
     }
     build() {
         return `\
-${INNO_CODE_SECTION}
+${INNO_CODE_HEADER}
 ${this.generatePreInstall()}
 ${this.generatePostInstall()}
 ${this.generatePreUninstall()}
+${INNO_CODE_EVENTS}
 `;
     }
 }

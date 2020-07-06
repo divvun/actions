@@ -7,6 +7,7 @@ import fs from 'fs'
 import { ThfstTools, Tar, SpellerPaths, DivvunBundler, nonUndefinedProxy } from '../../shared'
 import { SpellerType, SpellerManifest, derivePackageId, deriveLangTag } from '../manifest'
 import { makeInstaller } from '../../inno-setup/lib'
+import { InnoSetupBuilder } from '../../inno'
 
 async function run() {
     const version = core.getInput("version", { required: true })
@@ -44,7 +45,58 @@ async function run() {
             throw new Error("Missing system_product_code")
         }
 
-        // TODO: add installer
+        const builder = new InnoSetupBuilder()
+
+        builder.name(name)
+            .version(version)
+            .publisher("Universitetet i Tromsø - Norges arktiske universitet")
+            .url("http://divvun.no/")
+            .productCode(manifest.windows.system_product_code)
+            .defaultDirName(`{commonpf}\\WinDivvun\\Spellers\\${langTag}`)
+            .files(files => {
+                const flags = ["ignoreversion", "recursesubdirs", "uninsrestartdelete"]
+
+                for (const zhfstPath of Object.values(spellerPaths.desktop)) {
+                    files.add(zhfstPath, "{app}", flags)
+                }
+
+                return files
+            })
+            .code(code => {
+                if (manifest.windows.legacy_product_codes) {
+                    for (const productCode of manifest.windows.legacy_product_codes) {
+                        code.uninstallLegacy(productCode, "nsis")
+                    }
+                }
+
+                code.execPostInstall(
+                    "{commonpf}\\WinDivvun\\i686\\spelli.exe",
+                    `register -t ${langTag} -p "{commonpf}\\WinDivvun\\Spellers\\${langTag}\\${langTag}.zhfst"`,
+                    `Could not register speller for tag: ${langTag}`)
+
+                code.execPreUninstall(
+                    "{commonpf}\\WinDivvun\\i686\\spelli.exe",
+                    `register -t ${langTag}`,
+                    `Could not register speller for tag: ${langTag}`)
+
+                if (manifest.windows.extra_locales) {
+                    for (const [tag, zhfstPrefix] of Object.entries(manifest.windows.extra_locales)) {
+                        code.execPostInstall(
+                            "{commonpf}\\WinDivvun\\i686\\spelli.exe",
+                            `register -t ${tag} -p "{commonpf}\\WinDivvun\\Spellers\\${langTag}\\${zhfstPrefix}.zhfst"`,
+                            `Could not register speller for tag: ${tag}`)
+
+                        code.execPreUninstall(
+                            "{commonpf}\\WinDivvun\\i686\\spelli.exe",
+                            `deregister -t ${tag}`,
+                            `Could not deregister speller for tag: ${tag}`)
+                    }
+                }
+
+                return code
+            })
+            .write("./install.iss")
+
         const payloadPath = await makeInstaller("./install.iss")
         core.setOutput("payload-path", payloadPath)
     } else if (spellerType == SpellerType.MacOS) {
