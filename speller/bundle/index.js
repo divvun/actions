@@ -53,7 +53,7 @@ async function run() {
             zhfstPaths.push(out);
         }
         const builder = new inno_1.InnoSetupBuilder();
-        builder.name(name)
+        builder.name(`${name} Speller`)
             .version(version)
             .publisher("Universitetet i Tromsø - Norges arktiske universitet")
             .url("http://divvun.no/")
@@ -73,7 +73,7 @@ async function run() {
                 }
             }
             code.execPostInstall("{commonpf}\\WinDivvun\\i686\\spelli.exe", `register -t ${langTag} -p "{commonpf}\\WinDivvun\\Spellers\\${langTag}\\${langTag}.zhfst"`, `Could not register speller for tag: ${langTag}`);
-            code.execPreUninstall("{commonpf}\\WinDivvun\\i686\\spelli.exe", `register -t ${langTag}`, `Could not register speller for tag: ${langTag}`);
+            code.execPreUninstall("{commonpf}\\WinDivvun\\i686\\spelli.exe", `register -t ${langTag}`, `Could not deregister speller for tag: ${langTag}`);
             if (manifest.windows.extra_locales) {
                 for (const [tag, zhfstPrefix] of Object.entries(manifest.windows.extra_locales)) {
                     code.execPostInstall("{commonpf}\\WinDivvun\\i686\\spelli.exe", `register -t ${tag} -p "{commonpf}\\WinDivvun\\Spellers\\${langTag}\\${zhfstPrefix}.zhfst"`, `Could not register speller for tag: ${tag}`);

@@ -85,7 +85,9 @@ export class InnoSetupBuilder {
             WizardStyle: "modern",
             SignedUninstaller: "yes",
             SignTool: "signtool",
-            MinVersion: this.data.minVersion || "6.3.9200"  
+            MinVersion: this.data.minVersion || "6.3.9200",
+            ArchitecturesAllowed: "x86 x64",
+            ArchitecturesInstallIn64BitMode: "x64"
         }).map(x => `${x[0]}=${x[1]}`).join("\n")
 
         const iss: any = {
