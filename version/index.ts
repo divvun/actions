@@ -20,7 +20,7 @@ function getCargoToml() {
 }
 
 function getSpellerManifestToml(): SpellerManifest | null {
-    const manifest = core.getInput("manifest") || null
+    const manifest = core.getInput("speller-manifest") || null
 
     if (manifest == null) {
         return null

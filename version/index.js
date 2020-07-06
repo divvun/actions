@@ -25,7 +25,7 @@ function getCargoToml() {
     return shared_1.nonUndefinedProxy(toml_1.default.parse(fs_1.default.readFileSync(cargo, "utf8")));
 }
 function getSpellerManifestToml() {
-    const manifest = core.getInput("manifest") || null;
+    const manifest = core.getInput("speller-manifest") || null;
     if (manifest == null) {
         return null;
     }
