@@ -1,5 +1,6 @@
 import * as exec from "@actions/exec"
 import tmp from "tmp"
+import path from "path"
 
 import { DIVVUN_PFX, secrets } from "../shared"
 
@@ -19,5 +20,5 @@ export async function makeInstaller(issPath: string, defines: string[] = []): Pr
         "/Qp", `/O${installerOutput}`, ...defines, issPath
     ])
 
-    return installerOutput
+    return path.join(installerOutput, "install.exe")
 }

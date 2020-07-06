@@ -111,14 +111,7 @@ async function run() {
         throw new Error("artifact url is null; this is a logic error.")
     }
 
-    fs.writeFileSync("./payload.toml", payloadMetadata, "utf8")
-
-    const isDeploying = shouldDeploy() || core.getInput('force-deploy');
-
-    if (!isDeploying) {
-        core.warning("Not deploying; ending.")
-        return
-    }
+    fs.writeFileSync("./metadata.toml", payloadMetadata, "utf8")
 
     await PahkatUploader.upload(artifactPath, artifactUrl, "./metadata.toml", repoPackageUrl)
 }

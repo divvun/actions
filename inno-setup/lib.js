@@ -12,6 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const exec = __importStar(require("@actions/exec"));
 const tmp_1 = __importDefault(require("tmp"));
+const path_1 = __importDefault(require("path"));
 const shared_1 = require("../shared");
 const ISCC_PATH = `"C:\\Program Files (x86)\\Inno Setup 6\\ISCC.exe"`;
 async function makeInstaller(issPath, defines = []) {
@@ -24,6 +25,6 @@ async function makeInstaller(issPath, defines = []) {
     await exec.exec(`${ISCC_PATH} ${signCmd}`, [
         "/Qp", `/O${installerOutput}`, ...defines, issPath
     ]);
-    return installerOutput;
+    return path_1.default.join(installerOutput, "install.exe");
 }
 exports.makeInstaller = makeInstaller;

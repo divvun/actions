@@ -80,7 +80,7 @@ async function run() {
         if (payloadMetadata == null) {
             throw new Error("Payload is null; this is a logic error.");
         }
-        fs_1.default.writeFileSync("./payload.toml", payloadMetadata, "utf8");
+        fs_1.default.writeFileSync("./metadata.toml", payloadMetadata, "utf8");
         if (platform == null) {
             throw new Error("Platform is null; this is a logic error.");
         }

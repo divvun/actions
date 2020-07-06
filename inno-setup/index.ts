@@ -14,7 +14,7 @@ async function run() {
     
     const installerOutput = await makeInstaller(issPath, defines)
 
-    core.setOutput("installer-path", path.join(installerOutput, "install.exe"))
+    core.setOutput("installer-path", installerOutput)
 }
 
 run().catch(err => {

@@ -76,6 +76,8 @@ async function run() {
             return code;
         })
             .write("./install.iss");
+        core.debug("generated install.iss:");
+        core.debug(builder.build());
         const payloadPath = await lib_1.makeInstaller("./install.iss");
         core.setOutput("payload-path", payloadPath);
     }

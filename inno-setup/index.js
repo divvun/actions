@@ -6,12 +6,8 @@ var __importStar = (this && this.__importStar) || function (mod) {
     result["default"] = mod;
     return result;
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(require("@actions/core"));
-const path_1 = __importDefault(require("path"));
 const lib_1 = require("./lib");
 async function run() {
     const issPath = core.getInput('path', { required: true });
@@ -22,7 +18,7 @@ async function run() {
             .map(x => `/D${x.trim()}`);
     }
     const installerOutput = await lib_1.makeInstaller(issPath, defines);
-    core.setOutput("installer-path", path_1.default.join(installerOutput, "install.exe"));
+    core.setOutput("installer-path", installerOutput);
 }
 run().catch(err => {
     console.error(err.stack);

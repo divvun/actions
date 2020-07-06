@@ -97,6 +97,9 @@ async function run() {
             })
             .write("./install.iss")
 
+        core.debug("generated install.iss:")
+        core.debug(builder.build())
+
         const payloadPath = await makeInstaller("./install.iss")
         core.setOutput("payload-path", payloadPath)
     } else if (spellerType == SpellerType.MacOS) {

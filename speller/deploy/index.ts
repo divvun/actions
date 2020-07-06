@@ -104,7 +104,7 @@ async function run() {
             throw new Error("Payload is null; this is a logic error.")
         }
 
-        fs.writeFileSync("./payload.toml", payloadMetadata, "utf8")
+        fs.writeFileSync("./metadata.toml", payloadMetadata, "utf8")
 
         if (platform == null) {
             throw new Error("Platform is null; this is a logic error.")
