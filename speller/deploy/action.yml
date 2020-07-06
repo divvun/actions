@@ -22,9 +22,6 @@ inputs:
   channel:
     description: Pahkat repository channel
     required: false
-  force-deploy:
-    description: Override deployment check and always deploy
-    required: false
 runs:
   using: 'node12'
   main: 'index.js'

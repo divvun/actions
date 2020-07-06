@@ -90,11 +90,6 @@ async function run() {
         if (artifactUrl == null) {
             throw new Error("artifact url is null; this is a logic error.");
         }
-        const isDeploying = shared_1.shouldDeploy() || core.getInput('force-deploy');
-        if (!isDeploying) {
-            core.warning("Not deploying; ending.");
-            return;
-        }
         await shared_2.PahkatUploader.upload(artifactPath, artifactUrl, "./metadata.toml", repoPackageUrl);
     }
     catch (error) {
