@@ -51,15 +51,22 @@ async function run() {
         // Generate the payload metadata
         if (spellerType === SpellerType.Windows) {
             platform = "windows"
-            const productCode = validateProductCode(WindowsExecutableKind.Inno, manifest.windows.system_product_code)
+            const productCode = validateProductCode(
+                WindowsExecutableKind.Inno, manifest.windows.system_product_code)
             
             const ext = path.extname(payloadPath)
             const pathItems = [packageId, version, platform]
             artifactPath = path.join(path.dirname(payloadPath), `${pathItems.join("_")}${ext}`)
             artifactUrl = `${PahkatUploader.ARTIFACTS_URL}${path.basename(artifactPath)}`
 
+            // Make the nightly channel be used if any channel except for the default.
+            let deps: any = { "https://pahkat.uit.no/tools/windivvun": "*" }
+            if (channel != null) {
+                deps = { "https://pahkat.uit.no/tools/windivvun?channel=nightly": "*" }
+            }
+
             payloadMetadata = await PahkatUploader.release.windowsExecutable(
-                releaseReq(version, platform, { "https://pahkat.uit.no/tools/windivvun": "*" }, channel),
+                releaseReq(version, platform, deps, channel),
                 artifactUrl,
                 1,
                 1, 
@@ -75,8 +82,15 @@ async function run() {
             artifactPath = path.join(path.dirname(payloadPath), `${pathItems.join("_")}${ext}`)
             artifactUrl = `${PahkatUploader.ARTIFACTS_URL}${path.basename(artifactPath)}`
 
+            
+            // Make the nightly channel be used if any channel except for the default.
+            let deps: any = { "https://pahkat.uit.no/tools/macdivvun": "*" }
+            if (channel != null) {
+                deps = { "https://pahkat.uit.no/tools/macdivvun?channel=nightly": "*" }
+            }
+
             payloadMetadata = await PahkatUploader.release.macosPackage(
-                releaseReq(version, platform, { "https://pahkat.uit.no/tools/macdivvun": "*" }, channel),
+                releaseReq(version, platform, deps, channel),
                 artifactUrl,
                 1,
                 1,
