@@ -222,7 +222,7 @@ export enum RebootSpec { Install = "install", Uninstall = "uninstall",  Update =
 export enum WindowsExecutableKind { Inno = "inno", Nsis = "nsis", Msi = "msi" }
 
 export class PahkatPrefix {
-    static URL_LINUX = "https://pahkat.uit.no/artifacts/pahkat-prefix-cli_0.1.0_linux_amd64.txz"
+    static URL_LINUX = "https://pahkat.uit.no/artifacts/pahkat-prefix-cli_0.1.0-nightly.20200817T155144Z_linux_amd64.txz"
     static URL_MACOS = "https://pahkat.uit.no/artifacts/pahkat-prefix-cli_0.1.0_macos_amd64.txz"
     static URL_WINDOWS = "https://pahkat.uit.no/artifacts/pahkat-prefix-cli_0.1.0_windows_amd64.txz"
 

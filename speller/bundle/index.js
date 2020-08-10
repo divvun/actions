@@ -13,7 +13,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(require("@actions/core"));
 const io = __importStar(require("@actions/io"));
 const path_1 = __importDefault(require("path"));
-const toml_1 = __importDefault(require("toml"));
+const toml_1 = __importDefault(require("@iarna/toml"));
 const fs_1 = __importDefault(require("fs"));
 const shared_1 = require("../../shared");
 const manifest_1 = require("../manifest");
@@ -72,14 +72,21 @@ async function run() {
                     code.uninstallLegacy(productCode, "nsis");
                 }
             }
-            code.execPostInstall("{commonpf}\\WinDivvun\\i686\\spelli.exe", `register -t ${langTag} -p "{commonpf}\\WinDivvun\\Spellers\\${langTag}\\${langTag}.zhfst"`, `Could not register speller for tag: ${langTag}`);
-            code.execPreUninstall("{commonpf}\\WinDivvun\\i686\\spelli.exe", `register -t ${langTag}`, `Could not deregister speller for tag: ${langTag}`);
+            const spellerToml = {
+                spellers: {
+                    [langTag]: `${langTag}.zhfst`
+                }
+            };
             if (manifest.windows.extra_locales) {
                 for (const [tag, zhfstPrefix] of Object.entries(manifest.windows.extra_locales)) {
-                    code.execPostInstall("{commonpf}\\WinDivvun\\i686\\spelli.exe", `register -t ${tag} -p "{commonpf}\\WinDivvun\\Spellers\\${langTag}\\${zhfstPrefix}.zhfst"`, `Could not register speller for tag: ${tag}`);
-                    code.execPreUninstall("{commonpf}\\WinDivvun\\i686\\spelli.exe", `deregister -t ${tag}`, `Could not deregister speller for tag: ${tag}`);
+                    spellerToml.spellers[tag] = `${zhfstPrefix}.zhfst`;
                 }
             }
+            core.debug("Writing speller.toml:");
+            core.debug(toml_1.default.stringify(spellerToml));
+            fs_1.default.writeFileSync("./speller.toml", toml_1.default.stringify(spellerToml), "utf8");
+            code.execPostInstall("{commonpf}\\WinDivvun\\i686\\spelli.exe", `refresh`, `Could not refresh spellers. Is WinDivvun installed?`);
+            code.execPostUninstall("{commonpf}\\WinDivvun\\i686\\spelli.exe", `refresh`, `Could not refresh spellers. Is WinDivvun installed?`);
             return code;
         })
             .write("./install.iss");

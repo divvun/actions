@@ -169,6 +169,11 @@ begin
         RunResult := RunPreUninstall();
         if RunResult <> '' then RaiseException(RunResult);
     end;
+    if CurUninstallStep = usPostUninstall then
+    begin
+        RunResult := RunPostUninstall();
+        if RunResult <> '' then RaiseException(RunResult);
+    end;
 end;
 
 function PrepareToInstall(var NeedsRestart: Boolean): String;
@@ -201,6 +206,7 @@ class InnoSetupCodeBuilder {
         this.preInstalls = [];
         this.postInstalls = [];
         this.preUninstalls = [];
+        this.postUninstalls = [];
     }
     uninstallLegacy(productCode, type) {
         if (type === "nsis") {
@@ -221,6 +227,10 @@ class InnoSetupCodeBuilder {
     }
     execPreUninstall(binary, args, errorMsg) {
         this.preUninstalls.push(generateExec(binary, args, errorMsg));
+        return this;
+    }
+    execPostUninstall(binary, args, errorMsg) {
+        this.postUninstalls.push(generateExec(binary, args, errorMsg));
         return this;
     }
     generatePreInstall() {
@@ -256,12 +266,24 @@ end;
 `;
         return cmd;
     }
+    generatePostUninstall() {
+        const cmd = `\
+function RunPostUninstall: String;
+var
+    iResultCode: Integer;
+begin
+${this.postUninstalls.join("\n")}
+end;
+`;
+        return cmd;
+    }
     build() {
         return `\
 ${INNO_CODE_HEADER}
 ${this.generatePreInstall()}
 ${this.generatePostInstall()}
 ${this.generatePreUninstall()}
+${this.generatePostUninstall()}
 ${INNO_CODE_EVENTS}
 `;
     }

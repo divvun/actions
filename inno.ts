@@ -194,6 +194,11 @@ begin
         RunResult := RunPreUninstall();
         if RunResult <> '' then RaiseException(RunResult);
     end;
+    if CurUninstallStep = usPostUninstall then
+    begin
+        RunResult := RunPostUninstall();
+        if RunResult <> '' then RaiseException(RunResult);
+    end;
 end;
 
 function PrepareToInstall(var NeedsRestart: Boolean): String;
@@ -228,6 +233,7 @@ class InnoSetupCodeBuilder {
     private preInstalls: string[] = []
     private postInstalls: string[] = []
     private preUninstalls: string[] = []
+    private postUninstalls: string[] = []
 
     uninstallLegacy(productCode: string, type: string): InnoSetupCodeBuilder {
         if (type === "nsis") {
@@ -254,6 +260,12 @@ class InnoSetupCodeBuilder {
         return this
     }
 
+    execPostUninstall(binary: string, args: string, errorMsg: string): InnoSetupCodeBuilder {
+        this.postUninstalls.push(generateExec(binary, args, errorMsg))
+        return this
+    }
+
+
     private generatePreInstall(): string {
         const cmd = `\
 function RunPreInstall: String;
@@ -279,12 +291,25 @@ end;
     }
 
     private generatePreUninstall() {
-const cmd = `\
+        const cmd = `\
 function RunPreUninstall: String;
 var
     iResultCode: Integer;
 begin
 ${this.preUninstalls.join("\n")}
+end;
+`
+        return cmd
+    }
+
+    
+    private generatePostUninstall() {
+        const cmd = `\
+function RunPostUninstall: String;
+var
+    iResultCode: Integer;
+begin
+${this.postUninstalls.join("\n")}
 end;
 `
         return cmd
@@ -296,6 +321,7 @@ ${INNO_CODE_HEADER}
 ${this.generatePreInstall()}
 ${this.generatePostInstall()}
 ${this.generatePreUninstall()}
+${this.generatePostUninstall()}
 ${INNO_CODE_EVENTS}
 `
     }

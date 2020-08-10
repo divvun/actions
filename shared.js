@@ -254,7 +254,7 @@ class PahkatPrefix {
     }
 }
 exports.PahkatPrefix = PahkatPrefix;
-PahkatPrefix.URL_LINUX = "https://pahkat.uit.no/artifacts/pahkat-prefix-cli_0.1.0_linux_amd64.txz";
+PahkatPrefix.URL_LINUX = "https://pahkat.uit.no/artifacts/pahkat-prefix-cli_0.1.0-nightly.20200817T155144Z_linux_amd64.txz";
 PahkatPrefix.URL_MACOS = "https://pahkat.uit.no/artifacts/pahkat-prefix-cli_0.1.0_macos_amd64.txz";
 PahkatPrefix.URL_WINDOWS = "https://pahkat.uit.no/artifacts/pahkat-prefix-cli_0.1.0_windows_amd64.txz";
 var MacOSPackageTarget;

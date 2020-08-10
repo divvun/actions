@@ -1,7 +1,7 @@
 import * as core from '@actions/core'
 import * as io from "@actions/io"
 import path from 'path'
-import toml from 'toml'
+import toml from '@iarna/toml'
 import fs from 'fs'
 
 import { ThfstTools, Tar, SpellerPaths, DivvunBundler, nonUndefinedProxy } from '../../shared'
@@ -78,29 +78,31 @@ async function run() {
                     }
                 }
 
-                code.execPostInstall(
-                    "{commonpf}\\WinDivvun\\i686\\spelli.exe",
-                    `register -t ${langTag} -p "{commonpf}\\WinDivvun\\Spellers\\${langTag}\\${langTag}.zhfst"`,
-                    `Could not register speller for tag: ${langTag}`)
-
-                code.execPreUninstall(
-                    "{commonpf}\\WinDivvun\\i686\\spelli.exe",
-                    `register -t ${langTag}`,
-                    `Could not deregister speller for tag: ${langTag}`)
+                // Generate the speller.toml
+                const spellerToml = {
+                    spellers: {
+                        [langTag]: `${langTag}.zhfst`
+                    }
+                }
 
                 if (manifest.windows.extra_locales) {
                     for (const [tag, zhfstPrefix] of Object.entries(manifest.windows.extra_locales)) {
-                        code.execPostInstall(
-                            "{commonpf}\\WinDivvun\\i686\\spelli.exe",
-                            `register -t ${tag} -p "{commonpf}\\WinDivvun\\Spellers\\${langTag}\\${zhfstPrefix}.zhfst"`,
-                            `Could not register speller for tag: ${tag}`)
-
-                        code.execPreUninstall(
-                            "{commonpf}\\WinDivvun\\i686\\spelli.exe",
-                            `deregister -t ${tag}`,
-                            `Could not deregister speller for tag: ${tag}`)
+                        spellerToml.spellers[tag] = `${zhfstPrefix}.zhfst`
                     }
                 }
+
+                core.debug("Writing speller.toml:")
+                core.debug(toml.stringify(spellerToml))
+                fs.writeFileSync("./speller.toml", toml.stringify(spellerToml), "utf8")
+
+                code.execPostInstall(
+                        "{commonpf}\\WinDivvun\\i686\\spelli.exe",
+                        `refresh`,
+                        `Could not refresh spellers. Is WinDivvun installed?`)
+                code.execPostUninstall(
+                        "{commonpf}\\WinDivvun\\i686\\spelli.exe",
+                        `refresh`,
+                        `Could not refresh spellers. Is WinDivvun installed?`)
 
                 return code
             })
