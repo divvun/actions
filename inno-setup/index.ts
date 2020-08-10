@@ -1,5 +1,4 @@
 import * as core from '@actions/core'
-import path from 'path'
 import { makeInstaller } from './lib'
 
 async function run() {
