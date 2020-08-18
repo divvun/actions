@@ -60,9 +60,9 @@ async function run() {
             artifactUrl = `${PahkatUploader.ARTIFACTS_URL}${path.basename(artifactPath)}`
 
             // Make the nightly channel be used if any channel except for the default.
-            let deps: any = { "https://pahkat.uit.no/tools/windivvun": "*" }
+            let deps: any = { "https://pahkat.uit.no/tools/packages/windivvun": "*" }
             if (channel != null) {
-                deps = { "https://pahkat.uit.no/tools/windivvun?channel=nightly": "*" }
+                deps = { "https://pahkat.uit.no/tools/packages/windivvun?channel=nightly": "*" }
             }
 
             payloadMetadata = await PahkatUploader.release.windowsExecutable(
@@ -84,9 +84,9 @@ async function run() {
 
             
             // Make the nightly channel be used if any channel except for the default.
-            let deps: any = { "https://pahkat.uit.no/tools/macdivvun": "*" }
+            let deps: any = { "https://pahkat.uit.no/tools/packages/macdivvun": "*" }
             if (channel != null) {
-                deps = { "https://pahkat.uit.no/tools/macdivvun?channel=nightly": "*" }
+                deps = { "https://pahkat.uit.no/tools/packages/macdivvun?channel=nightly": "*" }
             }
 
             payloadMetadata = await PahkatUploader.release.macosPackage(
