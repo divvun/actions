@@ -29,7 +29,8 @@ async function run() {
         "pkg-config",
         "gawk",
         "python3-pip",
-        "zip"
+        "zip",
+        "bc"
     ], requiresSudo)
     await Pip.install(["PyYAML"], requiresSudo)
     await ProjectJJ.addNightlyToApt(requiresSudo)
