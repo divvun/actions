@@ -12,9 +12,9 @@ import { InnoSetupBuilder } from '../../inno'
 async function run() {
     const version = core.getInput("version", { required: true })
     const spellerType = core.getInput("speller-type", { required: true }) as SpellerType
-    const manifest = nonUndefinedProxy(toml.parse(fs.readFileSync(
+    const manifest = toml.parse(fs.readFileSync(
         core.getInput("speller-manifest-path", { required: true }), "utf8"
-    )), true) as SpellerManifest
+    )) as SpellerManifest
     const spellerPaths = nonUndefinedProxy(JSON.parse(
         core.getInput("speller-paths", { required: true })
     ), true) as SpellerPaths

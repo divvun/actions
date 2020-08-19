@@ -22,7 +22,7 @@ const inno_1 = require("../../inno");
 async function run() {
     const version = core.getInput("version", { required: true });
     const spellerType = core.getInput("speller-type", { required: true });
-    const manifest = shared_1.nonUndefinedProxy(toml_1.default.parse(fs_1.default.readFileSync(core.getInput("speller-manifest-path", { required: true }), "utf8")), true);
+    const manifest = toml_1.default.parse(fs_1.default.readFileSync(core.getInput("speller-manifest-path", { required: true }), "utf8"));
     const spellerPaths = shared_1.nonUndefinedProxy(JSON.parse(core.getInput("speller-paths", { required: true })), true);
     let { name } = manifest;
     const packageId = manifest_1.derivePackageId(spellerType);
