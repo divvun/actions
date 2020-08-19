@@ -155,16 +155,41 @@ Name: "ukrainian"; MessagesFile: "compiler:Languages\\Ukrainian.isl"
 `
 
 const INNO_CODE_HEADER = `\
-function UninstallIfExists(sInput: String; sArgs: String): String;
+function UninstallMsiIfExists(sCode: String): String;
 var
-  sUnInstPath: String;
-  sUnInstallString: String;
+  sUnInstPath: String;     
+  sUnInstPathWow64: String;
+  sUnInstallString: String;     
   iResultCode: Integer;
 begin
-  sUnInstPath := 'Software\Microsoft\Windows\CurrentVersion\Uninstall\' + sInput;
+  sUnInstPath := 'Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\' + sCode;   
+  sUnInstPathWow64 := 'Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\' + sCode;
   sUnInstallString := '';
-  if not RegQueryStringValue(HKLM, sUnInstPath, 'UninstallString', sUnInstallString) then
-    RegQueryStringValue(HKCU, sUnInstPath, 'UninstallString', sUnInstallString);
+  if not RegQueryStringValue(HKLM, sUnInstPath, 'UninstallString', sUnInstallString) then     
+    RegQueryStringValue(HKLM, sUnInstPathWow64, 'UninstallString', sUnInstallString); 
+  if sUnInstallString <> '' then
+  begin
+    Exec('msiexec', '/qn /x ' + sCode, '', SW_HIDE, ewWaitUntilTerminated, iResultCode);
+    if iResultCode <> 0 then
+    begin
+        Result := 'Failed to uninstall ' + sCode + ' (Error code: ' + IntToStr(iResultCode) + ')';
+    end;
+  end;
+end;
+
+
+function UninstallIfExists(sInput: String; sArgs: String): String;
+var
+  sUnInstPath: String;     
+  sUnInstPathWow64: String;
+  sUnInstallString: String;     
+  iResultCode: Integer;
+begin
+  sUnInstPath := 'Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\' + sInput;   
+  sUnInstPathWow64 := 'Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\' + sInput;
+  sUnInstallString := '';
+  if not RegQueryStringValue(HKLM, sUnInstPath, 'UninstallString', sUnInstallString) then     
+    RegQueryStringValue(HKLM, sUnInstPathWow64, 'UninstallString', sUnInstallString); 
   if sUnInstallString <> '' then
   begin
     Exec(sUnInstallString, sArgs, '', SW_HIDE, ewWaitUntilTerminated, iResultCode);
@@ -236,7 +261,7 @@ function generateMsiUninst(productCode: string) {
     return `\
 if Result = '' then
 begin
-    Result := UninstallIfExists('${productCode}', '/qn');
+    Result := UninstallMsiIfExists('${productCode}');
 end;
 `
 }
@@ -278,7 +303,6 @@ class InnoSetupCodeBuilder {
         this.postUninstalls.push(generateExec(binary, args, errorMsg))
         return this
     }
-
 
     private generatePreInstall(): string {
         const cmd = `\

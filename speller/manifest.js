@@ -22,6 +22,9 @@ function deriveLangTag(force3) {
     if (lang == "sme") {
         return "se";
     }
+    if (lang === "fao") {
+        return "fo";
+    }
     return lang;
 }
 exports.deriveLangTag = deriveLangTag;

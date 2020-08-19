@@ -38,6 +38,10 @@ export function deriveLangTag(force3: boolean) {
         return "se"
     }
 
+    if (lang === "fao") {
+        return "fo"
+    } 
+
     return lang
 }
 
