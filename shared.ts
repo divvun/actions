@@ -856,18 +856,18 @@ export function validateProductCode(kind: WindowsExecutableKind, code: string): 
     if (kind === WindowsExecutableKind.Inno) {
         if (code.startsWith("{") && code.endsWith("}_is1")) {
             core.debug("Found valid product code for Inno installer: " + code);
-            core.debug("Removing _is1")
-            return code.substring(0, code.length - 4)
+            return code
         }
 
         let updatedCode = code;
         
         if (!code.endsWith("}_is1") && !code.startsWith("{")) {
-            core.debug("Found plain UUID for Inno installer, wrapping in {...}")
-            updatedCode = `{${code}}`
+            core.debug("Found plain UUID for Inno installer, wrapping in {...}_is1")
+            updatedCode = `{${code}}_is1`
         }
         else if (code.endsWith("}") && code.startsWith("{")) {
-            core.debug("Found wrapped GUID for Inno installer")
+            core.debug("Found wrapped GUID for Inno installer, adding _is1")
+            updatedCode = `${code}_is1`
         } else {
             throw new Error(`Could not handle invalid Inno product code: ${code}`)
         }
