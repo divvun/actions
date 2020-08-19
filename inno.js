@@ -201,6 +201,14 @@ begin
 end;
 `;
 }
+function generateMsiUninst(productCode) {
+    return `\
+if Result = '' then
+begin
+    Result := UninstallIfExists('${productCode}', '/qn');
+end;
+`;
+}
 class InnoSetupCodeBuilder {
     constructor() {
         this.preInstalls = [];
@@ -211,6 +219,9 @@ class InnoSetupCodeBuilder {
     uninstallLegacy(productCode, type) {
         if (type === "nsis") {
             this.preInstalls.push(generateNsisUninst(productCode));
+        }
+        else if (type === "msi") {
+            this.preInstalls.push(generateMsiUninst(productCode));
         }
         else {
             throw new Error(`Unhandled type: '${type}'`);

@@ -69,12 +69,14 @@ async function run() {
                     files.add(zhfstPath, "{app}", flags)
                 }
 
+                files.add("speller.toml", "{app}", flags)
+
                 return files
             })
             .code(code => {
                 if (manifest.windows.legacy_product_codes) {
                     for (const productCode of manifest.windows.legacy_product_codes) {
-                        code.uninstallLegacy(productCode, "nsis")
+                        code.uninstallLegacy(productCode.value, productCode.kind)
                     }
                 }
 

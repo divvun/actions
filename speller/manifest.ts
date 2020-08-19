@@ -10,7 +10,7 @@ export type WindowsSpellerManifest = {
     system_product_code: string,
 
     // This includes a list of UUIDs that need to be uninstalled before installing the new one.
-    legacy_product_codes?: string[]
+    legacy_product_codes?: { value: string, kind: string }[]
 
     // Extra locales to register, prefix of zhfst is the value
     extra_locales?: { [bcp47: string]: string }
