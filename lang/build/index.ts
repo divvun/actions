@@ -108,9 +108,9 @@ async function run() {
         flags.push("--disable-transcriptors")
     }
 
-    if (config.hyphenators) {
-        flags.push("--enable-fst-hyphenator")
-    }
+    // if (config.hyphenators) {
+    //     flags.push("--enable-fst-hyphenator")
+    // }
 
     if (config.spellers || config["grammar-checkers"]) {
         flags.push("--enable-spellers")

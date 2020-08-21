@@ -95,9 +95,6 @@ async function run() {
         flags.push("--disable-generators");
         flags.push("--disable-transcriptors");
     }
-    if (config.hyphenators) {
-        flags.push("--enable-fst-hyphenator");
-    }
     if (config.spellers || config["grammar-checkers"]) {
         flags.push("--enable-spellers");
         flags.push("--disable-hfst-desktop-spellers");
