@@ -15,12 +15,12 @@ inputs:
   hyphenators:
     description: 'Build hyphenators'
     required: false
-    default: true
+    default: false
 
   analysers:
     description: 'Build analysers'
     required: false
-    default: true
+    default: false
 
   grammar-checkers:
     description: 'Build grammar checkers'
