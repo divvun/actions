@@ -40,7 +40,11 @@ export function deriveLangTag(force3: boolean) {
 
     if (lang === "fao") {
         return "fo"
-    } 
+    }
+
+    if (lang === "kal") {
+        return "kl"
+    }
 
     return lang
 }

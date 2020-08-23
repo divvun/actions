@@ -25,6 +25,9 @@ function deriveLangTag(force3) {
     if (lang === "fao") {
         return "fo";
     }
+    if (lang === "kal") {
+        return "kl";
+    }
     return lang;
 }
 exports.deriveLangTag = deriveLangTag;
