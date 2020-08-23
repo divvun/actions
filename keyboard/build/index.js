@@ -10,6 +10,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(require("@actions/core"));
 const shared_1 = require("../../shared");
 const types_1 = require("../types");
+const SEMVER_TAG_RE = /^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
 async function run() {
     const keyboardType = core.getInput("keyboard-type", { required: true });
     const bundlePath = types_1.getBundle();
@@ -18,11 +19,25 @@ async function run() {
     }
     let payloadPath;
     if (keyboardType === types_1.KeyboardType.MacOS) {
-        await shared_1.Kbdgen.setNightlyVersion(bundlePath, "mac");
+        if (shared_1.isMatchingTag(SEMVER_TAG_RE)) {
+            core.debug("Using version from kbdgen project");
+        }
+        else {
+            core.setOutput("channel", "nightly");
+            core.debug("Setting current version to nightly version");
+            await shared_1.Kbdgen.setNightlyVersion(bundlePath, "mac");
+        }
         payloadPath = await shared_1.Kbdgen.buildMacOS(bundlePath);
     }
     else if (keyboardType === types_1.KeyboardType.Windows) {
-        await shared_1.Kbdgen.setNightlyVersion(bundlePath, "win");
+        if (shared_1.isMatchingTag(SEMVER_TAG_RE)) {
+            core.debug("Using version from kbdgen project");
+        }
+        else {
+            core.setOutput("channel", "nightly");
+            core.debug("Setting current version to nightly version");
+            await shared_1.Kbdgen.setNightlyVersion(bundlePath, "win");
+        }
         payloadPath = await shared_1.Kbdgen.buildWindows(bundlePath);
     }
     else {

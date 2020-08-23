@@ -683,3 +683,18 @@ function isCurrentBranch(names) {
     return false;
 }
 exports.isCurrentBranch = isCurrentBranch;
+function isMatchingTag(tagPattern) {
+    let value = process.env.GITHUB_REF;
+    core.debug(`tag pattern: ${tagPattern}`);
+    core.debug(`GITHUB_REF: '${value}'`);
+    if (value == null) {
+        return false;
+    }
+    const prefix = "refs/tags";
+    if (!value.startsWith(prefix)) {
+        return false;
+    }
+    value = value.substring(prefix.length);
+    return tagPattern.test(value);
+}
+exports.isMatchingTag = isMatchingTag;
