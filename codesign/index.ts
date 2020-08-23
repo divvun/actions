@@ -37,7 +37,8 @@ async function run() {
  --primary-bundle-id ${fakeBundleId}\
  --username "${developerAccount}"\
  --password "${appPassword}"\
- --output-format json`)).join("\n"))
+ --output-format json
+ --file ${zipPath}`)).join("\n"))
         console.log(JSON.stringify(response, null, 2))
 
         const requestUuid = response["notarization-upload"].RequestUUID
