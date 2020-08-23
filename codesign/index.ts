@@ -37,7 +37,7 @@ async function run() {
  --primary-bundle-id ${fakeBundleId}\
  --username "${developerAccount}"\
  --password "${appPassword}"\
- --output-format json
+ --output-format json\
  --file ${zipPath}`)).join("\n"))
         console.log(JSON.stringify(response, null, 2))
 
@@ -52,7 +52,7 @@ async function run() {
             const response: any = JSON.parse((await Bash.runScript(`xcrun altool\
  --notarization-info ${requestUuid}\
  -u "${developerAccount}"\
- -p ${appPassword}"\
+ -p "${appPassword}"\
  --output-format json`)).join("\n"))
             console.log(JSON.stringify(response, null, 2))
             

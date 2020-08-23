@@ -37,7 +37,7 @@ async function run() {
  --primary-bundle-id ${fakeBundleId}\
  --username "${developerAccount}"\
  --password "${appPassword}"\
- --output-format json
+ --output-format json\
  --file ${zipPath}`)).join("\n"));
         console.log(JSON.stringify(response, null, 2));
         const requestUuid = response["notarization-upload"].RequestUUID;
@@ -48,7 +48,7 @@ async function run() {
             const response = JSON.parse((await shared_1.Bash.runScript(`xcrun altool\
  --notarization-info ${requestUuid}\
  -u "${developerAccount}"\
- -p ${appPassword}"\
+ -p "${appPassword}"\
  --output-format json`)).join("\n"));
             console.log(JSON.stringify(response, null, 2));
             const status = response["notarization-info"].Status;
