@@ -2,7 +2,7 @@ import * as core from '@actions/core'
 import fs from "fs"
 
 import toml from "toml"
-import { versionAsNightly, isCurrentBranch, nonUndefinedProxy } from '../shared'
+import { versionAsNightly, isCurrentBranch, nonUndefinedProxy, isMatchingTag } from '../shared'
 import { SpellerManifest } from '../speller/manifest'
 
 function getCargoToml() {
@@ -33,21 +33,11 @@ function getSpellerManifestToml(): SpellerManifest | null {
     return nonUndefinedProxy(toml.parse(fs.readFileSync(manifest, "utf8")))
 }
 
+// Taken straight from semver.org, with added 'v'
+const SEMVER_TAG_RE = /^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/
 
-function deriveNightly() {
-    const nightly = core.getInput("nightly") || null
-
-    if (nightly == null) {
-        return false
-    }
-
-    core.debug(`nightly input: '${nightly}'`)
-    
-    if (nightly === "true") {
-        return true
-    }
-
-    return isCurrentBranch(nightly.split(",").map(x => x.trim()))
+function deriveNightly(): boolean {
+    return !isMatchingTag(SEMVER_TAG_RE)
 }
 
 async function run() {

@@ -34,16 +34,9 @@ function getSpellerManifestToml() {
     }
     return shared_1.nonUndefinedProxy(toml_1.default.parse(fs_1.default.readFileSync(manifest, "utf8")));
 }
+const SEMVER_TAG_RE = /^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
 function deriveNightly() {
-    const nightly = core.getInput("nightly") || null;
-    if (nightly == null) {
-        return false;
-    }
-    core.debug(`nightly input: '${nightly}'`);
-    if (nightly === "true") {
-        return true;
-    }
-    return shared_1.isCurrentBranch(nightly.split(",").map(x => x.trim()));
+    return !shared_1.isMatchingTag(SEMVER_TAG_RE);
 }
 async function run() {
     const isNightly = deriveNightly();
