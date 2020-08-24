@@ -690,7 +690,7 @@ function isMatchingTag(tagPattern) {
     if (value == null) {
         return false;
     }
-    const prefix = "refs/tags";
+    const prefix = "refs/tags/";
     if (!value.startsWith(prefix)) {
         return false;
     }

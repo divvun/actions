@@ -927,7 +927,7 @@ export function isMatchingTag(tagPattern: RegExp) {
         return false
     }
 
-    const prefix = "refs/tags"
+    const prefix = "refs/tags/"
     if (!value.startsWith(prefix)) {
         return false
     }
