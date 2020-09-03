@@ -144,7 +144,7 @@ async function run() {
         fs.writeFileSync("./metadata.toml", data, "utf8")
     } else if (packageType === PackageType.WindowsExecutable) {
         let productCode = core.getInput("windows-product-code", { required: true })
-        const kind = core.getInput("windows-kind")
+        const kind = core.getInput("windows-kind") || null
         const rawReqReboot = core.getInput('windows-requires-reboot')
         const requiresReboot: RebootSpec[] = rawReqReboot
             ? rawReqReboot.split(',').map(x => x.trim()) as RebootSpec[]
