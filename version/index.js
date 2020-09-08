@@ -43,6 +43,7 @@ async function run() {
     const cargoToml = getCargoToml();
     const spellerManifest = getSpellerManifestToml();
     const csharp = core.getInput("csharp") || null;
+    const stableChannel = core.getInput("stable-channel") || null;
     let version;
     if (cargoToml != null) {
         core.debug("Getting version from TOML");
@@ -66,6 +67,9 @@ async function run() {
         core.debug("Generating nightly version");
         version = await shared_1.versionAsNightly(version);
         core.setOutput("channel", "nightly");
+    }
+    else if (stableChannel != null) {
+        core.setOutput("channel", stableChannel);
     }
     core.debug("Setting version to: " + version);
     core.setOutput("version", version);

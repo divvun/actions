@@ -45,6 +45,7 @@ async function run() {
     const cargoToml = getCargoToml()
     const spellerManifest = getSpellerManifestToml()
     const csharp = core.getInput("csharp") || null
+    const stableChannel = core.getInput("stable-channel") || null
 
     let version 
 
@@ -70,6 +71,8 @@ async function run() {
         version = await versionAsNightly(version)
 
         core.setOutput("channel", "nightly")
+    } else if (stableChannel != null) {
+        core.setOutput("channel", stableChannel)
     }
 
     core.debug("Setting version to: " + version)
