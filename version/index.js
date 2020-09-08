@@ -12,6 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(require("@actions/core"));
 const fs_1 = __importDefault(require("fs"));
+const path_1 = __importDefault(require("path"));
 const toml_1 = __importDefault(require("toml"));
 const shared_1 = require("../shared");
 function getCargoToml() {
@@ -38,10 +39,18 @@ const SEMVER_TAG_RE = /^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]
 function deriveNightly() {
     return !shared_1.isMatchingTag(SEMVER_TAG_RE);
 }
+function getPlistPath() {
+    const plistPath = core.getInput("plist") || null;
+    if (plistPath == null) {
+        return null;
+    }
+    return path_1.default.resolve(plistPath);
+}
 async function run() {
     const isNightly = deriveNightly();
     const cargoToml = getCargoToml();
     const spellerManifest = getSpellerManifestToml();
+    const plistPath = getPlistPath();
     const csharp = core.getInput("csharp") || null;
     const stableChannel = core.getInput("stable-channel") || null;
     let version;
@@ -56,6 +65,14 @@ async function run() {
     else if (spellerManifest != null) {
         core.debug("Getting version from speller manifest");
         version = spellerManifest.version;
+    }
+    else if (plistPath != null) {
+        core.debug('Getting version from plist');
+        const result = (await shared_1.Bash.runScript(`/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" "${plistPath}"`)).join("").trim();
+        if (result === "") {
+            throw new Error("No version found in plist");
+        }
+        version = result;
     }
     else {
         throw new Error("Did not find a suitable mechanism to derive the version.");

@@ -9,6 +9,10 @@ inputs:
     description: Speller manifest
   stable-channel:
     description: Channel to deploy to for a stable build; defaults to empty
+  plist:
+    description: ... plist
+  nightly:
+    description: Add a nightly version suffix if `true`, or if string matches current branch name
 outputs:
   version:
     description: The generated version

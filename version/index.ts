@@ -1,8 +1,9 @@
 import * as core from '@actions/core'
 import fs from "fs"
+import path from "path"
 
 import toml from "toml"
-import { versionAsNightly, isCurrentBranch, nonUndefinedProxy, isMatchingTag } from '../shared'
+import { versionAsNightly, nonUndefinedProxy, Bash, isMatchingTag } from '../shared'
 import { SpellerManifest } from '../speller/manifest'
 
 function getCargoToml() {
@@ -40,10 +41,21 @@ function deriveNightly(): boolean {
     return !isMatchingTag(SEMVER_TAG_RE)
 }
 
+function getPlistPath() {
+    const plistPath = core.getInput("plist") || null
+
+    if (plistPath == null) {
+        return null
+    }
+
+    return path.resolve(plistPath)
+}
+
 async function run() {
     const isNightly = deriveNightly()
     const cargoToml = getCargoToml()
     const spellerManifest = getSpellerManifestToml()
+    const plistPath = getPlistPath()
     const csharp = core.getInput("csharp") || null
     const stableChannel = core.getInput("stable-channel") || null
 
@@ -58,6 +70,13 @@ async function run() {
     } else if (spellerManifest != null) {
         core.debug("Getting version from speller manifest")
         version = spellerManifest.version
+    } else if (plistPath != null) {
+        core.debug('Getting version from plist')
+        const result = (await Bash.runScript(`/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" "${plistPath}"`)).join("").trim()
+        if (result === "") {
+            throw new Error("No version found in plist")
+        }
+        version = result
     } else {
         throw new Error("Did not find a suitable mechanism to derive the version.")
     }
