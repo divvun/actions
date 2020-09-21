@@ -38,6 +38,7 @@ async function run() {
     if (requiresApertium) {
         devPackages.push("apertium")
         devPackages.push("apertium-dev")
+        devPackages.push("apertium-lex-tools")
     }
 
     await Apt.update(requiresSudo)
