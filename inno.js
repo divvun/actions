@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.InnoSetupBuilder = void 0;
 const fs_1 = __importDefault(require("fs"));
 function stringFromInnoFile(input) {
     let out = `Source: "${input.Source}"; DestDir: "${input.DestDir}"`;
