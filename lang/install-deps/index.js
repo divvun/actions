@@ -21,9 +21,9 @@ function getSudo() {
 }
 async function run() {
     const requiresSudo = getSudo();
+    const requiresApertium = !!core.getInput("apertium");
     core.debug("Requires sudo? " + requiresSudo);
-    await shared_1.Apt.update(requiresSudo);
-    await shared_1.Apt.install([
+    const basePackages = [
         "wget",
         "build-essential",
         "autotools-dev",
@@ -34,10 +34,17 @@ async function run() {
         "python3-pip",
         "zip",
         "bc"
-    ], requiresSudo);
+    ];
+    const devPackages = ["foma", "hfst", "libhfst-dev", "cg3-dev", "divvun-gramcheck"];
+    if (requiresApertium) {
+        devPackages.push("apertium");
+        devPackages.push("apertium-dev");
+    }
+    await shared_1.Apt.update(requiresSudo);
+    await shared_1.Apt.install(basePackages, requiresSudo);
     await shared_1.Pip.install(["PyYAML"], requiresSudo);
     await shared_1.ProjectJJ.addNightlyToApt(requiresSudo);
-    await shared_1.Apt.install(["foma", "hfst", "libhfst-dev", "cg3-dev", "divvun-gramcheck"], requiresSudo);
+    await shared_1.Apt.install(devPackages, requiresSudo);
     await shared_1.Ssh.cleanKnownHosts();
 }
 run().catch(err => {

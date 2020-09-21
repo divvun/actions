@@ -6,6 +6,9 @@ inputs:
     description: Requires sudo
     default: "true"
     required: false
+  apertium:
+    description: Requires apertium
+    required: false
   
 runs:
   using: 'node12'

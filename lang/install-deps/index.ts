@@ -17,10 +17,10 @@ function getSudo() {
 
 async function run() {
     const requiresSudo = getSudo()
+    const requiresApertium = !!core.getInput("apertium")
     core.debug("Requires sudo? " + requiresSudo)
 
-    await Apt.update(requiresSudo)
-    await Apt.install([
+    const basePackages = [
         "wget",
         "build-essential",
         "autotools-dev",
@@ -31,10 +31,20 @@ async function run() {
         "python3-pip",
         "zip",
         "bc"
-    ], requiresSudo)
+    ]
+
+    const devPackages = ["foma", "hfst", "libhfst-dev", "cg3-dev", "divvun-gramcheck"]
+
+    if (requiresApertium) {
+        devPackages.push("apertium")
+        devPackages.push("apertium-dev")
+    }
+
+    await Apt.update(requiresSudo)
+    await Apt.install(basePackages, requiresSudo)
     await Pip.install(["PyYAML"], requiresSudo)
     await ProjectJJ.addNightlyToApt(requiresSudo)
-    await Apt.install(["foma", "hfst", "libhfst-dev", "cg3-dev", "divvun-gramcheck"], requiresSudo)
+    await Apt.install(devPackages, requiresSudo)
     await Ssh.cleanKnownHosts()
 }
 
