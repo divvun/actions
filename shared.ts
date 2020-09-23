@@ -262,6 +262,10 @@ export class PahkatPrefix {
         }
 
         // Init the repo
+        if (fs.existsSync(PahkatPrefix.path)) {
+            core.debug(`${PahkatPrefix.path} exists; deleting first.`)
+            fs.rmdirSync(PahkatPrefix.path, { recursive: true })
+        }
         await DefaultShell.runScript(`pahkat-prefix-cli init -c ${PahkatPrefix.path}`)
     }
 

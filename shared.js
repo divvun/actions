@@ -249,6 +249,10 @@ class PahkatPrefix {
         else {
             throw new Error(`Unsupported platform: ${platform}`);
         }
+        if (fs_1.default.existsSync(PahkatPrefix.path)) {
+            core.debug(`${PahkatPrefix.path} exists; deleting first.`);
+            fs_1.default.rmdirSync(PahkatPrefix.path, { recursive: true });
+        }
         await DefaultShell.runScript(`pahkat-prefix-cli init -c ${PahkatPrefix.path}`);
     }
     static async addRepo(url, channel) {
