@@ -34,6 +34,12 @@ function getSpellerManifestToml(): SpellerManifest | null {
     return nonUndefinedProxy(toml.parse(fs.readFileSync(manifest, "utf8")))
 }
 
+async function getXcodeMarketingVersion() {
+    // Xcode is the worst and I want out of this dastardly life.
+    const [out] = await Bash.runScript(`xcodebuild -showBuildSettings | grep -i 'MARKETING_VERSION' | sed 's/ *MARKETING_VERSION = //'`)
+    return out.trim()
+}
+
 // Taken straight from semver.org, with added 'v'
 const SEMVER_TAG_RE = /^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/
 
@@ -52,6 +58,7 @@ function getPlistPath() {
 }
 
 async function run() {
+    const isXcode = core.getInput("xcode") || null
     const isNightly = deriveNightly()
     const cargoToml = getCargoToml()
     const spellerManifest = getSpellerManifestToml()
@@ -77,11 +84,13 @@ async function run() {
             throw new Error("No version found in plist")
         }
         version = result
+    } else if (isXcode) {
+        version = await getXcodeMarketingVersion()
     } else {
         throw new Error("Did not find a suitable mechanism to derive the version.")
     }
 
-    if (version == null) {
+    if (version == null || version.trim() === "") {
         throw new Error("Did not find any version.")
     }
 
