@@ -42,7 +42,7 @@ async function getXcodeMarketingVersion() {
         cwd = input.trim()
     }
     // Xcode is the worst and I want out of this dastardly life.
-    const [out] = await Bash.runScript(`xcodebuild -showBuildSettings | grep -i 'MARKETING_VERSION' | sed 's/ *MARKETING_VERSION = //'`, { cwd })
+    const [out] = await Bash.runScript(`xcodebuild -showBuildSettings | grep -i 'MARKETING_VERSION' | sed 's/[ ]*MARKETING_VERSION = //'`, { cwd })
     return out.trim()
 }
 
