@@ -9,18 +9,32 @@ import fs from 'fs'
 import YAML from 'yaml'
 import * as tmp from 'tmp'
 import { Octokit } from "@octokit/action"
+import crypto from "crypto"
+
+export function tmpDir() {
+    const dir = process.env["RUNNER_TEMP"]
+    if (dir == null || dir.trim() == '') {
+        throw new Error("RUNNER_TEMP was not defined")
+    }
+    return dir
+}
 
 export function divvunConfigDir() {
-    const runner = process.env['RUNNER_WORKSPACE']
-    if (!runner)
-        throw new Error('no RUNNER_WORKSPACE set');
-    return path.resolve(runner, "divvun-ci-config")
+    return path.resolve(tmpDir(), "divvun-ci-config")
 }
 
 export function shouldDeploy() {
-    const isMaster = github.context.ref == 'refs/heads/master'
+    return github.context.ref === 'refs/heads/master'
+}
 
-    return isMaster
+// Generates a random string of 64 characters in length (48 bytes converted to base64)
+export function randomString64() {
+    // Replace slashes just in case bad things in the terminal
+    return crypto.randomBytes(48).toString("base64")
+}
+
+export function randomHexBytes(count: number) {
+    return crypto.randomBytes(count).toString("hex")
 }
 
 export const DIVVUN_PFX = `${divvunConfigDir()}\\enc\\creds\\windows\\divvun.pfx`
@@ -184,15 +198,37 @@ export class Tar {
             return
         }
 
-        const outputPath = path.join(process.env.RUNNER_WORKSPACE!, "bin_x86-64")
+        const outputPath = path.join(tmpDir(), "xz", "bin_x86-64")
         if (fs.existsSync(path.join(outputPath, "xz.exe"))) {
             return
         }
 
         core.debug("Attempt to download xz tools")
         const xzToolsZip = await tc.downloadTool(Tar.URL_XZ_WINDOWS)
-        await tc.extractZip(xzToolsZip, process.env.RUNNER_WORKSPACE!)
+        await tc.extractZip(xzToolsZip, path.join(tmpDir(), "xz"))
         core.addPath(outputPath)
+    }
+
+    static async extractTxz(filePath: string, outputDir?: string) {
+        const platform = process.platform
+
+        if (platform === "linux") {
+            return await tc.extractTar(filePath, outputDir || tmpDir(), "Jx")
+        } else if (platform === "darwin") {
+            return await tc.extractTar(filePath, outputDir || tmpDir())
+        } else if (platform === "win32") {
+            // Windows kinda can't deal with no xz.
+            await Tar.bootstrap()
+
+            // Now we unxz it
+            core.debug("Attempt to unxz")
+            await exec("xz", ["-d", filePath])
+
+            core.debug("Attempted to extract tarball")
+            return await tc.extractTar(`${path.dirname(filePath)}\\${path.basename(filePath, ".txz")}.tar`, outputDir || tmpDir())
+        } else {
+            throw new Error(`Unsupported platform: ${platform}`)
+        }
     }
 
     static async createFlatTxz(paths: string[], outputPath: string) {
@@ -227,39 +263,31 @@ export class PahkatPrefix {
     static URL_WINDOWS = "https://pahkat.uit.no/artifacts/pahkat-prefix-cli_0.1.0_windows_amd64.txz"
 
     static get path(): string {
-        return path.join(process.env.RUNNER_WORKSPACE!, "pahkat-prefix")
+        return path.join(tmpDir(), "pahkat-prefix")
     }
 
     static async bootstrap() {
         const platform = process.platform
-        const binPath = path.resolve(path.join(process.env.RUNNER_WORKSPACE!, "bin"))
-        core.addPath(binPath)
-
-        console.log(`Bin path: ${binPath}, platform: ${process.platform}`)
         
+        let txz
         if (platform === "linux") {
-            const txz = await tc.downloadTool(PahkatPrefix.URL_LINUX)
-            console.log(await tc.extractTar(txz, process.env.RUNNER_WORKSPACE!, "Jx"))
+            txz = await tc.downloadTool(PahkatPrefix.URL_LINUX)
         } else if (platform === "darwin") {
-            const txz = await tc.downloadTool(PahkatPrefix.URL_MACOS)
-            console.log(await tc.extractTar(txz, process.env.RUNNER_WORKSPACE!))
+            txz = await tc.downloadTool(PahkatPrefix.URL_MACOS)
         } else if (platform === "win32") {
-            // Windows kinda can't deal with no xz.
-            await Tar.bootstrap()
-            
             // Now we can download things
-            const txz = await tc.downloadTool(PahkatPrefix.URL_WINDOWS,
-                path.join(process.env.RUNNER_WORKSPACE!, "pahkat-dl.txz"))
-
-            // Now we unxz it
-            core.debug("Attempt to unxz")
-            await exec("xz", ["-d", txz])
-
-            core.debug("Attempted to extract tarball")
-            console.log(await tc.extractTar(`${path.dirname(txz)}\\${path.basename(txz, ".txz")}.tar`, process.env.RUNNER_WORKSPACE!))
+            txz = await tc.downloadTool(PahkatPrefix.URL_WINDOWS,
+                path.join(tmpDir(), "pahkat-dl.txz"))
         } else {
             throw new Error(`Unsupported platform: ${platform}`)
         }
+
+        // Extract the file
+        const outputPath = await Tar.extractTxz(txz)
+        const binPath = path.resolve(outputPath, "bin")
+
+        console.log(`Bin path: ${binPath}, platform: ${process.platform}`)
+        core.addPath(binPath)
 
         // Init the repo
         if (fs.existsSync(PahkatPrefix.path)) {

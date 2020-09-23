@@ -22,7 +22,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.isMatchingTag = exports.isCurrentBranch = exports.validateProductCode = exports.nonUndefinedProxy = exports.DivvunBundler = exports.versionAsNightly = exports.ThfstTools = exports.Subversion = exports.Kbdgen = exports.ProjectJJ = exports.Ssh = exports.PahkatUploader = exports.MacOSPackageTarget = exports.PahkatPrefix = exports.WindowsExecutableKind = exports.RebootSpec = exports.Tar = exports.Bash = exports.DefaultShell = exports.Powershell = exports.Pip = exports.Apt = exports.secrets = exports.DIVVUN_PFX = exports.shouldDeploy = exports.divvunConfigDir = void 0;
+exports.isMatchingTag = exports.isCurrentBranch = exports.validateProductCode = exports.nonUndefinedProxy = exports.DivvunBundler = exports.versionAsNightly = exports.ThfstTools = exports.Subversion = exports.Kbdgen = exports.ProjectJJ = exports.Ssh = exports.PahkatUploader = exports.MacOSPackageTarget = exports.PahkatPrefix = exports.WindowsExecutableKind = exports.RebootSpec = exports.Tar = exports.Bash = exports.DefaultShell = exports.Powershell = exports.Pip = exports.Apt = exports.secrets = exports.DIVVUN_PFX = exports.randomHexBytes = exports.randomString64 = exports.shouldDeploy = exports.divvunConfigDir = exports.tmpDir = void 0;
 const exec_1 = require("@actions/exec");
 const core = __importStar(require("@actions/core"));
 const github = __importStar(require("@actions/github"));
@@ -34,18 +34,31 @@ const fs_1 = __importDefault(require("fs"));
 const yaml_1 = __importDefault(require("yaml"));
 const tmp = __importStar(require("tmp"));
 const action_1 = require("@octokit/action");
+const crypto_1 = __importDefault(require("crypto"));
+function tmpDir() {
+    const dir = process.env["RUNNER_TEMP"];
+    if (dir == null || dir.trim() == '') {
+        throw new Error("RUNNER_TEMP was not defined");
+    }
+    return dir;
+}
+exports.tmpDir = tmpDir;
 function divvunConfigDir() {
-    const runner = process.env['RUNNER_WORKSPACE'];
-    if (!runner)
-        throw new Error('no RUNNER_WORKSPACE set');
-    return path_1.default.resolve(runner, "divvun-ci-config");
+    return path_1.default.resolve(tmpDir(), "divvun-ci-config");
 }
 exports.divvunConfigDir = divvunConfigDir;
 function shouldDeploy() {
-    const isMaster = github.context.ref == 'refs/heads/master';
-    return isMaster;
+    return github.context.ref === 'refs/heads/master';
 }
 exports.shouldDeploy = shouldDeploy;
+function randomString64() {
+    return crypto_1.default.randomBytes(48).toString("base64");
+}
+exports.randomString64 = randomString64;
+function randomHexBytes(count) {
+    return crypto_1.default.randomBytes(count).toString("hex");
+}
+exports.randomHexBytes = randomHexBytes;
 exports.DIVVUN_PFX = `${divvunConfigDir()}\\enc\\creds\\windows\\divvun.pfx`;
 let loadedSecrets = null;
 function secrets() {
@@ -181,14 +194,33 @@ class Tar {
         if (process.platform !== "win32") {
             return;
         }
-        const outputPath = path_1.default.join(process.env.RUNNER_WORKSPACE, "bin_x86-64");
+        const outputPath = path_1.default.join(tmpDir(), "xz", "bin_x86-64");
         if (fs_1.default.existsSync(path_1.default.join(outputPath, "xz.exe"))) {
             return;
         }
         core.debug("Attempt to download xz tools");
         const xzToolsZip = await tc.downloadTool(Tar.URL_XZ_WINDOWS);
-        await tc.extractZip(xzToolsZip, process.env.RUNNER_WORKSPACE);
+        await tc.extractZip(xzToolsZip, path_1.default.join(tmpDir(), "xz"));
         core.addPath(outputPath);
+    }
+    static async extractTxz(filePath, outputDir) {
+        const platform = process.platform;
+        if (platform === "linux") {
+            return await tc.extractTar(filePath, outputDir || tmpDir(), "Jx");
+        }
+        else if (platform === "darwin") {
+            return await tc.extractTar(filePath, outputDir || tmpDir());
+        }
+        else if (platform === "win32") {
+            await Tar.bootstrap();
+            core.debug("Attempt to unxz");
+            await exec_1.exec("xz", ["-d", filePath]);
+            core.debug("Attempted to extract tarball");
+            return await tc.extractTar(`${path_1.default.dirname(filePath)}\\${path_1.default.basename(filePath, ".txz")}.tar`, outputDir || tmpDir());
+        }
+        else {
+            throw new Error(`Unsupported platform: ${platform}`);
+        }
     }
     static async createFlatTxz(paths, outputPath) {
         const tmpDir = tmp.dirSync();
@@ -223,32 +255,27 @@ var WindowsExecutableKind;
 })(WindowsExecutableKind = exports.WindowsExecutableKind || (exports.WindowsExecutableKind = {}));
 class PahkatPrefix {
     static get path() {
-        return path_1.default.join(process.env.RUNNER_WORKSPACE, "pahkat-prefix");
+        return path_1.default.join(tmpDir(), "pahkat-prefix");
     }
     static async bootstrap() {
         const platform = process.platform;
-        const binPath = path_1.default.resolve(path_1.default.join(process.env.RUNNER_WORKSPACE, "bin"));
-        core.addPath(binPath);
-        console.log(`Bin path: ${binPath}, platform: ${process.platform}`);
+        let txz;
         if (platform === "linux") {
-            const txz = await tc.downloadTool(PahkatPrefix.URL_LINUX);
-            console.log(await tc.extractTar(txz, process.env.RUNNER_WORKSPACE, "Jx"));
+            txz = await tc.downloadTool(PahkatPrefix.URL_LINUX);
         }
         else if (platform === "darwin") {
-            const txz = await tc.downloadTool(PahkatPrefix.URL_MACOS);
-            console.log(await tc.extractTar(txz, process.env.RUNNER_WORKSPACE));
+            txz = await tc.downloadTool(PahkatPrefix.URL_MACOS);
         }
         else if (platform === "win32") {
-            await Tar.bootstrap();
-            const txz = await tc.downloadTool(PahkatPrefix.URL_WINDOWS, path_1.default.join(process.env.RUNNER_WORKSPACE, "pahkat-dl.txz"));
-            core.debug("Attempt to unxz");
-            await exec_1.exec("xz", ["-d", txz]);
-            core.debug("Attempted to extract tarball");
-            console.log(await tc.extractTar(`${path_1.default.dirname(txz)}\\${path_1.default.basename(txz, ".txz")}.tar`, process.env.RUNNER_WORKSPACE));
+            txz = await tc.downloadTool(PahkatPrefix.URL_WINDOWS, path_1.default.join(tmpDir(), "pahkat-dl.txz"));
         }
         else {
             throw new Error(`Unsupported platform: ${platform}`);
         }
+        const outputPath = await Tar.extractTxz(txz);
+        const binPath = path_1.default.resolve(outputPath, "bin");
+        console.log(`Bin path: ${binPath}, platform: ${process.platform}`);
+        core.addPath(binPath);
         if (fs_1.default.existsSync(PahkatPrefix.path)) {
             core.debug(`${PahkatPrefix.path} exists; deleting first.`);
             fs_1.default.rmdirSync(PahkatPrefix.path, { recursive: true });

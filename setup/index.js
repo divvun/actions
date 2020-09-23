@@ -18,10 +18,13 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(require("@actions/core"));
-const exec = __importStar(require("@actions/exec"));
-const os = __importStar(require("os"));
+const tc = __importStar(require("@actions/tool-cache"));
+const path_1 = __importDefault(require("path"));
 const shared_1 = require("../shared");
 function getSetupScript() {
     if (process.platform == "darwin")
@@ -32,23 +35,87 @@ function getSetupScript() {
         return `${__dirname}/setup-linux.sh`;
     throw new Error(`Unsupported platform ${process.platform}`);
 }
+async function downloadAppleWWDRCA() {
+    return await tc.downloadTool("https://developer.apple.com/certificationauthority/AppleWWDRCA.cer");
+}
+class Security {
+    constructor() { throw new Error("cannot be instantiated"); }
+    static async run(subcommand, args) {
+        `security ${subcommand} ${args.join(" ")}`;
+    }
+    static async deleteKeychain(name) {
+        return await Security.run("delete-keychain", [`${name}.keychain`]);
+    }
+    static async createKeychain(name, password) {
+        core.setSecret(password);
+        return await Security.run("create-keychain", ["-p", password, `${name}.keychain`]);
+    }
+    static async defaultKeychain(name) {
+        return await Security.run("default-keychain", [`${name}.keychain`]);
+    }
+    static async unlockKeychain(name, password) {
+        core.setSecret(password);
+        return await Security.run("unlock-keychain", ["-p", password, `${name}.keychain`]);
+    }
+    static async setKeychainTimeout(timeout) {
+        const intTimeout = (timeout | 0).toString();
+        return await Security.run("set-keychain-settings", ["-t", intTimeout]);
+    }
+    static async import(keychainName, certOrKeyPath, keyPassword) {
+        if (keyPassword != null) {
+            core.setSecret(keyPassword);
+            return await Security.run("import", [certOrKeyPath, "-k", `~/Library/Keychains/${keychainName}.keychain`, "-P", keyPassword, "-A"]);
+        }
+        else {
+            return await Security.run("import", [certOrKeyPath, "-k", `~/Library/Keychains/${keychainName}.keychain`, "-A"]);
+        }
+    }
+    static async setKeyPartitionList(keychainName, password, partitionList) {
+        core.setSecret(password);
+        return await Security.run("set-key-partition-list", ["-S", partitionList.join(","), "-s", "-k", password, `${keychainName}.keychain`]);
+    }
+}
+async function setupMacOSKeychain() {
+    const sec = shared_1.secrets();
+    const name = `divvun-build-${shared_1.randomHexBytes(6)}`;
+    const password = shared_1.randomString64();
+    try {
+        await Security.deleteKeychain(name);
+    }
+    catch (_) { }
+    await Security.createKeychain(name, password);
+    await Security.defaultKeychain(name);
+    await Security.unlockKeychain(name, password);
+    await Security.setKeychainTimeout(3600);
+    const certPath = await downloadAppleWWDRCA();
+    await Security.import(name, certPath);
+    await Security.import(name, path_1.default.resolve(shared_1.divvunConfigDir(), sec.macos.appCer));
+    await Security.import(name, path_1.default.resolve(shared_1.divvunConfigDir(), sec.macos.installerCer));
+    await Security.import(name, path_1.default.resolve(shared_1.divvunConfigDir(), sec.macos.installerP12), sec.macos.installerP12Password);
+    await Security.import(name, path_1.default.resolve(shared_1.divvunConfigDir(), sec.macos.appP12), sec.macos.appP12Password);
+    await Security.setKeyPartitionList(name, password, ["apple-tool:", "apple:"]);
+}
+async function cloneConfigRepo(password) {
+    core.setSecret(password);
+    const dir = shared_1.tmpDir();
+    await shared_1.Bash.runScript("git clone --depth=1 https://github.com/divvun/divvun-ci-config.git", { cwd: dir });
+    const repoDir = shared_1.divvunConfigDir();
+    await shared_1.Bash.runScript(`openssl aes-256-cbc -d -in ./config.txz.enc -pass pass:${password} -out config.txz -md md5`, { cwd: repoDir });
+    await shared_1.Tar.bootstrap();
+    await shared_1.Tar.extractTxz(path_1.default.resolve(repoDir, "config.txz"), repoDir);
+}
 async function run() {
     try {
         const divvunKey = core.getInput("key", { required: true });
         core.setSecret(divvunKey);
         console.log("Setting up environment");
-        await exec.exec("bash", [getSetupScript()], {
-            cwd: process.env.RUNNER_WORKSPACE,
-            env: {
-                "DIVVUN_KEY": divvunKey,
-                "HOME": os.homedir()
-            }
-        });
-        if (process.platform == "win32") {
+        await cloneConfigRepo(divvunKey);
+        if (process.platform === "win32") {
             core.addPath("C:\\Program Files (x86)\\Microsoft SDKs\\ClickOnce\\SignTool");
         }
-        core.exportVariable("DIVVUN_KEY", divvunKey);
-        core.exportVariable("DIVVUN_CI_CONFIG", shared_1.divvunConfigDir());
+        else if (process.platform == "darwin") {
+            await setupMacOSKeychain();
+        }
     }
     catch (error) {
         core.setFailed(error.message);
