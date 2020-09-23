@@ -35,8 +35,14 @@ function getSpellerManifestToml(): SpellerManifest | null {
 }
 
 async function getXcodeMarketingVersion() {
+    const input = core.getInput("xcode") || null
+    let cwd
+
+    if (input != null && input !== "true") {
+        cwd = input.trim()
+    }
     // Xcode is the worst and I want out of this dastardly life.
-    const [out] = await Bash.runScript(`xcodebuild -showBuildSettings | grep -i 'MARKETING_VERSION' | sed 's/ *MARKETING_VERSION = //'`)
+    const [out] = await Bash.runScript(`xcodebuild -showBuildSettings | grep -i 'MARKETING_VERSION' | sed 's/ *MARKETING_VERSION = //'`, { cwd })
     return out.trim()
 }
 
