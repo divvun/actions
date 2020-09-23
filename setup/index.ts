@@ -98,6 +98,8 @@ async function setupMacOSKeychain() {
     divvunConfigDir(), sec.macos.appP12), sec.macos.appP12Password)
 
   await Security.setKeyPartitionList(name, password, ["apple-tool:", "apple:"])
+
+  await Bash.runScript(`xcrun altool --store-password-in-keychain-item "${sec.macos.passwordChainItem}" -u "${sec.macos.developerAccount}" -p "${sec.macos.appPassword}"`)
 }
 
 async function cloneConfigRepo(password: string) {
