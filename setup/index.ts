@@ -2,6 +2,7 @@ import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import * as os from 'os'
 import * as tc from "@actions/tool-cache"
+import * as io from "@actions/io"
 import path from "path"
 
 import { Bash, divvunConfigDir, randomHexBytes, randomString64, secrets, Tar, tmpDir } from '../shared'
@@ -116,6 +117,11 @@ async function cloneConfigRepo(password: string) {
   await Tar.extractTxz(path.resolve(repoDir, "config.txz"), repoDir)
 }
 
+async function bootstrapDependencies() {
+  try { await io.which("svn") }
+  catch (_) { await Bash.runScript("brew install subversion") }
+}
+
 async function run() {
   try {
     const divvunKey = core.getInput("key", { required: true })
@@ -128,6 +134,7 @@ async function run() {
       core.addPath("C:\\Program Files (x86)\\Microsoft SDKs\\ClickOnce\\SignTool")
     } else if (process.platform == "darwin") {
       await setupMacOSKeychain()
+      await bootstrapDependencies()
     }
   }
   catch (error) {
