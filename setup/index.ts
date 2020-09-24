@@ -36,9 +36,9 @@ class Security {
     return await Security.run("unlock-keychain", ["-p", `"${password}"`, `${name}.keychain`])
   }
 
-  public static async setKeychainTimeout(timeout: number) {
+  public static async setKeychainTimeout(name: string, timeout: number) {
     const intTimeout = (timeout | 0).toString()
-    return await Security.run("set-keychain-settings", ["-t", intTimeout])
+    return await Security.run("set-keychain-settings", ["-t", intTimeout, "-u", `${name}.keychain`])
   }
 
   public static async import(keychainName: string, certOrKeyPath: string, keyPassword?: string) {
@@ -84,7 +84,7 @@ async function setupMacOSKeychain() {
   debug(await Security.createKeychain(name, password))
   debug(await Security.defaultKeychain(name))
   debug(await Security.unlockKeychain(name, password))
-  debug(await Security.setKeychainTimeout(3600))
+  debug(await Security.setKeychainTimeout(name, 36000))
 
   // Import certs
   const certPath = await downloadAppleWWDRCA()

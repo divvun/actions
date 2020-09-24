@@ -48,9 +48,9 @@ class Security {
         core.setSecret(password);
         return await Security.run("unlock-keychain", ["-p", `"${password}"`, `${name}.keychain`]);
     }
-    static async setKeychainTimeout(timeout) {
+    static async setKeychainTimeout(name, timeout) {
         const intTimeout = (timeout | 0).toString();
-        return await Security.run("set-keychain-settings", ["-t", intTimeout]);
+        return await Security.run("set-keychain-settings", ["-t", intTimeout, "-u", `${name}.keychain`]);
     }
     static async import(keychainName, certOrKeyPath, keyPassword) {
         if (keyPassword != null) {
@@ -86,7 +86,7 @@ async function setupMacOSKeychain() {
     debug(await Security.createKeychain(name, password));
     debug(await Security.defaultKeychain(name));
     debug(await Security.unlockKeychain(name, password));
-    debug(await Security.setKeychainTimeout(3600));
+    debug(await Security.setKeychainTimeout(name, 36000));
     const certPath = await downloadAppleWWDRCA();
     debug(await Security.import(name, certPath));
     debug(await Security.import(name, path_1.default.resolve(shared_1.divvunConfigDir(), sec.macos.appCer)));
