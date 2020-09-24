@@ -27,7 +27,7 @@ class Security {
   }
 
   public static async defaultKeychain(name: string) {
-    return await Security.run("default-keychain", [`${name}.keychain`])
+    return await Security.run("default-keychain", ["-s", `${name}.keychain`])
   }
 
   public static async unlockKeychain(name: string, password: string) {

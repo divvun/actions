@@ -42,7 +42,7 @@ class Security {
         return await Security.run("create-keychain", ["-p", password, `${name}.keychain`]);
     }
     static async defaultKeychain(name) {
-        return await Security.run("default-keychain", [`${name}.keychain`]);
+        return await Security.run("default-keychain", ["-s", `${name}.keychain`]);
     }
     static async unlockKeychain(name, password) {
         core.setSecret(password);
