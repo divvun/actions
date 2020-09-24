@@ -98,7 +98,7 @@ async function setupMacOSKeychain() {
   debug(await Security.import(name, path.resolve(
     divvunConfigDir(), sec.macos.appP12), sec.macos.appP12Password))
 
-  debug(await Security.setKeyPartitionList(name, password, ["apple-tool:", "apple:"]))
+  debug(await Security.setKeyPartitionList(name, password, ["apple-tool:", "apple:", "codesign:"]))
 
   debug(
     await Bash.runScript(`xcrun altool --store-password-in-keychain-item "${sec.macos.passwordChainItem}" -u "${sec.macos.developerAccount}" -p "${sec.macos.appPassword}"`)
