@@ -118,13 +118,13 @@ async function cloneConfigRepo(password: string) {
 }
 
 async function bootstrapDependencies() {
-  try {
-    const svnPath = await io.which("svn")
-    core.debug(`SVN path: ${svnPath}`)
-  } catch (_) {
+  // try {
+  //   const svnPath = await io.which("svn")
+  //   core.debug(`SVN path: ${svnPath}`)
+  // } catch (_) {
     core.debug("Installing subversion")
-    debug(await Bash.runScript("brew install subversion"))
-  }
+  //   debug(await Bash.runScript("brew install subversion"))
+  // }
 }
 
 async function run() {

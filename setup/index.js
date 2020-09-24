@@ -24,7 +24,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(require("@actions/core"));
 const tc = __importStar(require("@actions/tool-cache"));
-const io = __importStar(require("@actions/io"));
 const path_1 = __importDefault(require("path"));
 const shared_1 = require("../shared");
 async function downloadAppleWWDRCA() {
@@ -107,14 +106,7 @@ async function cloneConfigRepo(password) {
     await shared_1.Tar.extractTxz(path_1.default.resolve(repoDir, "config.txz"), repoDir);
 }
 async function bootstrapDependencies() {
-    try {
-        const svnPath = await io.which("svn");
-        core.debug(`SVN path: ${svnPath}`);
-    }
-    catch (_) {
-        core.debug("Installing subversion");
-        debug(await shared_1.Bash.runScript("brew install subversion"));
-    }
+    core.debug("Installing subversion");
 }
 async function run() {
     try {
