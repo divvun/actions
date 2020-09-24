@@ -23,7 +23,7 @@ class Security {
 
   public static async createKeychain(name: string, password: string) {
     core.setSecret(password)
-    return await Security.run("create-keychain", ["-p", password, `${name}.keychain`])
+    return await Security.run("create-keychain", ["-p", `"${password}"`, `${name}.keychain`])
   }
 
   public static async defaultKeychain(name: string) {
@@ -32,7 +32,7 @@ class Security {
 
   public static async unlockKeychain(name: string, password: string) {
     core.setSecret(password)
-    return await Security.run("unlock-keychain", ["-p", password, `${name}.keychain`])
+    return await Security.run("unlock-keychain", ["-p", `"${password}"`, `${name}.keychain`])
   }
 
   public static async setKeychainTimeout(timeout: number) {
@@ -43,7 +43,7 @@ class Security {
   public static async import(keychainName: string, certOrKeyPath: string, keyPassword?: string) {
     if (keyPassword != null) {
       core.setSecret(keyPassword)
-      return await Security.run("import", [certOrKeyPath, "-k", `~/Library/Keychains/${keychainName}.keychain`, "-P", keyPassword, "-A"])
+      return await Security.run("import", [certOrKeyPath, "-k", `~/Library/Keychains/${keychainName}.keychain`, "-P", `"${keyPassword}"`, "-A"])
     } else {
       return await Security.run("import", [certOrKeyPath, "-k", `~/Library/Keychains/${keychainName}.keychain`, "-A"])
     }
@@ -53,7 +53,7 @@ class Security {
     core.setSecret(password)
     return await Security.run(
       "set-key-partition-list",
-      ["-S", partitionList.join(","), "-s", "-k", password, `${keychainName}.keychain`]
+      ["-S", partitionList.join(","), "-s", "-k", `"${password}"`, `${keychainName}.keychain`]
     )
   }
 }

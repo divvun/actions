@@ -39,14 +39,14 @@ class Security {
     }
     static async createKeychain(name, password) {
         core.setSecret(password);
-        return await Security.run("create-keychain", ["-p", password, `${name}.keychain`]);
+        return await Security.run("create-keychain", ["-p", `"${password}"`, `${name}.keychain`]);
     }
     static async defaultKeychain(name) {
         return await Security.run("default-keychain", ["-s", `${name}.keychain`]);
     }
     static async unlockKeychain(name, password) {
         core.setSecret(password);
-        return await Security.run("unlock-keychain", ["-p", password, `${name}.keychain`]);
+        return await Security.run("unlock-keychain", ["-p", `"${password}"`, `${name}.keychain`]);
     }
     static async setKeychainTimeout(timeout) {
         const intTimeout = (timeout | 0).toString();
@@ -55,7 +55,7 @@ class Security {
     static async import(keychainName, certOrKeyPath, keyPassword) {
         if (keyPassword != null) {
             core.setSecret(keyPassword);
-            return await Security.run("import", [certOrKeyPath, "-k", `~/Library/Keychains/${keychainName}.keychain`, "-P", keyPassword, "-A"]);
+            return await Security.run("import", [certOrKeyPath, "-k", `~/Library/Keychains/${keychainName}.keychain`, "-P", `"${keyPassword}"`, "-A"]);
         }
         else {
             return await Security.run("import", [certOrKeyPath, "-k", `~/Library/Keychains/${keychainName}.keychain`, "-A"]);
@@ -63,7 +63,7 @@ class Security {
     }
     static async setKeyPartitionList(keychainName, password, partitionList) {
         core.setSecret(password);
-        return await Security.run("set-key-partition-list", ["-S", partitionList.join(","), "-s", "-k", password, `${keychainName}.keychain`]);
+        return await Security.run("set-key-partition-list", ["-S", partitionList.join(","), "-s", "-k", `"${password}"`, `${keychainName}.keychain`]);
     }
 }
 function debug(input) {
