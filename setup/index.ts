@@ -123,7 +123,7 @@ async function bootstrapDependencies() {
   //   core.debug(`SVN path: ${svnPath}`)
   // } catch (_) {
     core.debug("Installing subversion")
-  //   debug(await Bash.runScript("brew install subversion"))
+    debug(await Bash.runScript("brew install subversion"))
   // }
 }
 
