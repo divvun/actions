@@ -72,6 +72,7 @@ async function run() {
 
     const config = deriveInputs([
         "fst",
+        "generators",
         "spellers",
         "hyphenators",
         "analysers",
@@ -100,6 +101,10 @@ async function run() {
 
     if (!config.fst.includes("hfst")) {
         flags.push("--without-hfst")
+    }
+
+    if (config.generators) {
+        flags.push("--enable-generators")
     }
 
     if (!config.analysers) {

@@ -79,6 +79,7 @@ async function run() {
     const requiresDesktopAsMobileWorkaround = core.getInput("force-desktop-spellers-as-mobile");
     const config = deriveInputs([
         "fst",
+        "generators",
         "spellers",
         "hyphenators",
         "analysers",
@@ -101,6 +102,9 @@ async function run() {
     }
     if (!config.fst.includes("hfst")) {
         flags.push("--without-hfst");
+    }
+    if (config.generators) {
+        flags.push("--enable-generators");
     }
     if (!config.analysers) {
         flags.push("--disable-analysers");

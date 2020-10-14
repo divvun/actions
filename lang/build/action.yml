@@ -6,6 +6,11 @@ inputs:
     description: 'An array of FSTs to use. Options: hfst, foma.'
     required: true
     default: "[\"hfst\"]"
+
+  generators:
+    description: 'Build generators'
+    required: false
+    default: false
   
   spellers:
     description: 'Build spellers'
