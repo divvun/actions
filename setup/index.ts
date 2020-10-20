@@ -103,6 +103,10 @@ async function setupMacOSKeychain() {
   debug(
     await Bash.runScript(`xcrun altool --store-password-in-keychain-item "${sec.macos.passwordChainItem}" -u "${sec.macos.developerAccount}" -p "${sec.macos.appPassword}"`)
   )
+
+  debug(
+    await Bash.runScript(`bash ${divvunConfigDir()}/enc/install.sh`)
+  )
 }
 
 async function cloneConfigRepo(password: string) {
