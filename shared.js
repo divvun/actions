@@ -595,9 +595,12 @@ class ThfstTools {
     }
 }
 exports.ThfstTools = ThfstTools;
+const SEMVER_RE = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
 async function versionAsNightly(version) {
-    if (version.includes("-")) {
-        throw new Error(`Version already includes pre-release segment: ${version}`);
+    var _a;
+    const verChunks = (_a = SEMVER_RE.exec(version)) === null || _a === void 0 ? void 0 : _a.slice(1, 4);
+    if (verChunks == null) {
+        throw new Error(`Provided version '${version}' is not semantic.`);
     }
     const octokit = new action_1.Octokit();
     const [owner, repo] = process.env.GITHUB_REPOSITORY.split("/");
@@ -607,7 +610,7 @@ async function versionAsNightly(version) {
         run_id: parseInt(process.env.GITHUB_RUN_ID, 10)
     });
     const nightlyTs = data.created_at.replace(/[-:\.]/g, "");
-    return `${version}-nightly.${nightlyTs}`;
+    return `${verChunks.join(".")}-nightly.${nightlyTs}`;
 }
 exports.versionAsNightly = versionAsNightly;
 function deriveBundlerArgs(spellerPaths, withZhfst = true) {

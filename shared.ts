@@ -733,9 +733,12 @@ export class ThfstTools {
     }
 }
 
+const SEMVER_RE = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/
+
 export async function versionAsNightly(version: string): Promise<string> {
-    if (version.includes("-")) {
-        throw new Error(`Version already includes pre-release segment: ${version}`)
+    const verChunks = SEMVER_RE.exec(version)?.slice(1, 4)
+    if (verChunks == null) {
+        throw new Error(`Provided version '${version}' is not semantic.`)
     }
 
     const octokit = new Octokit();
@@ -748,7 +751,7 @@ export async function versionAsNightly(version: string): Promise<string> {
     
     const nightlyTs = data.created_at.replace(/[-:\.]/g, "")
 
-    return `${version}-nightly.${nightlyTs}`
+    return `${verChunks.join(".")}-nightly.${nightlyTs}`
 }
 
 function deriveBundlerArgs(spellerPaths: SpellerPaths, withZhfst: boolean = true) {
