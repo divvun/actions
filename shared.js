@@ -511,9 +511,10 @@ class Kbdgen {
             cwd,
             env
         });
-        const output = path_1.default.resolve(cwd, "output/ios-build/ipa/HostingApp.ipa");
+        const output = path_1.default.resolve(abs, "../output/ios-build/ipa/HostingApp.ipa");
+        core.debug(`Output path: ${output}`);
         if (!fs_1.default.existsSync(output)) {
-            throw new Error("No output found for build.");
+            core.error("No output found for build.");
         }
         return output;
     }
