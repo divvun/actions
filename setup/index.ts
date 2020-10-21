@@ -145,6 +145,8 @@ async function run() {
       await setupMacOSKeychain()
       await bootstrapDependencies()
     }
+
+    core.exportVariable("DIVVUN_CI_CONFIG", divvunConfigDir())
   }
   catch (error) {
     core.setFailed(error.message);
