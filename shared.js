@@ -511,16 +511,14 @@ class Kbdgen {
             cwd,
             env
         });
-        const output = path_1.default.resolve(abs, "../output/ios-build/ipa/HostingApp.ipa");
-        core.debug(`Output path: ${output}`);
-        core.debug(`Cwd: ${cwd}`);
-        await Bash.runScript(`tree || echo 'Error running tree'`, { cwd });
-        core.debug(`Abs:`);
-        await Bash.runScript(`tree || echo 'Error running tree'`, { cwd: abs });
-        if (!fs_1.default.existsSync(output)) {
+        const globber = await glob.create(path_1.default.resolve(abs, "../output/ios-build/ipa/*.ipa"), {
+            followSymbolicLinks: false
+        });
+        const files = await globber.glob();
+        if (files[0] == null) {
             throw new Error("No output found for build.");
         }
-        return output;
+        return files[0];
     }
     static async buildAndroid(bundlePath) {
         const abs = path_1.default.resolve(bundlePath);
