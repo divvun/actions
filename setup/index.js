@@ -124,6 +124,7 @@ async function run() {
             await bootstrapDependencies();
         }
         core.exportVariable("DIVVUN_CI_CONFIG", shared_1.divvunConfigDir());
+        core.debug(shared_1.divvunConfigDir());
     }
     catch (error) {
         core.setFailed(error.message);
