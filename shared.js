@@ -491,7 +491,7 @@ class Kbdgen {
         const abs = path_1.default.resolve(bundlePath);
         const cwd = path_1.default.dirname(abs);
         const sec = secrets();
-        await Bash.runScript("brew install imagemagick");
+        await Bash.runScript("brew install imagemagick tree");
         const env = {
             "GITHUB_USERNAME": sec.github.username,
             "GITHUB_TOKEN": sec.github.token,
@@ -513,8 +513,12 @@ class Kbdgen {
         });
         const output = path_1.default.resolve(abs, "../output/ios-build/ipa/HostingApp.ipa");
         core.debug(`Output path: ${output}`);
+        core.debug(`Cwd: ${cwd}`);
+        await Bash.runScript(`tree || echo 'Error running tree'`, { cwd });
+        core.debug(`Abs:`);
+        await Bash.runScript(`tree || echo 'Error running tree'`, { cwd: abs });
         if (!fs_1.default.existsSync(output)) {
-            core.error("No output found for build.");
+            throw new Error("No output found for build.");
         }
         return output;
     }
