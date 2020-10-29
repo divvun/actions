@@ -13,6 +13,10 @@ async function run() {
     
     const installerOutput = await makeInstaller(issPath, defines)
 
+    // Workaround for setOutput being dumb and perhaps adding ::set-output
+    // without checking it has a new line to write one.
+    console.log("Installer generated.\n\n")
+
     core.setOutput("installer-path", installerOutput)
 }
 

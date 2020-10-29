@@ -30,6 +30,7 @@ async function run() {
             .map(x => `/D${x.trim()}`);
     }
     const installerOutput = await lib_1.makeInstaller(issPath, defines);
+    console.log("Installer generated.\n\n");
     core.setOutput("installer-path", installerOutput);
 }
 run().catch(err => {
