@@ -507,7 +507,7 @@ class Kbdgen {
             cwd,
             env
         });
-        await Bash.runScript(`kbdgen --logging debug build ios -R --ci --kbd-branch master -o output ${abs}`, {
+        await Bash.runScript(`kbdgen --logging debug build ios -R --ci -o output ${abs}`, {
             cwd,
             env
         });
