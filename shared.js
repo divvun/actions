@@ -560,7 +560,7 @@ class Kbdgen {
         const msklcZip = await tc.downloadTool("https://pahkat.uit.no/artifacts/msklc.zip");
         const msklcPath = await tc.extractZip(msklcZip);
         core.exportVariable("MSKLC_PATH", path_1.default.join(msklcPath, "msklc1.4"));
-        await Powershell.runScript(`kbdgen --logging debug build win -R --ci -o output ${abs}`, {
+        await Powershell.runScript(`kbdgen --logging trace build win -R --ci -o output ${abs}`, {
             env: {
                 "CODESIGN_PW": sec.windows.pfxPassword,
                 "CODESIGN_PFX": exports.DIVVUN_PFX,

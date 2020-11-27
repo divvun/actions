@@ -689,7 +689,7 @@ export class Kbdgen {
         core.exportVariable("MSKLC_PATH", path.join(msklcPath, "msklc1.4"))
 
         await Powershell.runScript(
-            `kbdgen --logging debug build win -R --ci -o output ${abs}`,
+            `kbdgen --logging trace build win -R --ci -o output ${abs}`,
             {
                 env: {
                     "CODESIGN_PW": sec.windows.pfxPassword,
