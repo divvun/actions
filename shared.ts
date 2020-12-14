@@ -635,6 +635,8 @@ export class Kbdgen {
         const abs = path.resolve(bundlePath)
         const cwd = path.dirname(abs)
         const sec = secrets()
+        
+        await Bash.runScript("brew install imagemagick tree")
 
         await Bash.runScript(
             `kbdgen --logging debug build android -R --ci -o output ${abs}`,
