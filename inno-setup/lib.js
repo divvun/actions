@@ -31,7 +31,7 @@ const ISCC_PATH = `"C:\\Program Files (x86)\\Inno Setup 6\\ISCC.exe"`;
 async function makeInstaller(issPath, defines = []) {
     const sec = shared_1.secrets();
     const signCmd = `/S"signtool=signtool.exe sign ` +
-        `/t http://timestamp.verisign.com/scripts/timstamp.dll ` +
+        `/t ${shared_1.RFC3161_URL} ` +
         `/f ${shared_1.DIVVUN_PFX} ` +
         `/p ${sec.windows.pfxPassword} $f"`;
     const installerOutput = tmp_1.default.dirSync({ keep: true }).name;

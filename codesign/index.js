@@ -33,7 +33,7 @@ async function run() {
     const sec = shared_1.secrets();
     if (process.platform == "win32") {
         await exec.exec("signtool.exe", [
-            "sign", "/t", "http://timestamp.verisign.com/scripts/timstamp.dll",
+            "sign", "/t", shared_1.RFC3161_URL,
             "/f", shared_1.DIVVUN_PFX, "/p", sec.windows.pfxPassword,
             filePath
         ]);

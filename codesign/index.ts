@@ -3,7 +3,7 @@ import * as exec from '@actions/exec'
 
 import path from "path"
 
-import { secrets, DIVVUN_PFX, Bash } from "../shared"
+import { secrets, DIVVUN_PFX, Bash, RFC3161_URL } from "../shared"
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(() => resolve(), ms))
 
@@ -14,7 +14,7 @@ async function run() {
 
     if (process.platform == "win32") {
         await exec.exec("signtool.exe", [
-            "sign", "/t", "http://timestamp.verisign.com/scripts/timstamp.dll",
+            "sign", "/t", RFC3161_URL,
             "/f", DIVVUN_PFX, "/p", sec.windows.pfxPassword,
             filePath
         ])

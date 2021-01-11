@@ -11,6 +11,8 @@ import * as tmp from 'tmp'
 import { Octokit } from "@octokit/action"
 import crypto from "crypto"
 
+export const RFC3161_URL = "http://timestamp.sectigo.com"
+
 export function tmpDir() {
     const dir = process.env["RUNNER_TEMP"]
     if (dir == null || dir.trim() == '') {
