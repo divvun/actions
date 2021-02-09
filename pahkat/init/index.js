@@ -22,11 +22,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(require("@actions/core"));
 const shared_1 = require("../../shared");
 async function run() {
-    const repoUrl = core.getInput('repo', { required: true });
+    const repos = core.getInput('repo', { required: true }).split(",").map(x => x.trim());
     const channel = core.getInput('channel');
     const packages = core.getInput('packages', { required: true }).split(",").map(x => x.trim());
     await shared_1.PahkatPrefix.bootstrap();
-    await shared_1.PahkatPrefix.addRepo(repoUrl, channel);
+    for (let repoUrl of repos) {
+        await shared_1.PahkatPrefix.addRepo(repoUrl, channel);
+    }
     await shared_1.PahkatPrefix.install(packages);
 }
 run().catch(err => {
