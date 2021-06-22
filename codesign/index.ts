@@ -19,7 +19,7 @@ async function run() {
             filePath
         ])
     } else if (process.platform === "darwin") {
-        const { developerAccount, appPassword, appCodeSignId } = sec.macos
+        const { developerAccount, appPassword, appCodeSignId, teamId } = sec.macos
 
         // Codesign with hardened runtime and timestamp
         await exec.exec("codesign", ["-s", appCodeSignId, filePath, "--timestamp", "--options=runtime"])
@@ -37,6 +37,7 @@ async function run() {
  --primary-bundle-id ${fakeBundleId}\
  --username "${developerAccount}"\
  --password "${appPassword}"\
+ --team-id "${teamId}"\
  --output-format json\
  --file ${zipPath}`)).join("\n"))
         console.log(JSON.stringify(response, null, 2))

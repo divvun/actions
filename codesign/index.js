@@ -39,7 +39,7 @@ async function run() {
         ]);
     }
     else if (process.platform === "darwin") {
-        const { developerAccount, appPassword, appCodeSignId } = sec.macos;
+        const { developerAccount, appPassword, appCodeSignId, teamId } = sec.macos;
         await exec.exec("codesign", ["-s", appCodeSignId, filePath, "--timestamp", "--options=runtime"]);
         const zipPath = path_1.default.resolve(path_1.default.dirname(filePath), "upload.zip");
         await exec.exec("ditto", ["-c", "-k", "--keepParent", filePath, zipPath]);
@@ -49,6 +49,7 @@ async function run() {
  --primary-bundle-id ${fakeBundleId}\
  --username "${developerAccount}"\
  --password "${appPassword}"\
+ --team-id "${teamId}"\
  --output-format json\
  --file ${zipPath}`)).join("\n"));
         console.log(JSON.stringify(response, null, 2));
