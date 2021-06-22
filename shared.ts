@@ -589,7 +589,7 @@ export class Kbdgen {
         const cwd = path.dirname(abs)
         const sec = secrets()
 
-        await Bash.runScript("brew install imagemagick tree")
+        await Bash.runScript("brew install imagemagick")
 
         const env = {
             "GITHUB_USERNAME": sec.github.username,
@@ -599,18 +599,20 @@ export class Kbdgen {
             "FASTLANE_USER": sec.ios.fastlaneUser,
             "PRODUCE_USERNAME": sec.ios.fastlaneUser,
             "FASTLANE_PASSWORD": sec.ios.fastlanePassword,
+            "APP_STORE_KEY_JSON": sec.macos.appStoreKeyJson,
             "MATCH_KEYCHAIN_NAME": "fastlane_tmp_keychain",
             "MATCH_KEYCHAIN_PASSWORD": ""
         }
 
         // Initialise any missing languages first
-        await Bash.runScript(
-            `kbdgen --logging debug build ios ${abs} init`,
-            { 
-                cwd,
-                env
-            }
-        )
+        // XXX: this no longer works since changes to the API!
+        // await Bash.runScript(
+        //     `kbdgen --logging debug build ios ${abs} init`,
+        //     { 
+        //         cwd,
+        //         env
+        //     }
+        // )
 
         // Do the build
         await Bash.runScript(

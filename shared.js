@@ -491,7 +491,7 @@ class Kbdgen {
         const abs = path_1.default.resolve(bundlePath);
         const cwd = path_1.default.dirname(abs);
         const sec = secrets();
-        await Bash.runScript("brew install imagemagick tree");
+        await Bash.runScript("brew install imagemagick");
         const env = {
             "GITHUB_USERNAME": sec.github.username,
             "GITHUB_TOKEN": sec.github.token,
@@ -500,13 +500,10 @@ class Kbdgen {
             "FASTLANE_USER": sec.ios.fastlaneUser,
             "PRODUCE_USERNAME": sec.ios.fastlaneUser,
             "FASTLANE_PASSWORD": sec.ios.fastlanePassword,
+            "APP_STORE_KEY_JSON": sec.macos.appStoreKeyJson,
             "MATCH_KEYCHAIN_NAME": "fastlane_tmp_keychain",
             "MATCH_KEYCHAIN_PASSWORD": ""
         };
-        await Bash.runScript(`kbdgen --logging debug build ios ${abs} init`, {
-            cwd,
-            env
-        });
         await Bash.runScript(`kbdgen --logging debug build ios -R --ci -o output ${abs}`, {
             cwd,
             env
