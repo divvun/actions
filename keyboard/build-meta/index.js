@@ -31,14 +31,20 @@ async function run() {
     await shared_1.Kbdgen.fetchMetaBundle(bundlePath);
     let payloadPath;
     let buildStart = 0;
-    if (process.env.GITHUB_REPOSITORY === "divvun/divvun-keyboard") {
+    const githubRepo = process.env.GITHUB_REPOSITORY;
+    if (githubRepo === "divvun/divvun-keyboard") {
         if (keyboardType === types_1.KeyboardType.Android) {
             buildStart = 1590918851;
         }
     }
+    else if (githubRepo === "divvun/divvun-dev-keyboard") {
+    }
+    else {
+        throw new Error(`Unsupported repository for release builds: ${githubRepo}`);
+    }
     if (keyboardType === types_1.KeyboardType.Android) {
         shared_1.Kbdgen.setBuildNumber(bundlePath, "android", buildStart);
-        payloadPath = await shared_1.Kbdgen.buildAndroid(bundlePath);
+        payloadPath = await shared_1.Kbdgen.buildAndroid(bundlePath, githubRepo);
     }
     else if (keyboardType === types_1.KeyboardType.iOS) {
         shared_1.Kbdgen.setBuildNumber(bundlePath, "ios", buildStart);

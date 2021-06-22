@@ -500,7 +500,7 @@ class Kbdgen {
             "FASTLANE_USER": sec.ios.fastlaneUser,
             "PRODUCE_USERNAME": sec.ios.fastlaneUser,
             "FASTLANE_PASSWORD": sec.ios.fastlanePassword,
-            "APP_STORE_KEY_JSON": sec.macos.appStoreKeyJson,
+            "APP_STORE_KEY_JSON": path_1.default.join(divvunConfigDir(), sec.macos.appStoreKeyJson),
             "MATCH_KEYCHAIN_NAME": "fastlane_tmp_keychain",
             "MATCH_KEYCHAIN_PASSWORD": ""
         };
@@ -517,21 +517,21 @@ class Kbdgen {
         }
         return files[0];
     }
-    static async buildAndroid(bundlePath) {
+    static async buildAndroid(bundlePath, githubRepo) {
         const abs = path_1.default.resolve(bundlePath);
         const cwd = path_1.default.dirname(abs);
         const sec = secrets();
-        await Bash.runScript("brew install imagemagick tree");
+        await Bash.runScript("brew install imagemagick");
         await Bash.runScript(`kbdgen --logging debug build android -R --ci -o output ${abs}`, {
             cwd,
             env: {
                 "GITHUB_USERNAME": sec.github.username,
                 "GITHUB_TOKEN": sec.github.token,
                 "NDK_HOME": process.env.ANDROID_NDK_HOME,
-                "ANDROID_KEYSTORE": path_1.default.join(divvunConfigDir(), sec.android.keystore),
-                "ANDROID_KEYALIAS": sec.android.keyalias,
-                "STORE_PW": sec.android.storePassword,
-                "KEY_PW": sec.android.keyPassword,
+                "ANDROID_KEYSTORE": path_1.default.join(divvunConfigDir(), sec.android[githubRepo].keystore),
+                "ANDROID_KEYALIAS": sec.android[githubRepo].keyalias,
+                "STORE_PW": sec.android[githubRepo].storePassword,
+                "KEY_PW": sec.android[githubRepo].keyPassword,
                 "PLAY_STORE_P12": path_1.default.join(divvunConfigDir(), sec.android.playStoreP12),
                 "PLAY_STORE_ACCOUNT": sec.android.playStoreAccount
             }

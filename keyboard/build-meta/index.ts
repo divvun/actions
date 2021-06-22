@@ -14,16 +14,21 @@ async function run() {
     let payloadPath
 
     let buildStart = 0
+    const githubRepo = process.env.GITHUB_REPOSITORY!
 
-    if (process.env.GITHUB_REPOSITORY! === "divvun/divvun-keyboard") {
+    if (githubRepo === "divvun/divvun-keyboard") {
         if (keyboardType === KeyboardType.Android) {
             buildStart = 1590918851
         }
+    } else if (githubRepo === "divvun/divvun-dev-keyboard") {
+        // Do nothing
+    } else {
+        throw new Error(`Unsupported repository for release builds: ${githubRepo}`)
     }
 
     if (keyboardType === KeyboardType.Android) {
         Kbdgen.setBuildNumber(bundlePath, "android", buildStart)
-        payloadPath = await Kbdgen.buildAndroid(bundlePath)
+        payloadPath = await Kbdgen.buildAndroid(bundlePath, githubRepo)
     } else if (keyboardType === KeyboardType.iOS) {
         Kbdgen.setBuildNumber(bundlePath, "ios", buildStart)
         payloadPath = await Kbdgen.build_iOS(bundlePath)

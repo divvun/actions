@@ -599,7 +599,7 @@ export class Kbdgen {
             "FASTLANE_USER": sec.ios.fastlaneUser,
             "PRODUCE_USERNAME": sec.ios.fastlaneUser,
             "FASTLANE_PASSWORD": sec.ios.fastlanePassword,
-            "APP_STORE_KEY_JSON": sec.macos.appStoreKeyJson,
+            "APP_STORE_KEY_JSON": path.join(divvunConfigDir(), sec.macos.appStoreKeyJson),
             "MATCH_KEYCHAIN_NAME": "fastlane_tmp_keychain",
             "MATCH_KEYCHAIN_PASSWORD": ""
         }
@@ -624,8 +624,8 @@ export class Kbdgen {
         )
         const globber = await glob.create(path.resolve(abs, "../output/ios-build/ipa/*.ipa"), {
             followSymbolicLinks: false
-        });
-        const files = await globber.glob();
+        })
+        const files = await globber.glob()
 
         if (files[0] == null) {
             throw new Error("No output found for build.")
@@ -634,12 +634,12 @@ export class Kbdgen {
         return files[0]
     }
     
-    static async buildAndroid(bundlePath: string): Promise<string> {
+    static async buildAndroid(bundlePath: string, githubRepo: string): Promise<string> {
         const abs = path.resolve(bundlePath)
         const cwd = path.dirname(abs)
         const sec = secrets()
         
-        await Bash.runScript("brew install imagemagick tree")
+        await Bash.runScript("brew install imagemagick")
 
         await Bash.runScript(
             `kbdgen --logging debug build android -R --ci -o output ${abs}`,
@@ -649,10 +649,10 @@ export class Kbdgen {
                     "GITHUB_USERNAME": sec.github.username,
                     "GITHUB_TOKEN": sec.github.token,
                     "NDK_HOME": process.env.ANDROID_NDK_HOME!,
-                    "ANDROID_KEYSTORE": path.join(divvunConfigDir(), sec.android.keystore),
-                    "ANDROID_KEYALIAS": sec.android.keyalias,
-                    "STORE_PW": sec.android.storePassword,
-                    "KEY_PW": sec.android.keyPassword,
+                    "ANDROID_KEYSTORE": path.join(divvunConfigDir(), sec.android[githubRepo].keystore),
+                    "ANDROID_KEYALIAS": sec.android[githubRepo].keyalias,
+                    "STORE_PW": sec.android[githubRepo].storePassword,
+                    "KEY_PW": sec.android[githubRepo].keyPassword,
                     "PLAY_STORE_P12": path.join(divvunConfigDir(), sec.android.playStoreP12),
                     "PLAY_STORE_ACCOUNT": sec.android.playStoreAccount
                 }
