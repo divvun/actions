@@ -71,8 +71,8 @@ export function secrets() {
 function env() {
     return {
         ...process.env,
-        LANG: "C.UTF-8",
-        LC_ALL: "C.UTF-8",
+        LANG: "en_US.UTF-8",
+        LC_ALL: "en_US.UTF-8",
         DEBIAN_FRONTEND: "noninteractive",
         DEBCONF_NONINTERACTIVE_SEEN: "true"
     }
@@ -601,7 +601,8 @@ export class Kbdgen {
             "FASTLANE_PASSWORD": sec.ios.fastlanePassword,
             "APP_STORE_KEY_JSON": path.join(divvunConfigDir(), sec.macos.appStoreKeyJson),
             "MATCH_KEYCHAIN_NAME": "fastlane_tmp_keychain",
-            "MATCH_KEYCHAIN_PASSWORD": ""
+            "MATCH_KEYCHAIN_PASSWORD": "",
+            "LANG": "en_US.UTF-8",
         }
 
         // Initialise any missing languages first
