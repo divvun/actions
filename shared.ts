@@ -589,7 +589,7 @@ export class Kbdgen {
         const cwd = path.dirname(abs)
         const sec = secrets()
 
-        await Bash.runScript("brew install imagemagick")
+        await Bash.runScript("arch -arm64 brew install imagemagick")
 
         const env = {
             "GITHUB_USERNAME": sec.github.username,
