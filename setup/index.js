@@ -106,8 +106,6 @@ async function cloneConfigRepo(password) {
     await shared_1.Tar.extractTxz(path_1.default.resolve(repoDir, "config.txz"), repoDir);
 }
 async function bootstrapDependencies() {
-    core.debug("Installing subversion");
-    debug(await shared_1.Bash.runScript("brew install subversion"));
 }
 async function run() {
     try {
