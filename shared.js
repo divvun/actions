@@ -491,7 +491,6 @@ class Kbdgen {
         const abs = path_1.default.resolve(bundlePath);
         const cwd = path_1.default.dirname(abs);
         const sec = secrets();
-        await Bash.runScript("brew install imagemagick");
         const env = {
             "GITHUB_USERNAME": sec.github.username,
             "GITHUB_TOKEN": sec.github.token,
@@ -522,7 +521,6 @@ class Kbdgen {
         const abs = path_1.default.resolve(bundlePath);
         const cwd = path_1.default.dirname(abs);
         const sec = secrets();
-        await Bash.runScript("brew install imagemagick");
         await Bash.runScript(`kbdgen --logging debug build android -R --ci -o output ${abs}`, {
             cwd,
             env: {
@@ -543,7 +541,6 @@ class Kbdgen {
         const abs = path_1.default.resolve(bundlePath);
         const cwd = path_1.default.dirname(abs);
         const sec = secrets();
-        await Bash.runScript("brew install imagemagick");
         await Bash.runScript(`kbdgen --logging debug build mac -R --ci -o output ${abs}`, {
             env: {
                 "DEVELOPER_PASSWORD_CHAIN_ITEM": sec.macos.passwordChainItem,

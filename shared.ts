@@ -589,7 +589,7 @@ export class Kbdgen {
         const cwd = path.dirname(abs)
         const sec = secrets()
 
-        await Bash.runScript("brew install imagemagick")
+        // await Bash.runScript("brew install imagemagick")
 
         const env = {
             "GITHUB_USERNAME": sec.github.username,
@@ -640,7 +640,7 @@ export class Kbdgen {
         const cwd = path.dirname(abs)
         const sec = secrets()
         
-        await Bash.runScript("brew install imagemagick")
+        // await Bash.runScript("brew install imagemagick")
 
         await Bash.runScript(
             `kbdgen --logging debug build android -R --ci -o output ${abs}`,
@@ -668,7 +668,7 @@ export class Kbdgen {
         const cwd = path.dirname(abs)
         const sec = secrets()
 
-        await Bash.runScript("brew install imagemagick")
+        // await Bash.runScript("brew install imagemagick")
 
         await Bash.runScript(
             `kbdgen --logging debug build mac -R --ci -o output ${abs}`,
