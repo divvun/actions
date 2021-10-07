@@ -87,8 +87,8 @@ exports.secrets = secrets;
 function env() {
     return {
         ...process.env,
-        LANG: "en_US.UTF-8",
-        LC_ALL: "en_US.UTF-8",
+        LANG: "C.UTF-8",
+        LC_ALL: "C.UTF-8",
         DEBIAN_FRONTEND: "noninteractive",
         DEBCONF_NONINTERACTIVE_SEEN: "true"
     };
@@ -502,7 +502,7 @@ class Kbdgen {
             "APP_STORE_KEY_JSON": path_1.default.join(divvunConfigDir(), sec.macos.appStoreKeyJson),
             "MATCH_KEYCHAIN_NAME": "fastlane_tmp_keychain",
             "MATCH_KEYCHAIN_PASSWORD": "",
-            "LANG": "en_US.UTF-8",
+            "LANG": "C.UTF-8",
         };
         await Bash.runScript(`kbdgen --logging debug build ios -R --ci -o output ${abs}`, {
             cwd,
