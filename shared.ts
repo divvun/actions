@@ -669,7 +669,7 @@ export class Kbdgen {
         const sec = secrets()
 
         // Install imagemagick if we're not using the self-hosted runner
-        if (core.getInput("os") == "macos-latest") {
+        if (process.env["ImageOS"] != null) {
             await Bash.runScript("brew install imagemagick")
         }
 

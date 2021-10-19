@@ -541,7 +541,7 @@ class Kbdgen {
         const abs = path_1.default.resolve(bundlePath);
         const cwd = path_1.default.dirname(abs);
         const sec = secrets();
-        if (core.getInput("os") == "macos-latest") {
+        if (process.env["ImageOS"] != null) {
             await Bash.runScript("brew install imagemagick");
         }
         await Bash.runScript(`kbdgen --logging debug build mac -R --ci -o output ${abs}`, {
