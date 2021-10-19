@@ -311,7 +311,7 @@ export class PahkatPrefix {
         await DefaultShell.runScript(`pahkat-prefix install ${packages.join(" ")} -c ${PahkatPrefix.path}`)
 
         for (const pkg of packages) {
-            core.addPath(path.join(PahkatPrefix.path, "pkg", pkg, "bin"))
+            core.addPath(path.join(PahkatPrefix.path, "pkg", pkg.split("@").shift()!, "bin"))
         }
     }
 }

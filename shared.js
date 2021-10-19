@@ -294,7 +294,7 @@ class PahkatPrefix {
     static async install(packages) {
         await DefaultShell.runScript(`pahkat-prefix install ${packages.join(" ")} -c ${PahkatPrefix.path}`);
         for (const pkg of packages) {
-            core.addPath(path_1.default.join(PahkatPrefix.path, "pkg", pkg, "bin"));
+            core.addPath(path_1.default.join(PahkatPrefix.path, "pkg", pkg.split("@").shift(), "bin"));
         }
     }
 }
