@@ -262,7 +262,7 @@ export enum WindowsExecutableKind { Inno = "inno", Nsis = "nsis", Msi = "msi" }
 export class PahkatPrefix {
     static URL_LINUX = "https://pahkat.uit.no/artifacts/pahkat-prefix-cli_0.1.0-nightly.20200817T155144Z_linux_amd64.txz"
     static URL_MACOS = "https://pahkat.uit.no/artifacts/pahkat-prefix-cli_0.1.0_macos_amd64.txz"
-    static URL_WINDOWS = "https://pahkat.uit.no/artifacts/pahkat-prefix-cli_0.1.0_windows_amd64.txz"
+    static URL_WINDOWS = "https://pahkat.uit.no/artifacts/pahkat-prefix-cli_0.1.0-nightly.20211019T124649Z_windows_i686.txz"
 
     static get path(): string {
         return path.join(tmpDir(), "pahkat-prefix")
