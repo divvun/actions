@@ -668,7 +668,10 @@ export class Kbdgen {
         const cwd = path.dirname(abs)
         const sec = secrets()
 
-        // await Bash.runScript("brew install imagemagick")
+        // Install imagemagick if we're not using the self-hosted runner
+        if (core.getInput("os") == "macos-latest") {
+            await Bash.runScript("brew install imagemagick")
+        }
 
         await Bash.runScript(
             `kbdgen --logging debug build mac -R --ci -o output ${abs}`,
