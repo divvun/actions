@@ -281,26 +281,26 @@ class PahkatPrefix {
             core.debug(`${PahkatPrefix.path} exists; deleting first.`);
             fs_1.default.rmdirSync(PahkatPrefix.path, { recursive: true });
         }
-        await DefaultShell.runScript(`pahkat-prefix-cli init -c ${PahkatPrefix.path}`);
+        await DefaultShell.runScript(`pahkat-prefix init -c ${PahkatPrefix.path}`);
     }
     static async addRepo(url, channel) {
         if (channel != null) {
-            await DefaultShell.runScript(`pahkat-prefix-cli config repo add -c ${PahkatPrefix.path} ${url} ${channel}`);
+            await DefaultShell.runScript(`pahkat-prefix config repo add -c ${PahkatPrefix.path} ${url} ${channel}`);
         }
         else {
-            await DefaultShell.runScript(`pahkat-prefix-cli config repo add -c ${PahkatPrefix.path} ${url}`);
+            await DefaultShell.runScript(`pahkat-prefix config repo add -c ${PahkatPrefix.path} ${url}`);
         }
     }
     static async install(packages) {
-        await DefaultShell.runScript(`pahkat-prefix-cli install ${packages.join(" ")} -c ${PahkatPrefix.path}`);
+        await DefaultShell.runScript(`pahkat-prefix install ${packages.join(" ")} -c ${PahkatPrefix.path}`);
         for (const pkg of packages) {
             core.addPath(path_1.default.join(PahkatPrefix.path, "pkg", pkg, "bin"));
         }
     }
 }
 exports.PahkatPrefix = PahkatPrefix;
-PahkatPrefix.URL_LINUX = "https://pahkat.uit.no/artifacts/pahkat-prefix-cli_0.1.0-nightly.20200817T155144Z_linux_amd64.txz";
-PahkatPrefix.URL_MACOS = "https://pahkat.uit.no/artifacts/pahkat-prefix-cli_0.1.0_macos_amd64.txz";
+PahkatPrefix.URL_LINUX = "https://pahkat.uit.no/artifacts/pahkat-prefix-cli_0.1.0-nightly.20211019T124649Z_linux_x86_64.txz";
+PahkatPrefix.URL_MACOS = "https://pahkat.uit.no/artifacts/pahkat-prefix-cli_0.1.0-nightly.20211019T124649Z_macos_x86_64.txz";
 PahkatPrefix.URL_WINDOWS = "https://pahkat.uit.no/artifacts/pahkat-prefix-cli_0.1.0-nightly.20211019T124649Z_windows_i686.txz";
 var MacOSPackageTarget;
 (function (MacOSPackageTarget) {
