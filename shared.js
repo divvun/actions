@@ -85,10 +85,17 @@ function secrets() {
 }
 exports.secrets = secrets;
 function env() {
-    return {
-        ...process.env,
+    let langs = {
         LANG: "C.UTF-8",
         LC_ALL: "C.UTF-8",
+    };
+    if (process.platform === "darwin") {
+        langs.LANG = "en_US.UTF-8";
+        langs.LC_ALL = "en_US.UTF-8";
+    }
+    return {
+        ...process.env,
+        ...langs,
         DEBIAN_FRONTEND: "noninteractive",
         DEBCONF_NONINTERACTIVE_SEEN: "true",
         PYTHONUTF8: "1",
