@@ -94,7 +94,7 @@ async function setupMacOSKeychain() {
     debug(await Security.import(name, path_1.default.resolve(shared_1.divvunConfigDir(), sec.macos.installerP12), sec.macos.installerP12Password));
     debug(await Security.import(name, path_1.default.resolve(shared_1.divvunConfigDir(), sec.macos.appP12), sec.macos.appP12Password));
     debug(await Security.setKeyPartitionList(name, password, ["apple-tool:", "apple:", "codesign:"]));
-    debug(await shared_1.Bash.runScript(`xcrun altool --store-password-in-keychain-item "${sec.macos.passwordChainItem}" -u "${sec.macos.developerAccount}" -p "${sec.macos.appPassword}"`));
+    debug(await shared_1.Bash.runScript(`security add-generic-password -a "${sec.macos.passwordChainItem}" -s "${sec.macos.developerAccount}" -w "${sec.macos.appPassword}"`));
     debug(await shared_1.Bash.runScript(`bash ${shared_1.divvunConfigDir()}/enc/install.sh`));
 }
 async function cloneConfigRepo(password) {

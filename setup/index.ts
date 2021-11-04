@@ -102,7 +102,8 @@ async function setupMacOSKeychain() {
 
   // This is needed in kbdgen for macOS builds.
   debug(
-    await Bash.runScript(`xcrun altool --store-password-in-keychain-item "${sec.macos.passwordChainItem}" -u "${sec.macos.developerAccount}" -p "${sec.macos.appPassword}"`)
+    // await Bash.runScript(`xcrun altool --store-password-in-keychain-item "${sec.macos.passwordChainItem}" -u "${sec.macos.developerAccount}" -p "${sec.macos.appPassword}"`)
+    await Bash.runScript(`security add-generic-password -a "${sec.macos.passwordChainItem}" -s "${sec.macos.developerAccount}" -w "${sec.macos.appPassword}"`)
   )
 
   debug(
