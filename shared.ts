@@ -74,7 +74,8 @@ function env() {
         LANG: "C.UTF-8",
         LC_ALL: "C.UTF-8",
         DEBIAN_FRONTEND: "noninteractive",
-        DEBCONF_NONINTERACTIVE_SEEN: "true"
+        DEBCONF_NONINTERACTIVE_SEEN: "true",
+        PYTHONUTF8: "1",
     }
 }
 
