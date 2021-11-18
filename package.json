@@ -19,9 +19,11 @@
         "@iarna/toml": "^2.2.5",
         "@octokit/action": "^2.9.0",
         "@types/tmp": "^0.2.0",
+        "@types/uuid": "^8.3.2",
         "tmp": "^0.2.1",
         "toml": "^3.0.0",
-        "yaml": "^1.10.0"
+        "yaml": "^1.10.0",
+        "uuid": "^8.3.2"
     },
     "devDependencies": {
         "typescript": "^3.9.7"
