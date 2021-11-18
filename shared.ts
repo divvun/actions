@@ -141,7 +141,7 @@ export class Powershell {
                 err.push(data.toString())
             }
         }
-        
+
         assertExit0(await exec("pwsh", ["-c", script], { env: thisEnv, cwd: opts.cwd, listeners }))
         return [out.join(""), err.join("")]
     }
@@ -171,7 +171,7 @@ export class Bash {
 
         const out: string[] = []
         const err: string[] = []
-        
+
         core.debug("PATH:")
         core.debug(process.env.PATH!)
 
@@ -280,7 +280,7 @@ export class PahkatPrefix {
 
     static async bootstrap() {
         const platform = process.platform
-        
+
         let txz
         if (platform === "linux") {
             txz = await tc.downloadTool(PahkatPrefix.URL_LINUX)
@@ -376,7 +376,7 @@ export class PahkatUploader {
         if (!fs.existsSync(releaseManifestPath)) {
             throw new Error(`Missing required payload manifest at path ${releaseManifestPath}`)
         }
-        
+
         // Step 1: Use SVN to do the crimes.
         await Subversion.import(artifactPath, artifactUrl)
 
@@ -432,7 +432,7 @@ export class PahkatUploader {
 
         args.push("-p")
         args.push(release.platform)
-        
+
         args.push("--version")
         args.push(release.version)
 
@@ -470,7 +470,7 @@ export class PahkatUploader {
             const releaseArgs = PahkatUploader.releaseArgs(release)
             return await PahkatUploader.run([...releaseArgs, ...payloadArgs])
         },
-        
+
         async macosPackage(
             release: ReleaseRequest,
             artifactUrl: string,
@@ -501,7 +501,7 @@ export class PahkatUploader {
             const releaseArgs = PahkatUploader.releaseArgs(release)
             return await PahkatUploader.run([...releaseArgs, ...payloadArgs])
         },
-        
+
         async tarballPackage(
             release: ReleaseRequest,
             artifactUrl: string,
@@ -569,9 +569,27 @@ export class Kbdgen {
             path.resolve(bundlePath, "targets", `${target}.yaml`), 'utf8')), true)
     }
 
+    static loadProjectBundle(bundlePath: string) {
+        return nonUndefinedProxy(YAML.parse(fs.readFileSync(
+            path.resolve(bundlePath, "project.yaml"), 'utf8')), true)
+    }
+
+    static async loadLayouts(bundlePath: string) {
+        const globber = await glob.create(path.resolve(bundlePath, "layouts/*.yaml"), {
+            followSymbolicLinks: false
+        })
+        const layoutFiles = await globber.glob()
+        var layouts: {[locale: string]: any} = {}
+        for (const layoutFile of layoutFiles) {
+            const locale = path.parse(layoutFile).base.split('.', 1)[0]
+            layouts[locale] = YAML.parse(fs.readFileSync(layoutFile, 'utf-8'))
+        }
+        return layouts
+    }
+
     static async setNightlyVersion(bundlePath: string, target: string) {
         const targetData = Kbdgen.loadTarget(bundlePath, target)
-        
+
         // Set to minute-based timestamp
         targetData['version'] = await versionAsNightly(targetData['version'])
 
@@ -583,11 +601,11 @@ export class Kbdgen {
 
     static setBuildNumber(bundlePath: string, target: string, start: number = 0) {
         const targetData = Kbdgen.loadTarget(bundlePath, target)
-        
+
         // Set to run number
         targetData['build'] = start + parseInt(process.env.GITHUB_RUN_NUMBER!, 10)
         core.debug("Set build number to " + targetData['build'])
-        
+
         fs.writeFileSync(path.resolve(
             bundlePath, "targets", `${target}.yaml`), YAML.stringify({...targetData}), 'utf8')
 
@@ -619,7 +637,7 @@ export class Kbdgen {
         // XXX: this no longer works since changes to the API!
         // await Bash.runScript(
         //     `kbdgen --logging debug build ios ${abs} init`,
-        //     { 
+        //     {
         //         cwd,
         //         env
         //     }
@@ -628,7 +646,7 @@ export class Kbdgen {
         // Do the build
         await Bash.runScript(
             `kbdgen --logging debug build ios -R --ci -o output ${abs}`,
-            { 
+            {
                 cwd,
                 env
             }
@@ -641,20 +659,20 @@ export class Kbdgen {
         if (files[0] == null) {
             throw new Error("No output found for build.")
         }
-        
+
         return files[0]
     }
-    
+
     static async buildAndroid(bundlePath: string, githubRepo: string): Promise<string> {
         const abs = path.resolve(bundlePath)
         const cwd = path.dirname(abs)
         const sec = secrets()
-        
+
         // await Bash.runScript("brew install imagemagick")
 
         await Bash.runScript(
             `kbdgen --logging debug build android -R --ci -o output ${abs}`,
-            { 
+            {
                 cwd,
                 env: {
                     "GITHUB_USERNAME": sec.github.username,
@@ -669,7 +687,7 @@ export class Kbdgen {
                 }
             }
         )
-        
+
         return await Kbdgen.resolveOutput(path.join(cwd, "output", `*_release.apk`))
     }
 
@@ -692,7 +710,7 @@ export class Kbdgen {
                 }
             }
         )
-    
+
         return await Kbdgen.resolveOutput(path.join(cwd, "output", `*.pkg`))
     }
 
@@ -769,7 +787,7 @@ export async function versionAsNightly(version: string): Promise<string> {
         repo,
         run_id: parseInt(process.env.GITHUB_RUN_ID!, 10)
     })
-    
+
     const nightlyTs = data.created_at.replace(/[-:\.]/g, "")
 
     return `${verChunks.join(".")}-nightly.${nightlyTs}`
@@ -916,7 +934,7 @@ export function validateProductCode(kind: WindowsExecutableKind, code: string): 
         }
 
         let updatedCode = code;
-        
+
         if (!code.endsWith("}_is1") && !code.startsWith("{")) {
             core.debug("Found plain UUID for Inno installer, wrapping in {...}_is1")
             updatedCode = `{${code}}_is1`

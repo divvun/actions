@@ -482,6 +482,21 @@ class Kbdgen {
     static loadTarget(bundlePath, target) {
         return nonUndefinedProxy(yaml_1.default.parse(fs_1.default.readFileSync(path_1.default.resolve(bundlePath, "targets", `${target}.yaml`), 'utf8')), true);
     }
+    static loadProjectBundle(bundlePath) {
+        return nonUndefinedProxy(yaml_1.default.parse(fs_1.default.readFileSync(path_1.default.resolve(bundlePath, "project.yaml"), 'utf8')), true);
+    }
+    static async loadLayouts(bundlePath) {
+        const globber = await glob.create(path_1.default.resolve(bundlePath, "layouts/*.yaml"), {
+            followSymbolicLinks: false
+        });
+        const layoutFiles = await globber.glob();
+        var layouts = {};
+        for (const layoutFile of layoutFiles) {
+            const locale = path_1.default.parse(layoutFile).base.split('.', 1)[0];
+            layouts[locale] = yaml_1.default.parse(fs_1.default.readFileSync(layoutFile, 'utf-8'));
+        }
+        return layouts;
+    }
     static async setNightlyVersion(bundlePath, target) {
         const targetData = Kbdgen.loadTarget(bundlePath, target);
         targetData['version'] = await versionAsNightly(targetData['version']);

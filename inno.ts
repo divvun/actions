@@ -3,12 +3,16 @@ import fs from "fs"
 type InnoFile = {
     Source: string,
     DestDir: string,
+    Check?: string,
     Flags?: string[]
 }
 
 function stringFromInnoFile(input: InnoFile): string {
     let out = `Source: "${input.Source}"; DestDir: "${input.DestDir}"`
 
+    if (input.Check) {
+        out += "; Check: " + input.Check
+    }
     if (input.Flags) {
         out += "; Flags: "
         out += input.Flags.join(" ")
@@ -63,13 +67,37 @@ export class InnoSetupBuilder {
         return this
     }
 
+    run(callback: (builder: InnoCommandBuilder) => InnoCommandBuilder) {
+        if (!this.data.run) {
+            this.data.run = []
+        }
+        this.data.run.push(callback(new InnoCommandBuilder()))
+        return this
+    }
+
+    uninstallRun(callback: (builder: InnoCommandBuilder) => InnoCommandBuilder) {
+        if (!this.data.uninstallRun) {
+            this.data.uninstallRun = []
+        }
+        this.data.uninstallRun.push(callback(new InnoCommandBuilder()))
+        return this
+    }
+
+    icons(callback: (builder: InnoCommandBuilder) => InnoCommandBuilder) {
+        if (!this.data.icons) {
+            this.data.icons = []
+        }
+        this.data.icons.push(callback(new InnoCommandBuilder()))
+        return this
+    }
+
     build(): string {
         for (const key of ["name", "version", "url", "productCode", "defaultDirName"]) {
             if (this.data[key] == null) {
                 throw new Error(`Missing key "${key}" for Inno Setup builder`)
             }
         }
-        
+
         const { name, version, publisher, url, productCode, defaultDirName } = this.data
         const setup = Object.entries({
             AppId: `{${productCode}`,
@@ -98,7 +126,7 @@ export class InnoSetupBuilder {
             languages: INNO_LANGUAGES_SECTION
         }
 
-        const { code, files } = this.data
+        const { code, run, uninstallRun, icons, files } = this.data
 
         if (files != null) {
             iss.files = files.build()
@@ -116,6 +144,30 @@ export class InnoSetupBuilder {
 
         if (iss.code != null) {
             out += `[Code]\n${iss.code}\n\n`
+        }
+
+        if (run != null) {
+            var runScript = ""
+            for (const runBuilder of run) {
+                runScript += `${runBuilder.build()}\n`
+            }
+            out += `[Run]\n${runScript}\n\n`
+        }
+
+        if (uninstallRun != null) {
+            var uninstallRunScript = ""
+            for (const uninstallRunBuilder of uninstallRun) {
+                uninstallRunScript += `${uninstallRunBuilder.build()}\n`
+            }
+            out += `[UninstallRun]\n${uninstallRunScript}\n\n`
+        }
+
+        if (icons != null) {
+            var iconsScript = ""
+            for (const iconsBuilder of icons) {
+                iconsScript += `${iconsBuilder.build()}\n`
+            }
+            out += `[Icons]\n${iconsScript}\n\n`
         }
 
         return out
@@ -157,16 +209,16 @@ Name: "ukrainian"; MessagesFile: "compiler:Languages\\Ukrainian.isl"
 const INNO_CODE_HEADER = `\
 function UninstallMsiIfExists(sCode: String): String;
 var
-  sUnInstPath: String;     
+  sUnInstPath: String;
   sUnInstPathWow64: String;
-  sUnInstallString: String;     
+  sUnInstallString: String;
   iResultCode: Integer;
 begin
-  sUnInstPath := 'Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\' + sCode;   
+  sUnInstPath := 'Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\' + sCode;
   sUnInstPathWow64 := 'Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\' + sCode;
   sUnInstallString := '';
-  if not RegQueryStringValue(HKLM, sUnInstPath, 'UninstallString', sUnInstallString) then     
-    RegQueryStringValue(HKLM, sUnInstPathWow64, 'UninstallString', sUnInstallString); 
+  if not RegQueryStringValue(HKLM, sUnInstPath, 'UninstallString', sUnInstallString) then
+    RegQueryStringValue(HKLM, sUnInstPathWow64, 'UninstallString', sUnInstallString);
   if sUnInstallString <> '' then
   begin
     Exec('msiexec', '/qn /x ' + sCode, '', SW_HIDE, ewWaitUntilTerminated, iResultCode);
@@ -180,16 +232,16 @@ end;
 
 function UninstallIfExists(sInput: String; sArgs: String): String;
 var
-  sUnInstPath: String;     
+  sUnInstPath: String;
   sUnInstPathWow64: String;
-  sUnInstallString: String;     
+  sUnInstallString: String;
   iResultCode: Integer;
 begin
-  sUnInstPath := 'Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\' + sInput;   
+  sUnInstPath := 'Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\' + sInput;
   sUnInstPathWow64 := 'Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\' + sInput;
   sUnInstallString := '';
-  if not RegQueryStringValue(HKLM, sUnInstPath, 'UninstallString', sUnInstallString) then     
-    RegQueryStringValue(HKLM, sUnInstPathWow64, 'UninstallString', sUnInstallString); 
+  if not RegQueryStringValue(HKLM, sUnInstPath, 'UninstallString', sUnInstallString) then
+    RegQueryStringValue(HKLM, sUnInstPathWow64, 'UninstallString', sUnInstallString);
   if sUnInstallString <> '' then
   begin
     Exec(sUnInstallString, sArgs, '', SW_HIDE, ewWaitUntilTerminated, iResultCode);
@@ -340,7 +392,7 @@ end;
         return cmd
     }
 
-    
+
     private generatePostUninstall() {
         const cmd = `\
 function RunPostUninstall: String;
@@ -369,10 +421,11 @@ class InnoSetupFilesBuilder {
     private files: InnoFile[] = []
 
     // Source can be an absolute path, or relative to the .iss file
-    add(source: string, dest: string, flags?: string[]): InnoSetupFilesBuilder {
+    add(source: string, dest: string, flags?: string[], check?: string): InnoSetupFilesBuilder {
         this.files.push({
             Source: source,
             DestDir: dest,
+            Check: check,
             Flags: flags
         })
         return this
@@ -380,5 +433,46 @@ class InnoSetupFilesBuilder {
 
     build(): string {
         return this.files.map(stringFromInnoFile).join("\n")
+    }
+}
+
+class InnoCommandBuilder {
+    private executableName: string = ""
+    private parameters: string[] = []
+    private flags: string[] = []
+    private name: string = ""
+
+    withFilename(filename: string) {
+        this.executableName = filename
+        return this
+    }
+
+    withParameter(parameter: string) {
+        this.parameters.push(parameter)
+        return this
+    }
+
+    withFlags(flags: string[]) {
+        this.flags = flags
+        return this
+    }
+
+    withName(name: string) {
+        this.name = name
+        return this
+    }
+
+    build(): string {
+        var parameters = this.parameters.join(" ")
+        var ret = ""
+        if (this.name) {
+            ret += `Name: ${this.name}; `
+        }
+        ret += `Filename: ${this.executableName}; Parameters: ${parameters}`
+        if (this.flags) {
+            var flags = this.flags.join(" ")
+            ret += `; Flags: ${flags}`
+        }
+        return ret
     }
 }
