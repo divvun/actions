@@ -39,6 +39,7 @@ async function run() {
         devPackages.push("apertium")
         devPackages.push("apertium-dev")
         devPackages.push("apertium-lex-tools")
+        devPackages.push("lexd")
     }
 
     await Apt.update(requiresSudo)
