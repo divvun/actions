@@ -1,7 +1,11 @@
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -14,7 +18,7 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 var __importStar = (this && this.__importStar) || function (mod) {
     if (mod && mod.__esModule) return mod;
     var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
     __setModuleDefault(result, mod);
     return result;
 };
@@ -33,9 +37,9 @@ function getCargoToml() {
         return null;
     }
     if (cargo === "true") {
-        return shared_1.nonUndefinedProxy(toml_1.default.parse(fs_1.default.readFileSync("./Cargo.toml", "utf8")));
+        return (0, shared_1.nonUndefinedProxy)(toml_1.default.parse(fs_1.default.readFileSync("./Cargo.toml", "utf8")));
     }
-    return shared_1.nonUndefinedProxy(toml_1.default.parse(fs_1.default.readFileSync(cargo, "utf8")));
+    return (0, shared_1.nonUndefinedProxy)(toml_1.default.parse(fs_1.default.readFileSync(cargo, "utf8")));
 }
 function getSpellerManifestToml() {
     const manifest = core.getInput("speller-manifest") || null;
@@ -43,9 +47,9 @@ function getSpellerManifestToml() {
         return null;
     }
     if (manifest === "true") {
-        return shared_1.nonUndefinedProxy(toml_1.default.parse(fs_1.default.readFileSync("./manifest.toml", "utf8")));
+        return (0, shared_1.nonUndefinedProxy)(toml_1.default.parse(fs_1.default.readFileSync("./manifest.toml", "utf8")));
     }
-    return shared_1.nonUndefinedProxy(toml_1.default.parse(fs_1.default.readFileSync(manifest, "utf8")));
+    return (0, shared_1.nonUndefinedProxy)(toml_1.default.parse(fs_1.default.readFileSync(manifest, "utf8")));
 }
 async function getXcodeMarketingVersion() {
     const input = core.getInput("xcode") || null;
@@ -58,7 +62,7 @@ async function getXcodeMarketingVersion() {
 }
 const SEMVER_TAG_RE = /^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
 function deriveNightly() {
-    return !shared_1.isMatchingTag(SEMVER_TAG_RE);
+    return !(0, shared_1.isMatchingTag)(SEMVER_TAG_RE);
 }
 function getPlistPath() {
     const plistPath = core.getInput("plist") || null;
@@ -107,7 +111,7 @@ async function run() {
     }
     if (isNightly) {
         core.debug("Generating nightly version");
-        version = await shared_1.versionAsNightly(version);
+        version = await (0, shared_1.versionAsNightly)(version);
         core.setOutput("channel", "nightly");
     }
     else if (stableChannel != null) {

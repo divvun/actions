@@ -1,7 +1,11 @@
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -14,7 +18,7 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 var __importStar = (this && this.__importStar) || function (mod) {
     if (mod && mod.__esModule) return mod;
     var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
     __setModuleDefault(result, mod);
     return result;
 };
@@ -76,9 +80,9 @@ function debug(input) {
     }
 }
 async function setupMacOSKeychain() {
-    const sec = shared_1.secrets();
-    const name = `divvun-build-${shared_1.randomHexBytes(6)}`;
-    const password = shared_1.randomString64();
+    const sec = (0, shared_1.secrets)();
+    const name = `divvun-build-${(0, shared_1.randomHexBytes)(6)}`;
+    const password = (0, shared_1.randomString64)();
     try {
         debug(await Security.deleteKeychain(name));
     }
@@ -89,19 +93,19 @@ async function setupMacOSKeychain() {
     debug(await Security.setKeychainTimeout(name, 36000));
     const certPath = await downloadAppleWWDRCA();
     debug(await Security.import(name, certPath));
-    debug(await Security.import(name, path_1.default.resolve(shared_1.divvunConfigDir(), sec.macos.appCer)));
-    debug(await Security.import(name, path_1.default.resolve(shared_1.divvunConfigDir(), sec.macos.installerCer)));
-    debug(await Security.import(name, path_1.default.resolve(shared_1.divvunConfigDir(), sec.macos.installerP12), sec.macos.installerP12Password));
-    debug(await Security.import(name, path_1.default.resolve(shared_1.divvunConfigDir(), sec.macos.appP12), sec.macos.appP12Password));
+    debug(await Security.import(name, path_1.default.resolve((0, shared_1.divvunConfigDir)(), sec.macos.appCer)));
+    debug(await Security.import(name, path_1.default.resolve((0, shared_1.divvunConfigDir)(), sec.macos.installerCer)));
+    debug(await Security.import(name, path_1.default.resolve((0, shared_1.divvunConfigDir)(), sec.macos.installerP12), sec.macos.installerP12Password));
+    debug(await Security.import(name, path_1.default.resolve((0, shared_1.divvunConfigDir)(), sec.macos.appP12), sec.macos.appP12Password));
     debug(await Security.setKeyPartitionList(name, password, ["apple-tool:", "apple:", "codesign:"]));
     debug(await shared_1.Bash.runScript(`security add-generic-password -a "${sec.macos.passwordChainItem}" -s "${sec.macos.developerAccount}" -w "${sec.macos.appPassword}"`));
-    debug(await shared_1.Bash.runScript(`bash ${shared_1.divvunConfigDir()}/enc/install.sh`));
+    debug(await shared_1.Bash.runScript(`bash ${(0, shared_1.divvunConfigDir)()}/enc/install.sh`));
 }
 async function cloneConfigRepo(password) {
     core.setSecret(password);
-    const dir = shared_1.tmpDir();
+    const dir = (0, shared_1.tmpDir)();
     await shared_1.Bash.runScript("git clone --depth=1 https://github.com/divvun/divvun-ci-config.git", { cwd: dir });
-    const repoDir = shared_1.divvunConfigDir();
+    const repoDir = (0, shared_1.divvunConfigDir)();
     await shared_1.Bash.runScript(`openssl aes-256-cbc -d -in ./config.txz.enc -pass pass:${password} -out config.txz -md md5`, { cwd: repoDir });
     await shared_1.Tar.bootstrap();
     await shared_1.Tar.extractTxz(path_1.default.resolve(repoDir, "config.txz"), repoDir);
@@ -121,8 +125,8 @@ async function run() {
             await setupMacOSKeychain();
             await bootstrapDependencies();
         }
-        core.exportVariable("DIVVUN_CI_CONFIG", shared_1.divvunConfigDir());
-        core.debug(shared_1.divvunConfigDir());
+        core.exportVariable("DIVVUN_CI_CONFIG", (0, shared_1.divvunConfigDir)());
+        core.debug((0, shared_1.divvunConfigDir)());
     }
     catch (error) {
         core.setFailed(error.message);
