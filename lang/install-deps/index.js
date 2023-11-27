@@ -51,7 +51,7 @@ async function run() {
         "zip",
         "bc"
     ];
-    const devPackages = ["foma", "hfst", "libhfst-dev", "cg3-dev", "divvun-gramcheck"];
+    const devPackages = ["foma", "hfst", "libhfst-dev", "cg3-dev", "divvun-gramcheck", "python3-corpustools"];
     if (requiresApertium) {
         devPackages.push("apertium");
         devPackages.push("apertium-dev");
