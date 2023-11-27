@@ -51,7 +51,7 @@ async function run() {
         "zip",
         "bc"
     ];
-    const devPackages = ["foma", "hfst", "libhfst-dev", "cg3-dev", "divvun-gramcheck", "python3-corpustools"];
+    const devPackages = ["foma", "hfst", "libhfst-dev", "cg3-dev", "divvun-gramcheck", "python3-corpustools", "python3-lxml", "python3-yaml"];
     if (requiresApertium) {
         devPackages.push("apertium");
         devPackages.push("apertium-dev");
@@ -60,7 +60,6 @@ async function run() {
     }
     await shared_1.Apt.update(requiresSudo);
     await shared_1.Apt.install(basePackages, requiresSudo);
-    await shared_1.Pip.install(["PyYAML"], requiresSudo);
     await shared_1.ProjectJJ.addNightlyToApt(requiresSudo);
     await shared_1.Apt.install(devPackages, requiresSudo);
     await shared_1.Ssh.cleanKnownHosts();

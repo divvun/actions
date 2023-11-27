@@ -33,7 +33,7 @@ async function run() {
         "bc"
     ]
 
-    const devPackages = ["foma", "hfst", "libhfst-dev", "cg3-dev", "divvun-gramcheck", "python3-corpustools"]
+    const devPackages = ["foma", "hfst", "libhfst-dev", "cg3-dev", "divvun-gramcheck", "python3-corpustools", "python3-lxml", "python3-yaml"]
 
     if (requiresApertium) {
         devPackages.push("apertium")
@@ -44,7 +44,6 @@ async function run() {
 
     await Apt.update(requiresSudo)
     await Apt.install(basePackages, requiresSudo)
-    await Pip.install(["PyYAML"], requiresSudo)
     await ProjectJJ.addNightlyToApt(requiresSudo)
     await Apt.install(devPackages, requiresSudo)
     await Ssh.cleanKnownHosts()
