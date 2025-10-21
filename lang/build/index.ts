@@ -90,7 +90,8 @@ async function run() {
     const flags = [
         "--without-forrest",
         "--disable-silent-rules",
-        "--without-xfst"
+        "--without-xfst",
+        "--disable-configure-errors"
     ]
 
     // General configuration
@@ -152,7 +153,7 @@ async function run() {
     // Begin build
 
     core.startGroup("Build giella-core")
-    await Bash.runScript("./autogen.sh && ./configure && make", {
+    await Bash.runScript("./autogen.sh && ./configure --disable-configure-errors && make", {
         cwd: path.join(githubWorkspace, "giella-core")
     })
     core.endGroup()
