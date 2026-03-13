@@ -9,5 +9,5 @@ inputs:
 #   time: # id of output
 #     description: 'The time we greeted you'
 runs:
-  using: 'node12'
+  using: 'node22'
   main: 'index.js'

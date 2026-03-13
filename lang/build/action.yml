@@ -67,5 +67,5 @@ outputs:
   speller-paths:
     description: A JSON object consisting of desktop and mobile keys with paths to each zhfst speller
 runs:
-  using: 'node12'
+  using: 'node22'
   main: 'index.js'

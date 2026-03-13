@@ -5,5 +5,5 @@ inputs:
     description: Path to the executable or binary to be codesigned
     required: true
 runs:
-  using: 'node12'
+  using: 'node22'
   main: 'index.js'
