@@ -5,7 +5,7 @@ import path from "path"
 
 import { secrets, DIVVUN_PFX, Bash, RFC3161_URL } from "../shared"
 
-const delay = (ms: number) => new Promise((resolve) => setTimeout(() => resolve(), ms))
+const delay = (ms: number) => new Promise<void>((resolve) => setTimeout(() => resolve(), ms))
 
 async function run() {
     const filePath = path.resolve(core.getInput('path', { required: true }))

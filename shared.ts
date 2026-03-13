@@ -180,7 +180,7 @@ export class Bash {
             core.debug(`Paths in prefix: ${paths.join(", ")}`)
         } catch(e) {
             core.debug("Error getting pahkat prefix")
-            core.debug(e)
+            core.debug(String(e))
         }
 
         const listeners = {

@@ -15,18 +15,39 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.isMatchingTag = exports.isCurrentBranch = exports.validateProductCode = exports.nonUndefinedProxy = exports.DivvunBundler = exports.versionAsNightly = exports.ThfstTools = exports.Subversion = exports.Kbdgen = exports.ProjectJJ = exports.Ssh = exports.PahkatUploader = exports.MacOSPackageTarget = exports.PahkatPrefix = exports.WindowsExecutableKind = exports.RebootSpec = exports.Tar = exports.Bash = exports.DefaultShell = exports.Powershell = exports.Pip = exports.Apt = exports.secrets = exports.DIVVUN_PFX = exports.randomHexBytes = exports.randomString64 = exports.shouldDeploy = exports.divvunConfigDir = exports.tmpDir = exports.RFC3161_URL = void 0;
+exports.DivvunBundler = exports.ThfstTools = exports.Subversion = exports.Kbdgen = exports.ProjectJJ = exports.Ssh = exports.PahkatUploader = exports.MacOSPackageTarget = exports.PahkatPrefix = exports.WindowsExecutableKind = exports.RebootSpec = exports.Tar = exports.Bash = exports.DefaultShell = exports.Powershell = exports.Pip = exports.Apt = exports.DIVVUN_PFX = exports.RFC3161_URL = void 0;
+exports.tmpDir = tmpDir;
+exports.divvunConfigDir = divvunConfigDir;
+exports.shouldDeploy = shouldDeploy;
+exports.randomString64 = randomString64;
+exports.randomHexBytes = randomHexBytes;
+exports.secrets = secrets;
+exports.versionAsNightly = versionAsNightly;
+exports.nonUndefinedProxy = nonUndefinedProxy;
+exports.validateProductCode = validateProductCode;
+exports.isCurrentBranch = isCurrentBranch;
+exports.isMatchingTag = isMatchingTag;
 const exec_1 = require("@actions/exec");
 const core = __importStar(require("@actions/core"));
 const github = __importStar(require("@actions/github"));
@@ -47,23 +68,18 @@ function tmpDir() {
     }
     return dir;
 }
-exports.tmpDir = tmpDir;
 function divvunConfigDir() {
     return path_1.default.resolve(tmpDir(), "divvun-ci-config");
 }
-exports.divvunConfigDir = divvunConfigDir;
 function shouldDeploy() {
     return github.context.ref === 'refs/heads/master';
 }
-exports.shouldDeploy = shouldDeploy;
 function randomString64() {
     return crypto_1.default.randomBytes(48).toString("base64");
 }
-exports.randomString64 = randomString64;
 function randomHexBytes(count) {
     return crypto_1.default.randomBytes(count).toString("hex");
 }
-exports.randomHexBytes = randomHexBytes;
 exports.DIVVUN_PFX = `${divvunConfigDir()}\\enc\\creds\\windows\\divvun.pfx`;
 let loadedSecrets = null;
 function secrets() {
@@ -87,7 +103,6 @@ function secrets() {
     loadedSecrets = nonUndefinedProxy(secrets, true);
     return loadedSecrets;
 }
-exports.secrets = secrets;
 function env() {
     let langs = {
         LANG: "C.UTF-8",
@@ -182,7 +197,7 @@ class Bash {
         }
         catch (e) {
             core.debug("Error getting pahkat prefix");
-            core.debug(e);
+            core.debug(String(e));
         }
         const listeners = {
             stdout: (data) => {
@@ -259,13 +274,13 @@ var RebootSpec;
     RebootSpec["Install"] = "install";
     RebootSpec["Uninstall"] = "uninstall";
     RebootSpec["Update"] = "update";
-})(RebootSpec = exports.RebootSpec || (exports.RebootSpec = {}));
+})(RebootSpec || (exports.RebootSpec = RebootSpec = {}));
 var WindowsExecutableKind;
 (function (WindowsExecutableKind) {
     WindowsExecutableKind["Inno"] = "inno";
     WindowsExecutableKind["Nsis"] = "nsis";
     WindowsExecutableKind["Msi"] = "msi";
-})(WindowsExecutableKind = exports.WindowsExecutableKind || (exports.WindowsExecutableKind = {}));
+})(WindowsExecutableKind || (exports.WindowsExecutableKind = WindowsExecutableKind = {}));
 class PahkatPrefix {
     static get path() {
         return path_1.default.join(tmpDir(), "pahkat-prefix");
@@ -318,7 +333,7 @@ var MacOSPackageTarget;
 (function (MacOSPackageTarget) {
     MacOSPackageTarget["System"] = "system";
     MacOSPackageTarget["User"] = "user";
-})(MacOSPackageTarget = exports.MacOSPackageTarget || (exports.MacOSPackageTarget = {}));
+})(MacOSPackageTarget || (exports.MacOSPackageTarget = MacOSPackageTarget = {}));
 class PahkatUploader {
     static async run(args) {
         const sec = secrets();
@@ -626,7 +641,6 @@ async function versionAsNightly(version) {
     const nightlyTs = data.created_at.replace(/[-:\.]/g, "");
     return `${verChunks.join(".")}-nightly.${nightlyTs}`;
 }
-exports.versionAsNightly = versionAsNightly;
 function deriveBundlerArgs(spellerPaths, withZhfst = true) {
     const args = [];
     for (const [langTag, zhfstPath] of Object.entries(spellerPaths.desktop)) {
@@ -684,7 +698,6 @@ function nonUndefinedProxy(obj, withNull = false) {
         }
     });
 }
-exports.nonUndefinedProxy = nonUndefinedProxy;
 function validateProductCode(kind, code) {
     if (kind === null) {
         core.debug("Found no kind, returning original code");
@@ -728,7 +741,6 @@ function validateProductCode(kind, code) {
     }
     throw new Error("Unhandled kind: " + kind);
 }
-exports.validateProductCode = validateProductCode;
 function isCurrentBranch(names) {
     const value = process.env.GITHUB_REF;
     core.debug(`names: ${names}`);
@@ -743,7 +755,6 @@ function isCurrentBranch(names) {
     }
     return false;
 }
-exports.isCurrentBranch = isCurrentBranch;
 function isMatchingTag(tagPattern) {
     let value = process.env.GITHUB_REF;
     core.debug(`tag pattern: ${tagPattern}`);
@@ -758,4 +769,3 @@ function isMatchingTag(tagPattern) {
     value = value.substring(prefix.length);
     return tagPattern.test(value);
 }
-exports.isMatchingTag = isMatchingTag;

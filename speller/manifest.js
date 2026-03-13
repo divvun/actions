@@ -15,22 +15,34 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.derivePackageId = exports.deriveLangTag = exports.SpellerType = void 0;
+exports.SpellerType = void 0;
+exports.deriveLangTag = deriveLangTag;
+exports.derivePackageId = derivePackageId;
 const github = __importStar(require("@actions/github"));
 var SpellerType;
 (function (SpellerType) {
     SpellerType["MacOS"] = "speller-macos";
     SpellerType["Mobile"] = "speller-mobile";
     SpellerType["Windows"] = "speller-windows";
-})(SpellerType = exports.SpellerType || (exports.SpellerType = {}));
+})(SpellerType || (exports.SpellerType = SpellerType = {}));
 function deriveLangTag(force3) {
     const lang = github.context.repo.repo.split("lang-")[1];
     if (force3) {
@@ -47,9 +59,7 @@ function deriveLangTag(force3) {
     }
     return lang;
 }
-exports.deriveLangTag = deriveLangTag;
 function derivePackageId(type) {
     const lang = github.context.repo.repo.split("lang-")[1];
     return `speller-${lang}`;
 }
-exports.derivePackageId = derivePackageId;
