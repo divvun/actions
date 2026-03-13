@@ -129,7 +129,8 @@ async function run() {
         await shared_2.PahkatUploader.upload(artifactPath, artifactUrl, "./metadata.toml", repoPackageUrl);
     }
     catch (error) {
-        core.setFailed(error.message);
+        const message = error instanceof Error ? error.message : String(error);
+        core.setFailed(message);
     }
 }
 run().catch(err => {

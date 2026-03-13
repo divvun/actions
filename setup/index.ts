@@ -152,7 +152,8 @@ async function run() {
     core.debug(divvunConfigDir())
   }
   catch (error) {
-    core.setFailed((error as Error).message);
+    const message = error instanceof Error ? error.message : String(error);
+    core.setFailed(message);
   }
 }
 

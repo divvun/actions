@@ -186,6 +186,7 @@ class DefaultShell {
 exports.DefaultShell = DefaultShell;
 class Bash {
     static async runScript(script, args = {}) {
+        var _a;
         const thisEnv = Object.assign({}, env(), args.env);
         const out = [];
         const err = [];
@@ -197,7 +198,12 @@ class Bash {
         }
         catch (e) {
             core.debug("Error getting pahkat prefix");
-            core.debug(String(e));
+            if (e instanceof Error) {
+                core.debug((_a = e.stack) !== null && _a !== void 0 ? _a : e.message);
+            }
+            else {
+                core.debug(String(e));
+            }
         }
         const listeners = {
             stdout: (data) => {
