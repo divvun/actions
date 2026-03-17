@@ -23,5 +23,5 @@ inputs:
     description: Pahkat repository channel
     required: false
 runs:
-  using: 'node22'
+  using: 'node24'
   main: 'index.js'

@@ -19,5 +19,5 @@ inputs:
     description: Override deployment check and always deploy
     required: false
 runs:
-  using: 'node22'
+  using: 'node24'
   main: 'index.js'

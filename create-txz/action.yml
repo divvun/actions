@@ -8,5 +8,5 @@ outputs:
   txz-path:
     description: Path to the created .txz file
 runs:
-  using: 'node22'
+  using: 'node24'
   main: 'index.js'
